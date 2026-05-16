@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "strict": true,
+    "noImplicitAny": true,  // Changed from false to true for better type safety
+    "strictNullChecks": true,
+    "allowJs": true,
+    "module": "esnext",
+    "target": "esnext",  // Updated from es2017
+    "moduleResolution": "node",
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,  // Important for Vite
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "noEmit": true  // Recommended for Vite projects
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "types/**/*.d.ts",
+    "node_modules/unplugin-auto-import/auto-imports.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+  "vueCompilerOptions": {
+    "target": 3  // Explicitly set Vue 3 mode
+  }
+}

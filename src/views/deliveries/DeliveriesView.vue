@@ -1,0 +1,3 @@
+<template>
+    Deliveries View
+</template>

@@ -1,0 +1,12 @@
+<template>
+  <section class="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-900/5">
+    <h3 class="text-sm font-semibold text-gray-900">МойСклад</h3>
+    <p class="mt-2 text-sm text-gray-500">Интеграция МойСклад — TODO</p>
+  </section>
+</template>
+
+<script setup>
+defineProps({
+  order: { type: Object, required: true },
+});
+</script>

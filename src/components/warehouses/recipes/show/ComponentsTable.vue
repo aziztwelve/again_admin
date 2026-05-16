@@ -1,0 +1,66 @@
+<template>
+  <DynamicsDataTable
+      v-if="components?.length"
+      :data="components"
+      :columns="columns"
+      :custom-actions="true"
+      :loading="loading"
+  />
+</template>
+
+<script setup lang="ts">
+import {PropType} from "vue";
+import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
+import {CreateRecipeComponent} from "@/models/CreateRecipeComponent";
+
+const props = defineProps({
+  components: {
+    type: Array as PropType<CreateRecipeComponent[]>,
+    default: () => []
+  },
+  loading: Boolean,
+  planned_quantity: {
+    type: Number,
+    default: 1
+  }
+});
+
+
+const columns = [
+  {
+    accessorKey: "id",
+    header: "№",
+    cell: (cell) => cell.row.index + 1,
+  },
+  {
+    accessorKey: "component.name",
+    header: "Материалы",
+  },
+
+  {
+    accessorKey: "quantity",
+    header: "Норма",
+    cell: ({row}) => {
+      return Math.trunc(row.original?.norm_qty) || Math.trunc(row.original?.quantity)
+
+      // return Math.trunc(row.original?.quantity)
+    },
+  },
+  {
+    accessorKey: "quantity",
+    header: "Запланировано",
+    cell: ({row}) => {
+
+      return `${ (Math.trunc(row.original?.norm_qty) || Math.trunc(row.original?.quantity)) * Math.trunc(props.planned_quantity)} шт`
+
+
+      // let qty = ` ${ Math.trunc(row.original?.quantity) * Math.trunc(props.planned_quantity)} шт`
+      // return qty
+    },
+  },
+];
+
+
+</script>
+
+<style scoped></style>
