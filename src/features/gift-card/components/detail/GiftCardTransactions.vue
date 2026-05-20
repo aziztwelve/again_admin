@@ -126,7 +126,7 @@ const columns = [
 
       return h('button', {
         class: 'text-blue-600 hover:text-blue-800 hover:underline cursor-pointer',
-        onClick: () => router.push(`/order/update/${order.id}`)
+        onClick: () => router.push(`/order/${order.id}`)
       }, `#${order.id}`)
     },
   },

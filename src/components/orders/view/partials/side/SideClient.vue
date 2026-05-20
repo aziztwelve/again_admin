@@ -14,7 +14,32 @@
       </Button>
     </div>
 
-    <div v-if="!client" class="mt-2 text-sm text-gray-500">Не указан</div>
+    <!--
+      Если client не привязан — это либо «гостевой заказ», либо ещё не подтверждён.
+      Показываем контакты, сохранённые в самом заказе (и в order_addresses), плюс
+      пометку, что аккаунта в clients нет — менеджер может или связаться по
+      имеющимся данным, или нажать «Выбрать» и привязать существующего клиента.
+    -->
+    <div v-if="!client" class="mt-2 space-y-2 text-sm">
+      <div class="text-amber-700 text-xs uppercase">Гостевой заказ</div>
+      <dl class="space-y-2">
+        <div v-if="guestName">
+          <dt class="text-xs uppercase text-gray-500">ФИО</dt>
+          <dd class="text-gray-900">{{ guestName }}</dd>
+        </div>
+        <div v-if="guestPhone">
+          <dt class="text-xs uppercase text-gray-500">Телефон</dt>
+          <dd class="text-gray-900">{{ guestPhone }}</dd>
+        </div>
+        <div v-if="guestEmail">
+          <dt class="text-xs uppercase text-gray-500">Email</dt>
+          <dd class="text-gray-900">{{ guestEmail }}</dd>
+        </div>
+        <div v-if="!guestName && !guestPhone && !guestEmail" class="text-gray-500">
+          Контактные данные не указаны
+        </div>
+      </dl>
+    </div>
     <dl v-else class="mt-3 space-y-2 text-sm">
       <div>
         <dt class="text-xs uppercase text-gray-500">ФИО</dt>
@@ -76,6 +101,9 @@ const props = defineProps({
   client: { type: Object, default: null },
   stats: { type: Object, default: null },
   saving: { type: Boolean, default: false },
+  // Сам заказ нужен, чтобы для гостевого случая (client === null) показать
+  // контактные данные, сохранённые в orders + order_addresses.recipient_*.
+  order: { type: Object, default: null },
 });
 
 const emit = defineEmits(["save"]);
@@ -105,6 +133,29 @@ const fullName = computed(() => {
 const phone = computed(
   () => props.client?.profile?.phone ?? props.client?.phone ?? null,
 );
+
+// ===== Гостевой заказ: контактные данные из самого order =====
+// Эти значения хранятся в orders (first_name/last_name/phone/email) — если
+// колонки есть, и/или в order_addresses.recipient_* через relation address.
+const guestName = computed(() => {
+  const o = props.order || {};
+  const addr = o.address || {};
+  const parts = [
+    addr.recipient_last_name ?? o.last_name,
+    addr.recipient_first_name ?? o.first_name,
+    addr.recipient_middle_name,
+  ].filter(Boolean);
+  return parts.join(" ").trim() || null;
+});
+
+const guestPhone = computed(() => {
+  const o = props.order || {};
+  return o.address?.recipient_phone ?? o.phone ?? null;
+});
+
+const guestEmail = computed(() => {
+  return props.order?.email ?? null;
+});
 
 const refreshClients = () => store.dispatch("clients/getClients");
 

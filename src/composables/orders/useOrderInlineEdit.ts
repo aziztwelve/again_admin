@@ -13,13 +13,23 @@ export function useOrderInlineEdit() {
 
   /**
    * Нормализует позиции заказа в формат payload для PUT.
+   *
+   * Сохраняет legacy-позиции (импортированные из InSales и т.п., у которых
+   * product_id/variant не разрешились в локальные сущности): для них
+   * передаём legacy_sku/legacy_name, чтобы бэкенд не считал такие позиции
+   * невалидными и не удалял их при сохранении.
    */
   const normalizeItems = (items: any[]): any[] => {
     if (!Array.isArray(items)) return [];
     return items
       .map((item) => {
         const productId = item?.product_id ?? item?.product?.id ?? null;
-        if (!productId) return null;
+        const legacySku = item?.legacy_sku ?? null;
+        const legacyName = item?.legacy_name ?? item?.name ?? null;
+        // Позиция должна быть либо привязана к каталогу (product_id),
+        // либо иметь legacy-данные. Иначе — мусор, отбрасываем.
+        if (!productId && !legacySku && !legacyName) return null;
+
         const quantity = Number(item?.quantity ?? 1) || 1;
         const candidates = [
           item?.unit_price,
@@ -51,6 +61,8 @@ export function useOrderInlineEdit() {
             item?.variant?.id ??
             null,
           color_id: item?.color_id ?? item?.color?.id ?? null,
+          legacy_sku: legacySku,
+          legacy_name: legacyName,
           quantity,
           price: Number.isFinite(unitPrice) ? unitPrice : 0,
         };
@@ -107,7 +119,13 @@ export function useOrderInlineEdit() {
       delivery_date:
         orderAddress.delivery_date || order?.delivery_date || null,
       source: order?.source || null,
-      items: normalizeItems(order?.items || []),
+      // ВАЖНО: items в базовый payload не кладём.
+      // Раньше тут было `items: normalizeItems(order.items)`, но из-за этого
+      // любой PUT (смена статуса, менеджера и т.п.) присылал items, которые
+      // нормализатор фильтровал по product_id. Для импортированных
+      // (legacy-)позиций product_id = null, поэтому массив приходил пустой,
+      // и бэкенд (OrderUpdateService::updateOrderItems) их сносил. Теперь
+      // items передаются только если patch явно их содержит — см. ниже.
       status:
         typeof order?.status === "object"
           ? (order?.status?.value ?? order?.status?.code ?? null)
@@ -141,6 +159,12 @@ export function useOrderInlineEdit() {
     const merged: any = { ...basePayload };
     for (const key of Object.keys(patch)) {
       const value = patch[key];
+      // items приходят только при явной правке позиций; нормализуем здесь,
+      // чтобы legacy-позиции (без product_id) тоже сохранились.
+      if (key === "items") {
+        merged.items = normalizeItems(Array.isArray(value) ? value : []);
+        continue;
+      }
       if (
         value &&
         typeof value === "object" &&

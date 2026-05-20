@@ -9,15 +9,36 @@
         <span class="ml-2 text-sm font-normal text-gray-500">
           от {{ formatDate(order.created_at) }}
         </span>
+        <!--
+          Заказ оформлен гостем (без аккаунта в clients): client_id === null.
+          Контактные данные хранятся в самом заказе и в order_addresses.recipient_*.
+          Бейдж нужен, чтобы менеджер сразу видел: клиента в базе нет — связаться
+          можно только по телефону/email из заказа.
+        -->
+        <span
+          v-if="!order.client_id"
+          class="ml-3 inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
+          title="Заказ оформлен без авторизации"
+        >
+          Гостевой заказ
+        </span>
       </h1>
+      <a
+        v-if="viewOrderUrl"
+        :href="viewOrderUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="ml-3 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+      >
+        <ExternalLink class="h-3.5 w-3.5" />
+        Открыть заказ на сайте
+      </a>
     </div>
 
     <div class="flex items-center gap-2">
-      <Button variant="outline" size="sm" type="button">
-        <Truck class="mr-2 h-4 w-4" /> Оформить доставку
-      </Button>
-      <Button variant="outline" size="sm" type="button" @click="$emit('copy')">
-        <Copy class="mr-2 h-4 w-4" /> Копировать
+      <Button variant="outline" size="sm" type="button" :disabled="copying" @click="$emit('copy')">
+        <Copy class="mr-2 h-4 w-4" />
+        {{ copying ? 'Копирование...' : 'Копировать' }}
       </Button>
 
       <router-link
@@ -50,12 +71,14 @@
 </template>
 
 <script setup>
-import { ArrowLeft, Truck, Copy, ChevronLeft, ChevronRight } from "lucide-vue-next";
+import { ArrowLeft, Copy, ChevronLeft, ChevronRight, ExternalLink } from "lucide-vue-next";
 import Button from "@/components/ui/button/Button.vue";
 
 defineProps({
   order: { type: Object, required: true },
   neighbors: { type: Object, default: () => ({ prev_id: null, next_id: null }) },
+  viewOrderUrl: { type: String, default: null },
+  copying: { type: Boolean, default: false },
 });
 
 defineEmits(["copy"]);

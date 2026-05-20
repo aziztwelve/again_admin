@@ -56,11 +56,6 @@ const routes = [
                         component: () => import('../components/orders/create/OrderCreate.vue'),
                     },
                     {
-                        path: '/order/update/:id',
-                        name: 'orders-update',
-                        component: () => import('../components/orders/update/order.vue'),
-                    },
-                    {
                         path: '/order/:id',
                         name: 'orders-view',
                         component: () => import('../components/orders/view/OrderView.vue'),

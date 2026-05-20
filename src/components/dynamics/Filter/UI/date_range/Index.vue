@@ -1,6 +1,30 @@
 <template>
   <div>
-    <Popover>
+    <!--
+      Inline-режим (column.inline=true): календарь сразу видим, без вложенного
+      Popover-триггера. Используется внутри ColumnHeaderFilter, чтобы кнопка
+      "Применить" outer-popover'а не перекрывалась всплывающим календарём.
+    -->
+    <template v-if="column.inline">
+      <div class="space-y-2">
+        <div class="text-xs text-muted-foreground truncate">
+          <template v-if="localRange.start">
+            <template v-if="localRange.end">
+              {{ formatDisplay(localRange.start) }} — {{ formatDisplay(localRange.end) }}
+            </template>
+            <template v-else>
+              {{ formatDisplay(localRange.start) }} — выберите конец периода
+            </template>
+          </template>
+          <template v-else>
+            {{ column.placeholder || 'Выберите период' }}
+          </template>
+        </div>
+        <DatePickerWithSelectYear v-model="localRange"/>
+      </div>
+    </template>
+
+    <Popover v-else>
       <PopoverTrigger as-child>
         <Button
             variant="outline"

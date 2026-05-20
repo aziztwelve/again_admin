@@ -5,6 +5,8 @@
     <OrderHeader
       :order="order"
       :neighbors="neighbors"
+      :view-order-url="viewOrderUrl"
+      :copying="isCopying"
       @copy="onCopy"
     />
 
@@ -81,6 +83,7 @@
         />
         <SideClient
           :client="order.client"
+          :order="order"
           :stats="clientStats"
           :saving="isSavingClient"
           @save="onClientSave"
@@ -102,7 +105,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 
 import Loader from "@/components/common/Loader.vue";
@@ -134,6 +137,7 @@ import SideMoySklad from "./partials/side/SideMoySklad.vue";
 import { useOrderInlineEdit } from "@/composables/orders/useOrderInlineEdit";
 
 const route = useRoute();
+const router = useRouter();
 
 const isLoading = ref(true);
 const order = ref(null);
@@ -147,6 +151,7 @@ const viewedProducts = ref([]);
 const source = ref({});
 const neighbors = ref({ prev_id: null, next_id: null });
 const similarClients = ref([]);
+const viewOrderUrl = ref(null);
 
 const { saveOrderPatch } = useOrderInlineEdit();
 const { toast } = useToast();
@@ -179,6 +184,7 @@ const fetchOrder = async (id) => {
     similarClients.value = Array.isArray(data?.similar_clients)
       ? data.similar_clients
       : [];
+    viewOrderUrl.value = data?.view_order_url ?? null;
 
     // Синхронизируем состояние купона с заказом
     appliedCouponCode.value = order.value?.promo_code?.code || "";
@@ -427,8 +433,28 @@ const clearCoupon = async () => {
   }
 };
 
-const onCopy = () => {
-  // TODO: реализовать копирование заказа (POST /orders/{id}/duplicate)
+const isCopying = ref(false);
+
+const onCopy = async () => {
+  if (!confirm(`Скопировать заказ №${order.value?.order_number}? Будет создан новый заказ с теми же товарами и данными клиента.`)) {
+    return;
+  }
+
+  isCopying.value = true;
+  try {
+    const { data } = await axios.post(`/orders/${order.value.id}/duplicate`);
+    if (data?.success) {
+      toast({ title: `Заказ скопирован → №${data.order.order_number}` });
+      router.push(`/order/${data.order.id}`);
+    } else {
+      toast({ title: "Ошибка при копировании заказа", variant: "destructive" });
+    }
+  } catch (e) {
+    console.error("duplicate error", e);
+    toast({ title: "Ошибка при копировании заказа", variant: "destructive" });
+  } finally {
+    isCopying.value = false;
+  }
 };
 
 onMounted(() => fetchOrder(route.params.id));

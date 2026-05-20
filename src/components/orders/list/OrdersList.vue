@@ -1,40 +1,36 @@
 <template>
-  <div class="flex justify-between mb-2 md:space-x-4 max-md:flex-col">
+  <!--
+    Верхнюю панель фильтров убрали: все фильтры теперь живут в заголовках
+    столбцов таблицы (см. OrderListTable). Сверху оставлены только кнопки
+    действий (создать заказ, экспорт, сброс всех фильтров).
+  -->
+  <div class="flex justify-end gap-2 mb-2">
+    <router-link to="/order/create">
+      <Button variant="outline" size="icon">
+        <Plus/>
+      </Button>
+    </router-link>
 
+    <OrdersExport/>
 
-    <div class="w-full  flex md:space-x-2 max-md:space-y-2 max-md:flex-col">
-      <OrderSearch
-          :key="renderSearchComp"
-          :filter="searchParams"
-          @search="handleSearch"
-      />
-
-      <div class="flex gap-2">
-        <router-link to="/order/create">
-          <Button variant="outline" size="icon">
-            <Plus/>
-          </Button>
-        </router-link>
-
-        <!-- Добавляем кнопку экспорта -->
-        <OrdersExport />
-
-        <Button
-            v-if="hasActiveFilters"
-            variant="outline"
-            @click="resetFilters"
-        >
-          <X/>
-        </Button>
-      </div>
-
-    </div>
+    <Button
+        v-if="hasActiveFilters"
+        variant="outline"
+        @click="resetFilters"
+        title="Сбросить все фильтры"
+    >
+      <X/>
+    </Button>
   </div>
 
   <OrderListTable
       :loading="sending"
       :items="orders"
       :pagination="pagination"
+      :filter="searchParams"
+      :manager-options="managerOptions"
+      :delivery-method-options="deliveryMethodOptions"
+      @filter="handleSearch"
       @deleted="fetchData()"
   />
 
@@ -42,11 +38,11 @@
 
 <script setup lang="ts">
 import {ref, onMounted, computed, watch} from 'vue';
+import axios from 'axios';
 import {useRoute} from "vue-router";
 import Order from "@/models/order/Order"
 import OrderListTable from "@/components/orders/list/OrderListTable.vue";
 import {useOrderFunctions} from "@/composables/useOrderFunctions";
-import OrderSearch from "@/components/orders/list/OrderSearch.vue";
 import OrdersExport from "@/components/orders/Export.vue";
 import Button from "@/components/ui/button/Button.vue";
 import {Plus, X} from "lucide-vue-next"
@@ -57,19 +53,34 @@ const store = useStore();
 const route = useRoute()
 
 
+// Общий объект состояния всех фильтров: используется и верхней панелью
+// OrderSearch, и фильтрами-кнопками в заголовках столбцов OrderListTable.
+// Любое изменение в любом виджете → handleSearch() → fetchData().
 const searchParams = ref({
   datePicker: {
     start: '',
     end: ''
   },
   search: '',
+  // Узкий поиск по ФИО получателя — ходит ТОЛЬКО по order_addresses.recipient_*
+  // на бэке (см. OrderFilterService::searchByRecipient). Используется фильтром
+  // столбца «ФИО получателя», чтобы не «зацеплять» имя/фамилию клиента.
+  recipient_search: '',
   status: '',
-  payment_status: ''
+  payment_status: '',
+  delivery_method_id: '',
+  assigned_user_id: '',
+  min_amount: '',
+  max_amount: '',
 })
 
 const orders = ref<Order[]>([])
 
-const renderSearchComp = ref(1)
+// Списки опций для select-фильтров (как в верхней панели, так и в заголовках).
+// Грузим один раз тут, передаём вниз — чтобы не дублировать запросы.
+const managerOptions = ref<{ value: number | string; label: string }[]>([])
+const deliveryMethodOptions = ref<{ value: number | string; label: string }[]>([])
+
 const pagination = ref<PaginationMeta>({
   page: 1,
   per_page: 15,
@@ -77,11 +88,25 @@ const pagination = ref<PaginationMeta>({
 })
 
 const hasActiveFilters = computed(() => {
-  return !!searchParams.value.search || !!searchParams.value.datePicker.start || !!searchParams.value.datePicker.end || !!searchParams.value.status
+  const s = searchParams.value
+  return !!s.search
+      || !!s.recipient_search
+      || !!s.datePicker.start
+      || !!s.datePicker.end
+      || !!s.status
+      || !!s.payment_status
+      || !!s.delivery_method_id
+      || !!s.assigned_user_id
+      || s.min_amount !== '' && s.min_amount !== null
+      || s.max_amount !== '' && s.max_amount !== null
 })
 
 onMounted(async () => {
-  await fetchData()
+  await Promise.all([
+    fetchData(),
+    fetchManagers(),
+    fetchDeliveryMethods(),
+  ])
   await store.dispatch('notifications/markOrdersChecked');
 })
 
@@ -98,17 +123,57 @@ async function fetchData() {
     page: pagination.value.page,
     per_page: pagination.value.per_page,
     search: searchParams.value.search,
+    recipient_search: searchParams.value.recipient_search,
     date_from: searchParams.value.datePicker.start,
     date_to: searchParams.value.datePicker.end,
-    payment_status: searchParams.value.payment_status
+    payment_status: searchParams.value.payment_status,
+    delivery_method_id: searchParams.value.delivery_method_id || null,
+    assigned_user_id: searchParams.value.assigned_user_id || null,
+    min_amount: searchParams.value.min_amount === '' ? null : searchParams.value.min_amount,
+    max_amount: searchParams.value.max_amount === '' ? null : searchParams.value.max_amount,
   })
 
   orders.value = result?.orders ?? []
   pagination.value.total = result?.meta.total ?? 0
 }
 
+async function fetchManagers() {
+  try {
+    // Лёгкий, целевой эндпоинт — возвращает плоский массив [{id, name}]
+    // только админ-пользователей (super-admin/admin/manager). Без пагинации,
+    // без ролей/permissions — чтобы фильтр на странице заказов всегда
+    // получал стабильный список.
+    const {data} = await axios.get('/users/managers')
+    const list: Array<{id: number; name: string}> = Array.isArray(data?.managers)
+        ? data.managers
+        : []
+    managerOptions.value = list.map((u) => ({
+      value: u.id,
+      label: u.name || `#${u.id}`,
+    }))
+  } catch (e) {
+    console.error('Failed to load managers', e)
+    managerOptions.value = []
+  }
+}
+
+async function fetchDeliveryMethods() {
+  try {
+    const {data} = await axios.get('/delivery/methods/admin')
+    const list = Array.isArray(data) ? data : (data?.data ?? data?.delivery_methods ?? data?.methods ?? [])
+    deliveryMethodOptions.value = (list || []).map((m: any) => ({
+      value: m.id,
+      label: m.name || m.title || `#${m.id}`,
+    }))
+  } catch (e) {
+    console.error('Failed to load delivery methods', e)
+    deliveryMethodOptions.value = []
+  }
+}
+
 
 const handleSearch = () => {
+  pagination.value.page = 1
   fetchData()
 }
 
@@ -120,11 +185,16 @@ function resetFilters() {
       end: ''
     },
     search: '',
+    recipient_search: '',
     status: '',
+    payment_status: '',
+    delivery_method_id: '',
+    assigned_user_id: '',
+    min_amount: '',
+    max_amount: '',
   }
 
   pagination.value.page = 1
-  renderSearchComp.value++
   fetchData()
 }
 

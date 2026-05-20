@@ -78,7 +78,7 @@ const { formatDateToRussian } = useDateFormat()
 const formatDate = (date: string) => formatDateToRussian(date, true)
 
 const goToOrder = (orderId: number) => {
-  router.push(`/order/update/${orderId}`)
+  router.push(`/order/${orderId}`)
 }
 </script>
 

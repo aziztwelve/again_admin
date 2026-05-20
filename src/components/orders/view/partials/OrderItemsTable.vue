@@ -68,11 +68,11 @@
               <div v-else class="h-10 w-10 rounded bg-gray-100" />
             </td>
             <td class="px-3 py-2 text-sm text-gray-700">
-              {{ item.product?.sku || item.variant?.name || "—" }}
+              {{ item.variant?.sku || item.product?.code || item.legacy_sku || item.product?.sku || "—" }}
             </td>
             <td class="px-3 py-2 text-sm text-gray-900">
               <div class="flex flex-wrap items-center gap-2">
-                <span>{{ item.product?.name || item.name || "—" }}</span>
+                <span>{{ item.product?.name || item.legacy_name || item.name || "—" }}</span>
                 <span
                   v-if="item.is_gift"
                   class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
@@ -83,9 +83,15 @@
               </div>
               <div
                 v-if="getVariantLabel(item)"
-                class="mt-0.5 text-xs text-gray-500"
+                class="mt-0.5 flex items-center gap-1.5 text-xs text-gray-500"
               >
-                {{ getVariantLabel(item) }}
+                <span
+                  v-if="getVariantColor(item)?.code"
+                  class="inline-block h-3 w-3 flex-shrink-0 rounded-full ring-1 ring-inset ring-gray-300"
+                  :style="{ background: getVariantColor(item).code }"
+                  :title="getVariantColor(item).name || ''"
+                />
+                <span>{{ getVariantLabel(item) }}</span>
               </div>
             </td>
             <td class="px-3 py-2 text-right text-sm text-gray-900">
@@ -97,6 +103,11 @@
                 step="0.01"
                 class="h-8 w-24 text-right"
               />
+              <span v-else-if="item.is_gift" class="text-emerald-700 font-medium">Бесплатно</span>
+              <template v-else-if="Number(item.discount) > 0">
+                <div class="text-xs text-gray-400 line-through">{{ formatPrice(getUnitPrice(item) + Number(item.discount)) }}</div>
+                <div class="text-red-600 font-medium">{{ formatPrice(getUnitPrice(item)) }}</div>
+              </template>
               <span v-else>{{ formatPrice(getUnitPrice(item)) }}</span>
             </td>
             <td class="px-3 py-2 text-right text-sm text-gray-700">
@@ -119,7 +130,12 @@
               {{ item.product?.stock_quantity ?? "—" }}
             </td>
             <td class="px-3 py-2 text-right text-sm font-medium text-gray-900">
-              {{ formatPrice(getRowTotal(item)) }}
+              <span v-if="item.is_gift" class="text-emerald-700">Бесплатно</span>
+              <template v-else-if="Number(item.discount) > 0">
+                <div class="text-xs text-gray-400 line-through">{{ formatPrice((getUnitPrice(item) + Number(item.discount)) * Number(item.quantity || 0)) }}</div>
+                <div class="text-red-600 font-medium">{{ formatPrice(getRowTotal(item)) }}</div>
+              </template>
+              <span v-else>{{ formatPrice(getRowTotal(item)) }}</span>
             </td>
             <td class="px-3 py-2 text-right">
               <Button
@@ -212,12 +228,20 @@ const formatPrice = (value) => {
 };
 
 function getUnitPrice(item) {
-  const candidates = [item?.unit_price, item?.price_per_unit, item?.variant?.price, item?.price];
+  // Подарок по акции — всегда 0 ₽ независимо от того, что в БД.
+  // На случай, если where-то price у gift-позиции не обнулился.
+  if (item?.is_gift) return 0;
+
+  // Источник истины — order_items.price (item.price): это та цена, по которой
+  // позиция реально проведена в заказ. variant.price/product.price используются
+  // только как фолбэк, если по каким-то причинам item.price отсутствует
+  // (например, при черновом редактировании в режиме editing — там
+  // используется item.unit_price).
+  const candidates = [item?.unit_price, item?.price_per_unit, item?.price, item?.variant?.price];
   for (const c of candidates) {
+    if (c === null || c === undefined || c === "") continue;
     const n = Number(c);
-    if (!Number.isNaN(n) && c !== null && c !== undefined) {
-      return n;
-    }
+    if (!Number.isNaN(n)) return n;
   }
   return 0;
 }
@@ -234,10 +258,19 @@ const getImage = (item) => {
 
 /**
  * Возвращает читаемое название варианта позиции, например:
- *   "Размер: M", "Размер: M, Цвет: Чёрный".
- * Если у позиции нет варианта или у варианта нет option_values — null.
+ *   "Цвет: Чёрный, Размер: M".
+ * Источники данных (в порядке приоритета):
+ *   1. item.variant.option_values — нормальная EAV-система атрибутов
+ *      (сейчас не заполнена, оставлено на будущее).
+ *   2. item.color — собственный color_id у OrderItem (заполняется при
+ *      создании заказа).
+ *   3. item.variant.table_color — цвет, привязанный к самому варианту
+ *      (фолбэк для случаев, когда OrderItem.color_id не записался,
+ *      например для подарков по акции).
+ *   4. item.variant.name — легаси-поле, в которое сейчас кладут размер
+ *      ("XS", "S", "M", …).
  * Используется в т.ч. для подарков с вариативностью, чтобы сборщик
- * сразу видел, какой именно размер класть в посылку.
+ * сразу видел, какой именно цвет и размер класть в посылку.
  */
 const getVariantLabel = (item) => {
   const optionValues = item?.variant?.option_values || item?.variant?.optionValues;
@@ -252,6 +285,23 @@ const getVariantLabel = (item) => {
       .filter(Boolean)
       .join(", ");
   }
-  return item?.variant?.name || null;
+
+  const parts = [];
+
+  // Цвет: сначала собственный у OrderItem (item.color), потом — у варианта
+  const color =
+    item?.color ||
+    item?.variant?.table_color ||
+    item?.variant?.color ||
+    null;
+  if (color?.name) parts.push(`Цвет: ${color.name}`);
+
+  // Размер: в текущей схеме хранится в product_variants.name
+  if (item?.variant?.name) parts.push(`Размер: ${item.variant.name}`);
+
+  return parts.length > 0 ? parts.join(", ") : null;
 };
+
+const getVariantColor = (item) =>
+  item?.color || item?.variant?.table_color || item?.variant?.color || null;
 </script>

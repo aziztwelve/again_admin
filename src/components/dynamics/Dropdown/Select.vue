@@ -14,7 +14,7 @@
       >
         <SelectValue :placeholder="placeholder || 'Выберите...'"/>
         <button
-            v-if="modelValue"
+            v-if="modelValue && clearable"
             @pointerdown.stop
             @mousedown.stop
             @click.stop="clearSelection"
@@ -113,7 +113,10 @@ const props = defineProps<{
   title?: string
   searchable?: boolean
   searchPlaceholder?: string
+  clearable?: boolean
 }>()
+
+const clearable = computed(() => props.clearable !== false)
 
 const emit = defineEmits(['update:modelValue'])
 

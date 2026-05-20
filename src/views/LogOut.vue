@@ -8,6 +8,6 @@ import Cookies from "js-cookie";
 
 onMounted(() => {
   Cookies.remove("access_token");
-  window.location = '/auth'
+  window.location = '/admin/auth'
 });
 </script>

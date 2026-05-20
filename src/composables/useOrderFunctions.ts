@@ -16,9 +16,14 @@ export function useOrderFunctions() {
         page?: number,
         paginate?: boolean,
         search?: string,
+        recipient_search?: string,
         date_from?: string,
         date_to?: string,
-        payment_status: string
+        payment_status?: string,
+        delivery_method_id?: number | string | null,
+        assigned_user_id?: number | string | null,
+        min_amount?: number | string | null,
+        max_amount?: number | string | null,
     }): Promise<{
         orders: Order[],
         meta: {

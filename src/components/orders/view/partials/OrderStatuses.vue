@@ -1,6 +1,7 @@
 <template>
   <section class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-900/5">
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <!-- ряд 1 -->
       <div>
         <Label for="order-status" class="text-xs uppercase text-gray-500">
           Статус заказа
@@ -13,6 +14,7 @@
           option-value="value"
           :disabled="savingField === 'status'"
           placeholder="Выберите статус"
+          :clearable="false"
           @update:modelValue="onChange('status', $event)"
         />
       </div>
@@ -29,6 +31,7 @@
           option-value="value"
           :disabled="savingField === 'payment_status'"
           placeholder="—"
+          :clearable="false"
           @update:modelValue="onChange('payment_status', $event)"
         />
       </div>
@@ -44,26 +47,10 @@
           option-label="label"
           option-value="value"
           :disabled="savingField === 'payment_method'"
-          placeholder="—"
+          placeholder="Не выбран"
+          :clearable="false"
           @update:modelValue="onChange('payment_method', $event || null)"
         />
-      </div>
-
-      <div>
-        <Label for="order-paid-at" class="text-xs uppercase text-gray-500">
-          Дата оплаты
-        </Label>
-        <Input
-          id="order-paid-at"
-          v-model="localPaidAt"
-          type="datetime-local"
-          class="mt-1 h-9 text-sm"
-          :disabled="savingField === 'paid_at'"
-          @change="onPaidAtChange"
-        />
-        <div v-if="order.payment_id" class="text-xs text-gray-500">
-          ID транзакции: {{ order.payment_id }}
-        </div>
       </div>
 
       <div>
@@ -80,8 +67,27 @@
           :placeholder="managersLoading ? 'Загрузка...' : 'Не назначен'"
           searchable
           search-placeholder="Поиск менеджера..."
+          :clearable="false"
           @update:modelValue="onManagerChange"
         />
+      </div>
+
+      <!-- ряд 2 -->
+      <div>
+        <Label for="order-paid-at" class="text-xs uppercase text-gray-500">
+          Дата оплаты
+        </Label>
+        <input
+          id="order-paid-at"
+          v-model="localPaidAt"
+          type="datetime-local"
+          class="paid-at-input mt-1 block h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          :disabled="savingField === 'paid_at'"
+          @change="onPaidAtChange"
+        />
+        <div v-if="order.payment_id" class="mt-0.5 text-xs text-gray-500">
+          ID транзакции: {{ order.payment_id }}
+        </div>
       </div>
     </div>
   </section>
@@ -116,11 +122,12 @@ const extractValue = (val) => {
   return val;
 };
 
+const pad = (n) => String(n).padStart(2, "0");
+
 const toDateTimeLocal = (value) => {
   if (!value) return "";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
-  const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
@@ -225,7 +232,22 @@ onMounted(() => {
 const onChange = async (field, value) => {
   savingField.value = field;
   try {
-    await emit("update", { [field]: value });
+    const payload = { [field]: value };
+
+    // При переключении на «Оплачено» — автоматически проставить paid_at = now(),
+    // если поле ещё не заполнено. При переключении на другой статус — сбросить.
+    if (field === "payment_status") {
+      if (value === "paid" && !localPaidAt.value) {
+        const d = new Date();
+        localPaidAt.value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        payload.paid_at = localPaidAt.value;
+      } else if (value !== "paid") {
+        localPaidAt.value = "";
+        payload.paid_at = null;
+      }
+    }
+
+    await emit("update", payload);
   } finally {
     savingField.value = null;
   }
@@ -239,10 +261,15 @@ const onManagerChange = async (value) => {
 };
 
 const onPaidAtChange = async () => {
-  // datetime-local => 'YYYY-MM-DDTHH:mm' либо '' если очищено.
-  // На бэке '' трактуется как null (сбросить дату оплаты).
   const value = localPaidAt.value || null;
   await onChange("paid_at", value);
 };
 
 </script>
+
+<style scoped>
+/* Скрываем AM/PM в Chromium-браузерах */
+.paid-at-input::-webkit-datetime-edit-ampm-field {
+  display: none;
+}
+</style>

@@ -4,7 +4,17 @@
           :filter="filters"
           @search="handleSearch"
       />
-      <div class="flex gap-2 max-md:my-2">
+      <div class="flex gap-2 max-md:my-2 items-center">
+        <div class="min-w-[220px]">
+          <Select
+              v-model="sort"
+              :options="sortOptions"
+              option-label="label"
+              option-value="value"
+              :clearable="false"
+              placeholder="Сортировка"
+          />
+        </div>
         <ClientsExport
             :selected-ids="selectedIds"
         />
@@ -33,6 +43,7 @@ import {Client} from "@/models/client/Client";
 import ClientSearch from "@/components/clients/ClientSearch.vue";
 import {Pagination} from "@/types/Types";
 import ClientsExport from "@/components/clients/Export.vue";
+import Select from "@/components/dynamics/Dropdown/Select.vue";
 
 
 const clients = ref<Client[]>([]);
@@ -55,6 +66,21 @@ const filters = ref({
   }
 })
 
+const sort = ref<string>("created_at,desc")
+
+const sortOptions = [
+  {value: "created_at,desc",     label: "Дата создания — новые сверху"},
+  {value: "created_at,asc",      label: "Дата создания — старые сверху"},
+  {value: "id,desc",             label: "ID — по убыванию"},
+  {value: "id,asc",              label: "ID — по возрастанию"},
+  {value: "email,asc",           label: "Email — А→Я"},
+  {value: "email,desc",          label: "Email — Я→А"},
+  {value: "bonus_balance,desc",  label: "Бонусы — больше сверху"},
+  {value: "bonus_balance,asc",   label: "Бонусы — меньше сверху"},
+  {value: "orders_count,desc",   label: "Заказов — больше сверху"},
+  {value: "orders_count,asc",    label: "Заказов — меньше сверху"},
+]
+
 
 const deleteClient = (client: Client) => {
   clients.value = clients.value.filter(
@@ -75,6 +101,7 @@ async function fetchData() {
     search: filters.value.search,
     birth_date_from: filters.value.birth_date.start ?? null,
     birth_date_to: filters.value.birth_date.end ?? null,
+    sort: sort.value,
   }
 
   try {
@@ -117,6 +144,14 @@ watch(
 watch(
     () => pagination.value.per_page, // Следим за per_page отдельно
     () => {
+      fetchData()
+    }
+)
+
+watch(
+    () => sort.value,
+    () => {
+      pagination.value.page = 1
       fetchData()
     }
 )

@@ -1,20 +1,36 @@
 <template>
-  <DynamicsFilter
-      :columns="filterColumns"
-      :filter="filter"
-      @search="emits('search')"
-  />
-
+  <div class="w-full flex flex-col gap-2">
+    <DynamicsFilter
+        :columns="topColumns"
+        :filter="filter"
+        :show-button="false"
+        @search="emits('search')"
+    />
+    <DynamicsFilter
+        :columns="bottomColumns"
+        :filter="filter"
+        @search="emits('search')"
+    />
+  </div>
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue';
+import {computed} from 'vue';
 import DynamicsFilter from '@/components/dynamics/Filter/Index.vue';
-import Button from '@/components/ui/button/Button.vue';
 import {useStatusFunctions} from "@/composables/useStatusFunctions";
 
 const props = defineProps({
   filter: Object,
+  // Опции селектов прокидываются из родителя (OrdersList), чтобы те же
+  // самые списки использовались и в фильтрах-кнопках в заголовках таблицы.
+  managerOptions: {
+    type: Array,
+    default: () => [],
+  },
+  deliveryMethodOptions: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emits = defineEmits(["search"]);
@@ -23,8 +39,7 @@ const emits = defineEmits(["search"]);
 const {getStatuses} = useStatusFunctions()
 
 
-const filterColumns = ref([
-
+const topColumns = computed(() => [
   {
     type: "select",
     placeholder: "Статус заказа",
@@ -41,20 +56,38 @@ const filterColumns = ref([
     optionValue: 'value',
     optionLabel: 'label',
   },
+  {
+    type: "select",
+    placeholder: "Способ доставки",
+    field: "delivery_method_id",
+    options: props.deliveryMethodOptions,
+    optionValue: 'value',
+    optionLabel: 'label',
+  },
+  {
+    type: "select",
+    placeholder: "Менеджер",
+    field: "assigned_user_id",
+    options: props.managerOptions,
+    optionValue: 'value',
+    optionLabel: 'label',
+  },
 
   {
     type: "date_range",
     placeholder: "Выберите период",
     field: "datePicker",
   },
-  {
-    type: "text",
-    placeholder: "Номер заказа или И/Ф клиента",
-    field: "search",
-  },
 
 ]);
 
+const bottomColumns = [
+  {
+    type: "text",
+    placeholder: "№ заказа, ФИО, email, телефон, страна, город, адрес",
+    field: "search",
+  },
+];
 
 </script>
 

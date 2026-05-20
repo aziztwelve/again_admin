@@ -25,6 +25,13 @@ export default class Order {
     delivery_method: DeliveryMethod | undefined;
     delivery_method_id: number | null | undefined;
     delivery_address: Record<string, any> | null | undefined;
+    // Сырая запись адреса доставки (order_addresses): тут лежат
+    // recipient_first_name/last_name/middle_name/phone и т.д. Нужно для
+    // отображения «ФИО получателя» в списке заказов СТРОГО из доставки.
+    address: Record<string, any> | null | undefined;
+    // Менеджер, прикреплённый к заказу (User + profile). Используется
+    // в столбце «Менеджер» в списке заказов.
+    assigned_user: Record<string, any> | null | undefined;
     delivery_target: any;
     delivery_target_id: number | undefined;
     discount_amount: string | undefined;
@@ -53,6 +60,8 @@ export default class Order {
         this.delivery_method = undefined;
         this.delivery_method_id = undefined;
         this.delivery_address = null;
+        this.address = null;
+        this.assigned_user = null;
         this.delivery_target = undefined;
         this.delivery_target_id = undefined;
         this.discount_amount = undefined;
@@ -83,6 +92,11 @@ export default class Order {
         order.delivery_method = json.delivery_method || {id: null, name: "", description: "", type: null};
         order.delivery_method_id = json.delivery_method_id ?? json.delivery_method?.id ?? null;
         order.delivery_address = json.delivery_address ?? json.address ?? null;
+        // Сырой order_addresses-объект отдельно: для столбца «ФИО получателя»
+        // нужны именно recipient_*. delivery_address — accessor с урезанным
+        // набором полей (без recipient_*), поэтому хранить дублируем.
+        order.address = json.address ?? null;
+        order.assigned_user = json.assigned_user ?? null;
         order.delivery_target = json.delivery_target ?? null;
         order.delivery_target_id = json.delivery_target_id ?? json.delivery_target?.id;
         order.discount_amount = json.discount_amount || 0;

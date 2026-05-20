@@ -214,7 +214,7 @@ const receiptDate = computed(() => {
 });
 
 const getSku = (item) =>
-  item.product?.sku || item.variant?.sku || item.legacy_sku || "—";
+  item.variant?.sku || item.product?.code || item.legacy_sku || item.product?.sku || "—";
 
 const getName = (item) => {
   const base = item.product?.name || item.name || item.legacy_name || "—";

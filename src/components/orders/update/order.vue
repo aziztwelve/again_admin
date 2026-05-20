@@ -483,6 +483,7 @@ const fetchProducts = async (search = "") => {
     per_page: 50,
     paginate: false,
     admin: true,
+    is_active: 1,
     search: search || undefined,
   });
 

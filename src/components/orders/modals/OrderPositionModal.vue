@@ -68,7 +68,7 @@
                                             {{ pluralizeVariants(getVariants(product).length) }}
                                         </span>
                                         <span v-else>
-                                            Артикул: {{ product.sku || '—' }}
+                                            Артикул: {{ product.code || product.sku || '—' }}
                                         </span>
                                     </p>
                                 </div>

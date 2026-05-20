@@ -5,7 +5,7 @@
       <span class="text-gray-400 ">О клиенте</span>
       <span class="text-gray-500 py-3 text-sm">Последний заказ:
         <span class="text-blue-500" v-if="client?.last_order?.id">
-          <router-link :to="`/order/update/${client?.last_order?.id}`">
+          <router-link :to="`/order/${client?.last_order?.id}`">
           {{ client?.last_order?.id }}
           </router-link>
         </span>

@@ -349,10 +349,28 @@ const couponSavings = ref(0);
 const couponNotApplicableCount = ref(0);
 const validationErrors = ref({});
 
+// Refs на DOM-секции — для автоскролла к блоку с ошибкой.
+const errorSummaryRef = ref(null);
+const clientSectionRef = ref(null);
+const recipientSectionRef = ref(null);
+const deliverySectionRef = ref(null);
+
+const { getProducts: getProductsFromApi } = useProductFunctions();
+const { getAllStatuses, getStatuses } = useStatusFunctions();
+const { paymentMethodOptions, fetchPaymentMethods } = useOrderPaymentMethods();
+
+const pageTitle = "Добавить заказ";
+
+const data = reactive({
+  items: [],
+});
+
 // === Промо-акция (Promotion) =============================================
 // items/total для проверки применимых акций. ВАЖНО: подарочные позиции (is_gift)
 // в payload check-applicable не отправляем — иначе акция могла бы попытаться
 // применить саму себя; считаем сумму строго по обычным позициям клиента.
+// ВАЖНО: эти computed обращаются к `data.items`, поэтому объявлены ПОСЛЕ
+// `const data = reactive(...)` — иначе TDZ-ошибка при инициализации.
 const promotionCheckItems = computed(() =>
   (data.items || [])
     .filter((it) => !it.is_gift)
@@ -371,22 +389,6 @@ const promotionCheckTotal = computed(() =>
 );
 const promotion = usePromotionForOrder(promotionCheckItems, promotionCheckTotal);
 // =======================================================================
-
-// Refs на DOM-секции — для автоскролла к блоку с ошибкой.
-const errorSummaryRef = ref(null);
-const clientSectionRef = ref(null);
-const recipientSectionRef = ref(null);
-const deliverySectionRef = ref(null);
-
-const { getProducts: getProductsFromApi } = useProductFunctions();
-const { getAllStatuses, getStatuses } = useStatusFunctions();
-const { paymentMethodOptions, fetchPaymentMethods } = useOrderPaymentMethods();
-
-const pageTitle = "Добавить заказ";
-
-const data = reactive({
-  items: [],
-});
 
 const formData = reactive({
   client_id: initialClientIdFromQuery,
@@ -580,6 +582,7 @@ const fetchProducts = async (search = "") => {
     per_page: 50,
     paginate: false,
     admin: true,
+    is_active: 1,
     search: search || undefined,
   });
 

@@ -52,6 +52,8 @@ const dotClass = (action) => {
     case "deleted":
     case "item_removed":
       return "bg-red-500";
+    case "copied":
+      return "bg-orange-400";
     default:
       return "bg-gray-300";
   }
