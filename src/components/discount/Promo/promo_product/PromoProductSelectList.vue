@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="flex max-md:flex-col justify-between mb-2 max-md:space-y-2">
-      <TriggerProductSearch
+      <PromoProductSearch
         class="md:w-[400px]"
         :filter="paramsSearch"
         @search="handleSearch"
@@ -9,13 +9,12 @@
     </div>
 
     <Loader v-if="isLoading" />
-    <TriggerProductListTable
+    <PromoProductSelectTable
       v-else
       :key="renderTable"
       :items="data"
       :selected-list="selectedList"
-      @add-to-select-list="emits('addToSelectList', $event)"
-      @close="emits('close')"
+      @add-products="emits('addProducts', $event)"
     />
 
     <div class="flex items-center justify-end space-x-2 py-1">
@@ -38,20 +37,21 @@
 import { ref, onMounted, PropType } from "vue";
 import PaginationTable from "@/components/PaginationTable.vue";
 import Loader from "@/components/common/Loader.vue";
-import TriggerProductListTable from "@/components/discount/Promotion/trigger_product/TriggerProductListTable.vue";
-import TriggerProductSearch from "@/components/discount/Promotion/trigger_product/TriggerProductSearch.vue";
+import PromoProductSelectTable from "@/components/discount/Promo/promo_product/PromoProductSelectTable.vue";
+import PromoProductSearch from "@/components/discount/Promo/promo_product/PromoProductSearch.vue";
 import { useProductFunctions } from "@/composables/useProductFunctions";
+import { Product } from "@/models/Product";
 
-const emits = defineEmits(["addToSelectList", "close"]);
+const emits = defineEmits(["addProducts"]);
 
 const props = defineProps({
   selectedList: {
-    type: Array as PropType<number[]>,
+    type: Array as PropType<Product[]>,
     default: () => [],
   },
 });
 
-const data = ref([]);
+const data = ref<Product[]>([]);
 const totalItems = ref(0);
 const currentPage = ref(1);
 const itemsPerPage = ref(15);
@@ -74,6 +74,7 @@ async function fetchData() {
     per_page: itemsPerPage.value,
     page: currentPage.value,
     search: paramsSearch.value.search,
+    withVariants: true,
   });
 
   if (result && result.data) {

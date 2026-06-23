@@ -72,9 +72,35 @@ export function useTelegramFunctions() {
     }
 
 
+    const getTelegramSettings = async () => {
+        try {
+            const res = await axios.get('third-party-integrations/chats/telegram')
+            return res.data
+        } catch (e) {
+            useErrorHandler().showError(e)
+            return null
+        }
+    }
+
+    const updateTelegramBotName = async (params: { bot_name: string }) => {
+        if (sending.value) return
+        sending.value = true
+        try {
+            const res = await axios.patch('third-party-integrations/chats/telegram/name', params)
+            useSuccessHandler().showSuccess(res)
+            return res.data
+        } catch (e) {
+            useErrorHandler().showError(e)
+        } finally {
+            sending.value = false
+        }
+    }
+
     return {
         sending,
         progress,
-        updateTelegramSettings
+        getTelegramSettings,
+        updateTelegramSettings,
+        updateTelegramBotName,
     }
 }

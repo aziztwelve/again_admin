@@ -72,6 +72,20 @@ export function useDiscountFunctions() {
         }
     };
 
+    const duplicateDiscount = async (discountId: number): Promise<boolean> => {
+        sending.value = true
+        try {
+            const response = await axios.post(`/discounts/${discountId}/duplicate`);
+            useSuccessHandler().showSuccess(response)
+            return true
+        } catch (error) {
+            useErrorHandler().showError(error)
+            return false
+        } finally {
+            sending.value = false
+        }
+    };
+
     const getDiscounts = async (params: {
         id?: number | string,
         per_page?: number,
@@ -112,6 +126,7 @@ export function useDiscountFunctions() {
         createDiscount,
         updateDiscount,
         deleteDiscount,
+        duplicateDiscount,
         getDiscounts,
         sending
         // getDiscount,

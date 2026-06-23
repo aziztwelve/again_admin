@@ -20,13 +20,9 @@
             </div>
 
             <div class="flex items-center gap-2">
-              <OrderPositionModal
-                v-model="productSearch"
-                :products="filteredProducts"
-                @select="addPosition"
-              />
+              <OrderProductPickerModal @select="addPosition" />
               <PromoCodeListModal
-                trigger-label="Купон"
+                trigger-label="Промокод"
                 :client-id="formData.client_id"
                 @select="onCouponSelected"
               />
@@ -269,7 +265,7 @@ import DynamicForm from "@/components/dynamics/DynamicForm.vue";
 import OrderDeliveryDetails from "@/components/orders/create/OrderDeliveryDetails.vue";
 import OrderRecipientDetails from "@/components/orders/create/OrderRecipientDetails.vue";
 import OrderQuickClientCreate from "@/components/orders/create/OrderQuickClientCreate.vue";
-import OrderPositionModal from "@/components/orders/modals/OrderPositionModal.vue";
+import OrderProductPickerModal from "@/components/orders/modals/OrderProductPickerModal.vue";
 import PromoCodeListModal from "@/components/orders/modals/PromoCodeListModal.vue";
 import SideTasks from "@/components/orders/view/partials/side/SideTasks.vue";
 import Button from "@/components/ui/button/Button.vue";
@@ -286,7 +282,8 @@ const store = useStore();
 const route = useRoute();
 const router = useRouter();
 
-const productSearch = ref("");
+// `products` — кэш товаров для отображения уже добавленных позиций. Сам
+// выбор товара переехал внутрь OrderProductPickerModal.
 const products = ref([]);
 const isPageLoading = ref(true);
 const isSaving = ref(false);
@@ -364,7 +361,6 @@ const deliveryMethodOptions = [
 
 const getClients = () => store.dispatch("clients/getClients");
 const clients = computed(() => store.getters["clients/clients"]);
-const filteredProducts = computed(() => products.value);
 const selectedClient = computed(() => {
   if (!formData.client_id) {
     return null;
@@ -1097,9 +1093,7 @@ watch(
   { immediate: true },
 );
 
-watch(productSearch, (value) => {
-  fetchProducts(value);
-});
+
 
 watch(
   () => formData.delivery_address.address,

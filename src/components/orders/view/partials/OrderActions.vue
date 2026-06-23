@@ -1,14 +1,14 @@
 <template>
   <section class="flex flex-wrap items-center gap-2 rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-900/5">
-    <OrderPositionModal
-      v-model="productSearch"
-      :products="products"
-      @select="onAddPosition"
-    />
+    <OrderProductPickerModal @select="onAddPosition" />
     <PromoCodeListModal
-      trigger-label="Купон"
+      trigger-label="Промокод"
       :client-id="order.client?.id ?? order.client_id ?? null"
       @select="onCouponSelect"
+    />
+    <DiscountListModal
+      trigger-label="Скидка"
+      @select="onDiscountSelect"
     />
     <span class="ml-auto flex items-center gap-2">
       <Button
@@ -37,22 +37,22 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { Printer, Mail } from "lucide-vue-next";
 import Button from "@/components/ui/button/Button.vue";
-import OrderPositionModal from "@/components/orders/modals/OrderPositionModal.vue";
+import OrderProductPickerModal from "@/components/orders/modals/OrderProductPickerModal.vue";
 import PromoCodeListModal from "@/components/orders/modals/PromoCodeListModal.vue";
+import DiscountListModal from "@/components/orders/modals/DiscountListModal.vue";
 import OrderChat from "@/components/orders/view/partials/OrderChat.vue";
-import { useProductFunctions } from "@/composables/useProductFunctions";
 import { useToast } from "@/components/ui/toast/use-toast";
 
 const props = defineProps({
   order: { type: Object, required: true },
 });
 
-const emit = defineEmits(["add-position", "coupon-select"]);
+const emit = defineEmits(["add-position", "coupon-select", "discount-select"]);
 
 const router = useRouter();
 const { toast } = useToast();
@@ -94,35 +94,10 @@ const onSendEmail = async () => {
   }
 };
 
-const { getProducts: getProductsFromApi } = useProductFunctions();
-const productSearch = ref("");
-const products = ref([]);
-
-const normalizeProductsResponse = (response) => {
-  if (!response) return [];
-  if (Array.isArray(response)) return response;
-  if (Array.isArray(response.data)) return response.data;
-  if (Array.isArray(response.products)) return response.products;
-  return [];
-};
-
-const fetchProducts = async (search = "") => {
-  const response = await getProductsFromApi({
-    per_page: 50,
-    paginate: false,
-    admin: true,
-    is_active: 1,
-    search: search || undefined,
-  });
-  products.value = normalizeProductsResponse(response);
-};
-
-onMounted(() => fetchProducts());
-
-watch(productSearch, (value) => fetchProducts(value));
-
 const onAddPosition = (payload) => {
-  // Модалка теперь отдаёт {product, variant}; пробрасываем дальше как есть.
+  // Модалка отдаёт {product, variant} (вариант может быть null, если выбран
+  // товар целиком). Пробрасываем дальше как есть — обработчики в OrderView
+  // ожидают именно такой формат и сами решают, как добавлять позицию.
   const product = payload?.product ?? payload;
   if (!product?.id) return;
   emit("add-position", payload);
@@ -131,5 +106,10 @@ const onAddPosition = (payload) => {
 const onCouponSelect = (promoCode) => {
   if (!promoCode?.code) return;
   emit("coupon-select", promoCode);
+};
+
+const onDiscountSelect = (discount) => {
+  if (!discount?.id) return;
+  emit("discount-select", discount);
 };
 </script>

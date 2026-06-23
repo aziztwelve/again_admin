@@ -46,38 +46,46 @@
         class="space-y-4"
         :class="{ 'opacity-50': !integrations.telegram.enabled }"
       >
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="space-y-2">
-            <Label for="telegram-bot-name">Имя бота</Label>
+        <!-- Имя бота — сохраняется отдельно (без токена) -->
+        <div class="space-y-2">
+          <Label for="telegram-bot-name">Имя бота</Label>
+          <div class="flex gap-2">
             <Input
               id="telegram-bot-name"
               v-model="integrations.telegram.botName"
               placeholder="MyCompanyBot"
               :disabled="!integrations.telegram.enabled"
+              class="flex-1"
             />
+            <Button
+              :disabled="!integrations.telegram.enabled || !hasBotNameChanged"
+              @click="saveBotName"
+            >
+              Сохранить
+            </Button>
           </div>
-          <div class="space-y-2">
-            <Label for="telegram-token">Токен бота</Label>
+        </div>
+
+        <!-- Токен — сохраняется вместе с вебхуком -->
+        <div class="space-y-2">
+          <Label for="telegram-token">Токен бота</Label>
+          <div class="flex gap-2">
             <Input
               id="telegram-token"
               v-model="integrations.telegram.apiToken"
               type="password"
               placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
               :disabled="!integrations.telegram.enabled"
+              class="flex-1"
             />
+            <Button
+              :disabled="!integrations.telegram.enabled || !integrations.telegram.apiToken"
+              @click="saveTelegram"
+            >
+              Сохранить
+            </Button>
           </div>
-        </div>
-
-        <div
-          class="flex flex-wrap justify-between max-md:space-y-2 pt-4 border-t"
-        >
-          <Button
-            class="max-md:w-full"
-            :disabled="!integrations.telegram.enabled || !hasTelegramChanges"
-            @click="saveTelegram"
-          >
-            Сохранить
-          </Button>
+          <p class="text-xs text-muted-foreground">После сохранения токена вебхук будет переподключён автоматически.</p>
         </div>
       </CardContent>
     </Card>
@@ -89,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { toast } from "@/components/ui/toast";
 import {
   Card,
@@ -145,11 +153,32 @@ const hasTelegramChanges = computed(() => {
   );
 });
 
+const hasBotNameChanged = computed(() =>
+  integrations.value.telegram.botName !== savedData.value.telegram.botName
+);
+
 const hasChanges = computed(() => {
   return hasWhatsAppChanges.value || hasTelegramChanges.value;
 });
 
-const { updateTelegramSettings, sending, progress } = useTelegramFunctions();
+const { updateTelegramSettings, getTelegramSettings, updateTelegramBotName, sending, progress } = useTelegramFunctions();
+
+onMounted(async () => {
+  const data = await getTelegramSettings();
+  if (data?.success && data.bot_name) {
+    integrations.value.telegram.botName = data.bot_name;
+    savedData.value.telegram.botName = data.bot_name;
+  }
+});
+
+const saveBotName = async () => {
+  const result = await updateTelegramBotName({
+    bot_name: integrations.value.telegram.botName,
+  });
+  if (result?.success) {
+    savedData.value.telegram.botName = integrations.value.telegram.botName;
+  }
+};
 
 const saveTelegram = async () => {
   const telega = integrations.value.telegram;
@@ -159,6 +188,11 @@ const saveTelegram = async () => {
     bot_name: telega.botName,
     token: encryptedToken,
   });
+  if (result?.success) {
+    savedData.value.telegram.botName = telega.botName;
+    integrations.value.telegram.apiToken = '';
+    savedData.value.telegram.apiToken = '';
+  }
 };
 
 // Методы для WhatsApp

@@ -60,6 +60,20 @@ export function usePromoCodeFunctions() {
         }
     };
 
+    const duplicatePromoCode = async (promoId: number): Promise<boolean> => {
+        sending.value = true;
+        try {
+            const response = await axios.post(`/promo-codes/${promoId}/duplicate`);
+            useSuccessHandler().showSuccess(response);
+            return true;
+        } catch (error) {
+            useErrorHandler().showError(error);
+            return false;
+        } finally {
+            sending.value = false;
+        }
+    };
+
     const getPromoCodes = async (params: {
         id?: number | string;
         per_page?: number;
@@ -95,6 +109,7 @@ export function usePromoCodeFunctions() {
         createPromoCode,
         updatePromoCode,
         deletePromoCode,
+        duplicatePromoCode,
         getPromoCodes,
         sending
     };

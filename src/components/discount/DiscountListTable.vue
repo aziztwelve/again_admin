@@ -15,6 +15,7 @@
 
       <IconButtons
           :buttons="[
+              { type: 'copy', onClick: duplicateDiscountHandle, class: 'text-gray-400 hover:text-blue-600' },
               { type: 'delete', onClick: deleteDiscountHandle }
               ]"
           :context="row.original"
@@ -63,6 +64,17 @@ const deleteDiscountHandle = async (discount: Discount) => {
     const success = await deleteDiscount(discount.id)
     if (success) {
       emits('deleted', discount)
+    }
+  }
+};
+
+const {duplicateDiscount} = useDiscountFunctions()
+
+const duplicateDiscountHandle = async (discount: Discount) => {
+  if (discount.id) {
+    const success = await duplicateDiscount(discount.id)
+    if (success) {
+      emits('updated')
     }
   }
 };

@@ -32,6 +32,10 @@ export default {
       try {
         const response = await ordersApi.create(data);
         commit("set_status", response.data.message);
+        // Возвращаем тело ответа целиком, чтобы вызывающая сторона могла
+        // достать новый order.id (нужно, например, для пост-обработки —
+        // ручного применения скидки через /orders/{id}/apply-discount).
+        return response.data;
       } catch (error) {
         commit(
           "set_error",

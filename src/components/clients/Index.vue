@@ -4,7 +4,7 @@
           :filter="filters"
           @search="handleSearch"
       />
-      <div class="flex gap-2 max-md:my-2 items-center">
+      <div class="flex gap-2 max-md:my-2 items-start">
         <div class="min-w-[220px]">
           <Select
               v-model="sort"

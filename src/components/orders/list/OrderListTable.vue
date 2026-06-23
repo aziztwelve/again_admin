@@ -112,16 +112,21 @@ const columns = computed(() => [
 
   {
     accessorKey: 'id',
-    header: 'Номер заказа',
+    header: headerWithFilter('Номер заказа', {
+      type: 'text',
+      field: 'order_number',
+      placeholder: 'Номер или ID заказа',
+    }),
     cell: ({row}: any) => {
       const id = row.original.id
+      const num = row.original.order_number || id
       return h(
           RouterLink,
           {
             to: `/order/${id}`,
             class: 'text-blue-500 hover:underline',
           },
-          {default: () => id}
+          {default: () => num}
       )
     },
   },
@@ -188,6 +193,18 @@ const columns = computed(() => [
       const fromAddress = [a.recipient_last_name, a.recipient_first_name, a.recipient_middle_name]
         .filter(Boolean).join(' ').trim()
       return fromAddress || '—'
+    },
+  },
+  {
+    accessorKey: "client.email",
+    header: headerWithFilter('Email', {
+      type: 'text',
+      field: 'email',
+      placeholder: 'Email клиента',
+    }),
+    cell: ({row}: any) => {
+      const email = row.original?.client?.email || row.original?.email || '—'
+      return h('span', {class: 'text-sm text-gray-700 break-all'}, email)
     },
   },
   {

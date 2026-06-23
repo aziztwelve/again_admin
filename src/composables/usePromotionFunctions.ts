@@ -97,6 +97,20 @@ export function usePromotionFunctions() {
     }
   };
 
+  const duplicatePromotion = async (promotionId: number): Promise<boolean> => {
+    sending.value = true;
+    try {
+      const response = await axios.post(`/promotions/${promotionId}/duplicate`);
+      useSuccessHandler().showSuccess(response);
+      return true;
+    } catch (error) {
+      useErrorHandler().showError(error);
+      return false;
+    } finally {
+      sending.value = false;
+    }
+  };
+
   const getPromotions = async (params?: {
     per_page?: number;
     page?: number;
@@ -200,6 +214,7 @@ export function usePromotionFunctions() {
     createPromotion,
     updatePromotion,
     deletePromotion,
+    duplicatePromotion,
     getPromotions,
     getPromotion,
     getProductsList,

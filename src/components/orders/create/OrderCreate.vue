@@ -53,15 +53,15 @@
             </div>
 
             <div class="flex items-center gap-2">
-              <OrderPositionModal
-                v-model="productSearch"
-                :products="filteredProducts"
-                @select="addPosition"
-              />
+              <OrderProductPickerModal @select="addPosition" />
               <PromoCodeListModal
-                trigger-label="Купон"
+                trigger-label="Промокод"
                 :client-id="formData.client_id"
                 @select="onCouponSelected"
+              />
+              <DiscountListModal
+                trigger-label="Скидка"
+                @select="onDiscountSelected"
               />
             </div>
           </div>
@@ -226,6 +226,26 @@
             </Button>
           </div>
 
+          <div
+            v-if="selectedDiscount"
+            class="mt-4 flex items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3"
+          >
+            <div class="text-sm text-blue-800">
+              Скидка <span class="font-semibold">{{ selectedDiscount.name }}</span>
+              ({{ formatDiscountValue(selectedDiscount) }})
+              будет применена сразу после создания заказа.
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="text-blue-700 hover:text-blue-900"
+              @click="selectedDiscount = null"
+            >
+              Снять
+            </Button>
+          </div>
+
           <!-- Активная промо-акция: подарок (с выбором размера) или скидка/промокод -->
           <OrderPromotionBlock :promotion="promotion" />
 
@@ -314,8 +334,9 @@ import { Trash2, AlertCircle, MapPin } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 
 import PageHeading from "@/components/common/PageHeading.vue";
-import OrderPositionModal from "@/components/orders/modals/OrderPositionModal.vue";
+import OrderProductPickerModal from "@/components/orders/modals/OrderProductPickerModal.vue";
 import PromoCodeListModal from "@/components/orders/modals/PromoCodeListModal.vue";
+import DiscountListModal from "@/components/orders/modals/DiscountListModal.vue";
 import OrderPromotionBlock from "@/components/orders/create/OrderPromotionBlock.vue";
 import { usePromotionForOrder } from "@/composables/orders/usePromotionForOrder";
 import DynamicForm from "@/components/dynamics/DynamicForm.vue";
@@ -341,13 +362,25 @@ const initialClientIdFromQuery = (() => {
   const parsed = value != null ? Number(value) : NaN;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 })();
-const productSearch = ref("");
+// `products` — кэш списка товаров для отображения уже добавленных позиций
+// (имя, артикул, остаток). Сам выбор товара переехал внутрь
+// OrderProductPickerModal, поэтому отдельный поиск/инпут здесь не нужен.
 const products = ref([]);
 const appliedCouponCode = ref("");
 const pendingCouponCode = ref("");
 const couponSavings = ref(0);
 const couponNotApplicableCount = ref(0);
+// Ручная скидка, выбранная до создания заказа. Применяется через
+// /orders/{id}/apply-discount сразу после успешного create — на этапе
+// создания бэкенд её не принимает в payload, поэтому делаем follow-up POST.
+const selectedDiscount = ref(null);
 const validationErrors = ref({});
+// Ошибки выбора промокода и скидки выводим в общий блок-сводку сверху,
+// чтобы оператор видел их рядом с остальной валидацией формы (а не только
+// в исчезающем toast). Хранятся отдельно от validationErrors — иначе
+// сбрасывались бы при каждом нажатии «Создать».
+const promoCodeError = ref("");
+const discountError = ref("");
 
 // Refs на DOM-секции — для автоскролла к блоку с ошибкой.
 const errorSummaryRef = ref(null);
@@ -497,7 +530,6 @@ const clients = computed(() => store.getters["clients/clients"]);
 const status = computed(() => store.getters["orderActions/status"]);
 const isLoading = computed(() => store.getters["orderActions/isLoading"]);
 
-const filteredProducts = computed(() => products.value);
 const formFields = computed(() => [
   [
     {
@@ -624,11 +656,18 @@ const getItemSku = (item) => {
 };
 
 const getItemStock = (item) => {
+  // Сначала смотрим в кэше товаров (он мог быть обновлён), но если там
+  // ничего не нашли — fall back на остаток, который мы запомнили в момент
+  // добавления позиции в корзину (заполняется в addPosition из picker'а).
   const variant = getVariantById(item.product_id, item.variant_id);
   if (variant) {
     return Number(variant.stock_quantity ?? variant.inventory_balance ?? 0);
   }
-  return Number(getProductById(item.product_id)?.stock_quantity ?? 0);
+  const cached = getProductById(item.product_id);
+  if (cached) {
+    return Number(cached.stock_quantity ?? cached.inventory_balance ?? 0);
+  }
+  return Number(item.stock_quantity ?? 0);
 };
 
 const formatPrice = (value) => {
@@ -669,6 +708,9 @@ const addPosition = (payload) => {
   }
 
   const price = variant ? Number(variant.price ?? 0) : getApiPrice(product);
+  const stock = variant
+    ? Number(variant.stock_quantity ?? variant.inventory_balance ?? 0)
+    : Number(product.stock_quantity ?? product.inventory_balance ?? 0);
 
   data.items.push({
     product_id: product.id,
@@ -679,6 +721,9 @@ const addPosition = (payload) => {
     variant_sku: variant?.sku ?? null,
     quantity: 1,
     price,
+    // Кэшируем остаток с момента добавления — нужен для preflight-чека,
+    // чтобы заранее показать все позиции с проблемами по остатку.
+    stock_quantity: stock,
   });
 };
 
@@ -720,6 +765,7 @@ const clearCoupon = () => {
   couponSavings.value = 0;
   couponNotApplicableCount.value = 0;
   itemOriginalPrices.value = new Map();
+  promoCodeError.value = "";
 };
 
 const buildPromoCheckUrl = (code) => {
@@ -770,8 +816,33 @@ const applyCouponResponse = (responseData) => {
   couponNotApplicableCount.value = notApplicable.length;
 };
 
+const onDiscountSelected = (discount) => {
+  if (!discount?.id) return;
+  selectedDiscount.value = discount;
+  // Свежий выбор обнуляет прошлую ошибку — реальную проверку сделает
+  // /orders/{id}/apply-discount после создания.
+  discountError.value = "";
+  toast({
+    title: "Скидка выбрана",
+    description: `«${discount.name}» применится сразу после создания заказа.`,
+  });
+};
+
+const formatDiscountValue = (discount) => {
+  const value = Number(discount?.value || 0);
+  if (discount?.type === "percentage") return `−${value}%`;
+  return `−${new Intl.NumberFormat("ru-RU", {
+    style: "currency",
+    currency: "RUB",
+    maximumFractionDigits: 0,
+  }).format(value)}`;
+};
+
 const onCouponSelected = async (promoCode) => {
   if (!promoCode?.code) return;
+
+  // Любая новая попытка выбора сбрасывает прошлую ошибку.
+  promoCodeError.value = "";
 
   // Снимаем предыдущий, если был, чтобы корректно посчитать с нуля
   if (appliedCouponCode.value) {
@@ -796,13 +867,20 @@ const onCouponSelected = async (promoCode) => {
 
   try {
     const url = buildPromoCheckUrl(promoCode.code);
-    const { data: response } = await axios.get(url);
+    // Используем validateStatus, чтобы вручную обрабатывать 4xx (бэкенд
+    // отдаёт «Промокод недоступен этому клиенту» статусом 422 без
+    // success-обёртки — иначе попадаем в catch и теряем читаемое сообщение).
+    const { data: response } = await axios.get(url, {
+      validateStatus: (status) => status >= 200 && status < 500,
+    });
 
     if (!response?.success) {
       itemOriginalPrices.value = new Map();
+      const message = response?.message || "Не удалось применить промокод";
+      promoCodeError.value = message;
       toast({
         title: "Промокод не применён",
-        description: response?.message || "Не удалось применить промокод",
+        description: message,
         variant: "destructive",
       });
       return;
@@ -819,6 +897,7 @@ const onCouponSelected = async (promoCode) => {
     itemOriginalPrices.value = new Map();
     const message =
       error?.response?.data?.message || "Ошибка при применении промокода";
+    promoCodeError.value = message;
     toast({
       title: "Промокод не применён",
       description: message,
@@ -885,6 +964,8 @@ const recipientErrors = computed(() => validationErrors.value?.recipient || {});
 // Группируем ошибки по секциям: позиции / клиент / получатель / доставка / общие.
 const FIELD_LABELS = {
   items: { label: "Позиции заказа", section: "items" },
+  promo_code: { label: "Промокод", section: "items" },
+  discount: { label: "Скидка", section: "items" },
   client_id: { label: "Клиент", section: "client" },
   "user.first_name": { label: "Имя клиента", section: "client" },
   "user.last_name": { label: "Фамилия клиента", section: "client" },
@@ -921,7 +1002,22 @@ const errorSummary = computed(() => {
   // Плоские ключи (items, client_id, и «опущенные» delivery_address.* → city/address/...)
   for (const [key, val] of Object.entries(errs)) {
     if (val && typeof val === "object" && !Array.isArray(val)) continue;
-    const meta = FIELD_LABELS[key] || { label: key, section: "delivery" };
+    let meta = FIELD_LABELS[key];
+    if (!meta) {
+      if (key.startsWith("items.")) {
+        // items.0, items.1 — конкретные позиции корзины (например,
+        // INSUFFICIENT_STOCK). Подписываем «Позиция #N» и ведём в секцию items.
+        const idx = Number(key.slice("items.".length));
+        meta = {
+          label: Number.isFinite(idx) ? `Позиция #${idx + 1}` : "Позиции заказа",
+          section: "items",
+        };
+      } else if (key === "general") {
+        meta = { label: "Ошибка", section: "items" };
+      } else {
+        meta = { label: key, section: "delivery" };
+      }
+    }
     const msg = Array.isArray(val) ? val[0] : val;
     push(key, meta.label, meta.section, msg);
   }
@@ -940,6 +1036,17 @@ const errorSummary = computed(() => {
       }
     }
   }
+
+  // Локальные ошибки выбора промокода и ручной скидки. Поднимаем в общий
+  // блок сверху, чтобы пользователь видел причину рядом с остальной
+  // валидацией формы (а не только в исчезающем toast).
+  if (promoCodeError.value) {
+    push("promo_code", FIELD_LABELS.promo_code.label, FIELD_LABELS.promo_code.section, promoCodeError.value);
+  }
+  if (discountError.value) {
+    push("discount", FIELD_LABELS.discount.label, FIELD_LABELS.discount.section, discountError.value);
+  }
+
   return result;
 });
 
@@ -999,8 +1106,36 @@ const handleCreate = async () => {
     return;
   }
 
+  // Клиентский preflight по остаткам: бэкенд тоже валидирует, но возвращает
+  // ошибку только по части позиций (его поведение зависит от внутреннего
+  // источника stock_quantity). Здесь же проходим по всем позициям корзины и
+  // выводим в общий блок ВСЕ позиции с нехваткой остатка — оператор сразу
+  // видит полную картину и может скорректировать корзину.
+  const preflightErrors = {};
+  (data.items || []).forEach((item, index) => {
+    const qty = Number(item.quantity || 0);
+    const stock = getItemStock(item);
+    if (qty > 0 && stock < qty) {
+      const title = getItemTitle(item);
+      preflightErrors[`items.${index}`] = [
+        `Недостаточно товара '${title}' на складе (доступно: ${stock}, нужно: ${qty})`,
+      ];
+    }
+  });
+  if (Object.keys(preflightErrors).length > 0) {
+    validationErrors.value = preflightErrors;
+    toast({
+      title: "Проверьте остатки",
+      description:
+        "Есть позиции с недостаточным остатком — подробности в красном блоке сверху.",
+      variant: "destructive",
+    });
+    scrollToErrorSummary();
+    return;
+  }
+
   try {
-    await create({
+    const result = await create({
       client_id: formData.client_id,
       user: formData.user,
       recipient: formData.recipient,
@@ -1019,12 +1154,58 @@ const handleCreate = async () => {
         : {}),
       ...promotion.getPayloadFragment(),
     });
-  } catch (error) {
-    if (error?.response?.data?.errors) {
-      const errors = error.response.data.errors;
 
+    // Скидку прикрепляем follow-up запросом — endpoint /orders POST не
+    // принимает discount_id, но /orders/{id}/apply-discount работает на
+    // уже сохранённом заказе. Ошибки не «ломают» создание: заказ создан,
+    // максимум — оператор увидит предупреждение и применит скидку руками.
+    const createdOrderId =
+      result?.data?.order?.id ?? result?.order?.id ?? null;
+    if (selectedDiscount.value?.id && createdOrderId) {
+      try {
+        await axios.post(`/orders/${createdOrderId}/apply-discount`, {
+          discount_id: selectedDiscount.value.id,
+        });
+        toast({
+          title: "Скидка применена",
+          description: `«${selectedDiscount.value.name}» применена к новому заказу.`,
+        });
+      } catch (err) {
+        const message =
+          err?.response?.data?.message ||
+          "Не удалось применить скидку к новому заказу.";
+        discountError.value = message;
+        toast({
+          title: "Скидка не применена",
+          description: message,
+          variant: "destructive",
+        });
+      }
+    }
+  } catch (error) {
+    const data = error?.response?.data;
+    const errors = data?.errors;
+    const processedErrors = {};
+
+    if (Array.isArray(errors)) {
+      // Бэкенд возвращает ошибки позиций массивом объектов вида
+      // { item, message, available, requested, code } — например при
+      // INSUFFICIENT_STOCK. Раскладываем их по ключам items.<index>,
+      // которые errorSummary рендерит как «Позиция #N».
+      errors.forEach((e, i) => {
+        const itemIndex =
+          typeof e?.item === "number" ? e.item : i;
+        const key = `items.${itemIndex}`;
+        const message = e?.message || "Ошибка позиции";
+        // Дополним полезной деталью про остаток, если она есть.
+        const detail =
+          typeof e?.available === "number" && typeof e?.requested === "number"
+            ? ` (доступно: ${e.available}, нужно: ${e.requested})`
+            : "";
+        processedErrors[key] = [message + detail];
+      });
+    } else if (errors && typeof errors === "object") {
       // Преобразуем ошибки вида "delivery_address.city" / "recipient.first_name" в вложенную структуру
-      const processedErrors = {};
       Object.keys(errors).forEach((key) => {
         if (key.startsWith("delivery_address.")) {
           const field = key.replace("delivery_address.", "");
@@ -1041,7 +1222,16 @@ const handleCreate = async () => {
           processedErrors[key] = errors[key];
         }
       });
+    }
 
+    // Если бэк не положил массив errors, но дал общее сообщение —
+    // покажем его как «общую» ошибку, иначе пользователь увидит только
+    // toast и не поймёт, что пошло не так.
+    if (Object.keys(processedErrors).length === 0 && data?.message) {
+      processedErrors.general = [data.message];
+    }
+
+    if (Object.keys(processedErrors).length > 0) {
       validationErrors.value = processedErrors;
 
       toast({
@@ -1084,10 +1274,6 @@ watch(
   },
   { immediate: true },
 );
-
-watch(productSearch, (value) => {
-  fetchProducts(value);
-});
 
 // Синхронизация адреса между DynamicForm (поле «Адрес») и строкой в delivery_address
 watch(

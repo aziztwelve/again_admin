@@ -1,26 +1,41 @@
 <template>
   <!--
-    Верхнюю панель фильтров убрали: все фильтры теперь живут в заголовках
-    столбцов таблицы (см. OrderListTable). Сверху оставлены только кнопки
-    действий (создать заказ, экспорт, сброс всех фильтров).
+    Верхняя панель: одно большое поле быстрого поиска (по email/телефону/
+    городу/адресу доставки/стране — всё через бэкендовый `search`) с
+    авто-применением (debounce, без кнопки «Применить») и кнопки действий
+    (создать заказ, экспорт, сброс всех фильтров). Остальные фильтры —
+    в заголовках столбцов таблицы (см. OrderListTable).
   -->
-  <div class="flex justify-end gap-2 mb-2">
-    <router-link to="/order/create">
-      <Button variant="outline" size="icon">
-        <Plus/>
+  <div class="flex flex-col md:flex-row md:items-center gap-2 mb-2">
+    <div class="relative flex-1">
+      <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
+      <Input
+          v-model="searchParams.search"
+          type="text"
+          class="pl-9 h-10"
+          placeholder="Поиск по телефону, городу, адресу доставки, стране..."
+      />
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <Button
+          v-if="hasActiveFilters"
+          variant="outline"
+          @click="resetFilters"
+          title="Сбросить все фильтры"
+      >
+        <X/>
+        Сбросить
       </Button>
-    </router-link>
 
-    <OrdersExport/>
+      <router-link to="/order/create">
+        <Button variant="outline" size="icon">
+          <Plus/>
+        </Button>
+      </router-link>
 
-    <Button
-        v-if="hasActiveFilters"
-        variant="outline"
-        @click="resetFilters"
-        title="Сбросить все фильтры"
-    >
-      <X/>
-    </Button>
+      <OrdersExport/>
+    </div>
   </div>
 
   <OrderListTable
@@ -45,7 +60,9 @@ import OrderListTable from "@/components/orders/list/OrderListTable.vue";
 import {useOrderFunctions} from "@/composables/useOrderFunctions";
 import OrdersExport from "@/components/orders/Export.vue";
 import Button from "@/components/ui/button/Button.vue";
-import {Plus, X} from "lucide-vue-next"
+import {Input} from "@/components/ui/input";
+import {Plus, X, Search} from "lucide-vue-next"
+import {useDebounceFn} from "@vueuse/core";
 import {useStore} from "vuex";
 import {PaginationMeta} from "@/types/Types";
 
@@ -66,6 +83,8 @@ const searchParams = ref({
   // на бэке (см. OrderFilterService::searchByRecipient). Используется фильтром
   // столбца «ФИО получателя», чтобы не «зацеплять» имя/фамилию клиента.
   recipient_search: '',
+  email: '',
+  order_number: '',
   status: '',
   payment_status: '',
   delivery_method_id: '',
@@ -91,6 +110,8 @@ const hasActiveFilters = computed(() => {
   const s = searchParams.value
   return !!s.search
       || !!s.recipient_search
+      || !!s.email
+      || !!s.order_number
       || !!s.datePicker.start
       || !!s.datePicker.end
       || !!s.status
@@ -124,6 +145,8 @@ async function fetchData() {
     per_page: pagination.value.per_page,
     search: searchParams.value.search,
     recipient_search: searchParams.value.recipient_search,
+    email: searchParams.value.email || null,
+    order_number: searchParams.value.order_number || null,
     date_from: searchParams.value.datePicker.start,
     date_to: searchParams.value.datePicker.end,
     payment_status: searchParams.value.payment_status,
@@ -186,6 +209,8 @@ function resetFilters() {
     },
     search: '',
     recipient_search: '',
+    email: '',
+    order_number: '',
     status: '',
     payment_status: '',
     delivery_method_id: '',
@@ -203,5 +228,18 @@ watch(
     () => [pagination.value.page, pagination.value.per_page],
     () => fetchData()
 )
+
+// Авто-поиск по верхнему полю: дебаунс 400мс, без кнопки «Применить».
+// Бэкенд (OrderFilterService::search) уже умеет искать по email клиента/гостя,
+// телефону (нормализуется), стране/городу/региону/адресу/индексу доставки,
+// ФИО получателя и id/order_number — поэтому одного `search` достаточно.
+const debouncedSearch = useDebounceFn(() => {
+  pagination.value.page = 1
+  fetchData()
+}, 400)
+
+watch(() => searchParams.value.search, () => {
+  debouncedSearch()
+})
 
 </script>

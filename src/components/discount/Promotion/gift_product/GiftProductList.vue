@@ -15,6 +15,7 @@
       :items="data"
       :selected-list="selectedList"
       @add-to-select-list="emits('addToSelectList', $event)"
+      @close="emits('close')"
     />
 
     <div class="flex items-center justify-end space-x-2 py-1">
@@ -41,7 +42,7 @@ import GiftProductListTable from "@/components/discount/Promotion/gift_product/G
 import GiftProductSearch from "@/components/discount/Promotion/gift_product/GiftProductSearch.vue";
 import { useProductFunctions } from "@/composables/useProductFunctions";
 
-const emits = defineEmits(["addToSelectList"]);
+const emits = defineEmits(["addToSelectList", "close"]);
 
 const props = defineProps({
   selectedList: {

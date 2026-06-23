@@ -8,7 +8,10 @@
       />
 
       <IconButtons
-        :buttons="[{ type: 'delete', onClick: deletePromotionHandle }]"
+        :buttons="[
+          { type: 'copy', onClick: duplicatePromotionHandle, class: 'text-gray-400 hover:text-blue-600' },
+          { type: 'delete', onClick: deletePromotionHandle }
+        ]"
         :context="row.original"
       />
     </template>
@@ -42,6 +45,17 @@ const deletePromotionHandle = async (promotion: Promotion) => {
     const success = await deletePromotion(promotion.id);
     if (success) {
       emits("deleted", promotion);
+    }
+  }
+};
+
+const { duplicatePromotion } = usePromotionFunctions();
+
+const duplicatePromotionHandle = async (promotion: Promotion) => {
+  if (promotion.id) {
+    const success = await duplicatePromotion(promotion.id);
+    if (success) {
+      emits("updated");
     }
   }
 };

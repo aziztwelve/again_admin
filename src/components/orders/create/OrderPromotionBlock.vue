@@ -102,7 +102,7 @@
           >
         </button>
 
-        <!-- Варианты (размеры/цвета) -->
+        <!-- Двухшаговый выбор: цвет → размер. Полностью повторяет UX витрины. -->
         <div
           v-if="
             promotion.selectedGift.value?.id === gift.id && gift.has_variants
@@ -110,26 +110,60 @@
           class="border-t border-emerald-100 bg-emerald-50/50 px-3 py-2"
         >
           <template v-if="gift.variants && gift.variants.length > 0">
-            <div class="text-xs font-medium text-gray-700 mb-1">
-              Выберите вариант:
-            </div>
-            <div class="flex flex-wrap gap-1.5">
-              <button
-                v-for="variant in gift.variants"
-                :key="variant.id"
-                type="button"
-                class="rounded-md border px-2.5 py-1 text-xs transition"
-                :class="[
-                  promotion.selectedGiftVariantByGiftId.value[gift.id] ===
-                  variant.id
-                    ? 'border-emerald-500 bg-emerald-500 text-white'
-                    : 'border-gray-300 bg-white text-gray-700 hover:border-emerald-400',
-                ]"
-                @click="promotion.selectGiftVariant(variant)"
-              >
-                {{ formatVariantLabel(variant) }}
-              </button>
-            </div>
+            <!-- Шаг 1: Цвет -->
+            <template v-if="uniqueColors(gift).length > 0">
+              <div class="text-xs font-medium text-gray-700 mb-1">Цвет:</div>
+              <div class="flex flex-wrap gap-1.5 mb-2">
+                <button
+                  v-for="color in uniqueColors(gift)"
+                  :key="color.id"
+                  type="button"
+                  class="inline-flex items-center gap-1.5 rounded-full border-2 px-2.5 py-1 text-xs transition"
+                  :class="[
+                    promotion.selectedGiftColorByGiftId.value[gift.id] ===
+                    color.id
+                      ? 'border-emerald-500 bg-emerald-100/70 text-emerald-800'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-emerald-400',
+                  ]"
+                  :title="color.name"
+                  @click="promotion.selectGiftColor(gift, color.id)"
+                >
+                  <span
+                    class="inline-block h-3.5 w-3.5 shrink-0 rounded-full border border-black/10"
+                    :style="{ background: color.code || '#ccc' }"
+                  />
+                  <span>{{ color.name }}</span>
+                </button>
+              </div>
+            </template>
+
+            <!-- Шаг 2: Размер (после выбора цвета или если цветов нет вообще) -->
+            <template
+              v-if="
+                promotion.selectedGiftColorByGiftId.value[gift.id] ||
+                uniqueColors(gift).length === 0
+              "
+            >
+              <div class="text-xs font-medium text-gray-700 mb-1">Размер:</div>
+              <div class="flex flex-wrap gap-1.5">
+                <button
+                  v-for="variant in variantsByColor(gift)"
+                  :key="variant.id"
+                  type="button"
+                  class="rounded-md border px-2.5 py-1 text-xs transition"
+                  :class="[
+                    promotion.selectedGiftVariantByGiftId.value[gift.id] ===
+                    variant.id
+                      ? 'border-emerald-500 bg-emerald-500 text-white'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-emerald-400',
+                  ]"
+                  @click="promotion.selectGiftVariant(variant)"
+                >
+                  {{ formatVariantLabel(variant) }}
+                </button>
+              </div>
+            </template>
+
             <div
               v-if="!promotion.selectedGiftVariantByGiftId.value[gift.id]"
               class="mt-1 text-xs text-amber-700"
@@ -144,10 +178,7 @@
       </div>
     </div>
 
-    <div
-      v-if="promotion.errorMessage.value"
-      class="mt-2 text-xs text-red-600"
-    >
+    <div v-if="promotion.errorMessage.value" class="mt-2 text-xs text-red-600">
       {{ promotion.errorMessage.value }}
     </div>
   </div>
@@ -155,17 +186,27 @@
 
 <script setup lang="ts">
 import type {
+  PromotionGiftProduct,
   PromotionGiftVariant,
   usePromotionForOrder,
 } from "@/composables/orders/usePromotionForOrder";
 
-defineProps<{
+const props = defineProps<{
   promotion: ReturnType<typeof usePromotionForOrder>;
 }>();
 
+// Тонкие обёртки, чтобы не тянуть в шаблон длинный путь до хелперов.
+const uniqueColors = (gift: PromotionGiftProduct) =>
+  props.promotion.uniqueColorsForGift(gift);
+const variantsByColor = (gift: PromotionGiftProduct) =>
+  props.promotion.variantsForGiftByColor(gift);
+
+// Подпись размера: если есть `name` (S/M/L) — используем его; иначе
+// собираем из option_values; в крайнем случае показываем sku.
 const formatVariantLabel = (variant: PromotionGiftVariant): string => {
+  if (variant?.name) return variant.name;
   const values = variant?.option_values || [];
-  if (values.length === 0) return variant.sku || `#${variant.id}`;
+  if (values.length === 0) return variant?.sku || `#${variant?.id}`;
   return values
     .map((v) => v.name)
     .filter(Boolean)

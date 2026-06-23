@@ -6,13 +6,22 @@
       :edit="edit"
       @save_changes="handleUpdate"
       @deleted="deletePromoCodeHandle"
-  />
+  >
+    <template #addActions="{ item }">
+      <Copy
+          class="cursor-pointer text-gray-400 hover:text-blue-600 transition"
+          :size="17"
+          title="Создать копию"
+          @click="duplicatePromoCodeHandle(item)"
+      />
+    </template>
+  </DynamicsDataTable>
 </template>
 
 <script setup lang="ts">
 import {h, PropType, ref, onBeforeUnmount} from "vue";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
-import {Check, X} from 'lucide-vue-next';
+import {Check, X, Copy} from 'lucide-vue-next';
 import {PromoCode} from "@/models/PromoCode";
 import {usePromoCodeFunctions} from "@/composables/usePromoCodeFunctions";
 import {useDateFormat} from "@/composables/useDateFormat";
@@ -39,6 +48,7 @@ const edit = ref({
 const emits = defineEmits(["deleted", "updated"]);
 
 const {deletePromoCode, updatePromoCode} = usePromoCodeFunctions();
+const {duplicatePromoCode} = usePromoCodeFunctions();
 const {formatDateToRussian} = useDateFormat();
 
 const store = useStore();
@@ -63,6 +73,15 @@ const deletePromoCodeHandle = async (promo: PromoCode) => {
     const success = await deletePromoCode(promo.id);
     if (success) {
       emits('deleted', promo);
+    }
+  }
+};
+
+const duplicatePromoCodeHandle = async (promo: PromoCode) => {
+  if (promo.id) {
+    const success = await duplicatePromoCode(promo.id);
+    if (success) {
+      emits('updated', promo);
     }
   }
 };

@@ -73,7 +73,7 @@
       </div>
 
       <!-- ряд 2 -->
-      <div>
+      <div class="col-span-2 lg:col-span-2">
         <Label for="order-paid-at" class="text-xs uppercase text-gray-500">
           Дата оплаты
         </Label>

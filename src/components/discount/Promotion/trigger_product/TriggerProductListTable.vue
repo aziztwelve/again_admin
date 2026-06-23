@@ -1,71 +1,136 @@
 <template>
-  <DynamicsDataTable :data="items" :columns="columns" :custom-actions="true">
-    <template #actions="{ row }">
+  <div>
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-3 py-2 text-left w-8">
+            <input
+              type="checkbox"
+              :checked="allChecked"
+              :indeterminate="someChecked && !allChecked"
+              @change="toggleAll"
+              class="rounded border-gray-300"
+            />
+          </th>
+          <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500">ID</th>
+          <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500">Название</th>
+          <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500">Артикул</th>
+          <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500">Цена</th>
+          <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500">Остаток</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 bg-white">
+        <tr v-if="!items.length">
+          <td colspan="6" class="px-3 py-6 text-center text-gray-400">Нет товаров</td>
+        </tr>
+        <tr
+          v-for="item in items"
+          :key="item.id"
+          :class="[
+            isAlreadySelected(item.id) ? 'bg-gray-50 opacity-50' : 'hover:bg-gray-50',
+            isChecked(item.id) ? 'bg-blue-50' : '',
+          ]"
+        >
+          <td class="px-3 py-2">
+            <input
+              type="checkbox"
+              :checked="isChecked(item.id)"
+              :disabled="isAlreadySelected(item.id)"
+              @change="toggleItem(item)"
+              class="rounded border-gray-300"
+            />
+          </td>
+          <td class="px-3 py-2 text-gray-500">{{ item.id }}</td>
+          <td class="px-3 py-2 font-medium text-gray-900">
+            {{ item.name }}
+            <span v-if="isAlreadySelected(item.id)" class="ml-2 text-xs text-green-600">✓ Уже добавлен</span>
+          </td>
+          <td class="px-3 py-2 text-gray-500">{{ item.sku || '—' }}</td>
+          <td class="px-3 py-2 text-gray-700">{{ item.price || 0 }} ₽</td>
+          <td class="px-3 py-2 text-gray-700">{{ item.stock || 0 }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Нижняя панель -->
+    <div class="mt-3 flex items-center justify-between border-t pt-3">
+      <span class="text-sm text-gray-500">
+        Выбрано: <strong>{{ checkedItems.length }}</strong>
+      </span>
       <Button
-        variant="outline"
+        variant="default"
         size="sm"
-        @click="handleAddToList(row.original)"
-        :disabled="isSelected(row.original.id)"
+        :disabled="checkedItems.length === 0"
+        @click="addSelected"
       >
-        {{ isSelected(row.original.id) ? "Добавлено" : "Добавить" }}
+        Добавить выбранные ({{ checkedItems.length }})
       </Button>
-    </template>
-  </DynamicsDataTable>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { PropType } from "vue";
-import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
+import { ref, computed, PropType } from "vue";
 import { Button } from "@/components/ui/button";
 
 const props = defineProps({
   items: {
     type: Array as PropType<any[]>,
-    default: [],
+    default: () => [],
   },
   selectedList: {
     type: Array as PropType<number[]>,
-    default: [],
+    default: () => [],
   },
-  loading: Boolean,
 });
 
-const emits = defineEmits(["addToSelectList"]);
+const emits = defineEmits(["addToSelectList", "close"]);
 
-const handleAddToList = (product: any) => {
-  if (!isSelected(product.id)) {
-    emits("addToSelectList", product);
+// Локально отмеченные в этой сессии (ещё не добавленные)
+const checkedIds = ref<Set<number>>(new Set());
+
+const isAlreadySelected = (id: number) => props.selectedList.includes(id);
+const isChecked = (id: number) => checkedIds.value.has(id);
+
+const availableItems = computed(() =>
+  props.items.filter((item) => !isAlreadySelected(item.id))
+);
+
+const allChecked = computed(
+  () => availableItems.value.length > 0 && availableItems.value.every((i) => checkedIds.value.has(i.id))
+);
+const someChecked = computed(() => availableItems.value.some((i) => checkedIds.value.has(i.id)));
+
+const checkedItems = computed(() =>
+  props.items.filter((item) => checkedIds.value.has(item.id))
+);
+
+const toggleItem = (item: any) => {
+  if (isAlreadySelected(item.id)) return;
+  const s = new Set(checkedIds.value);
+  s.has(item.id) ? s.delete(item.id) : s.add(item.id);
+  checkedIds.value = s;
+};
+
+const toggleAll = () => {
+  if (allChecked.value) {
+    checkedIds.value = new Set();
+  } else {
+    checkedIds.value = new Set(availableItems.value.map((i) => i.id));
   }
 };
 
-const isSelected = (productId: number) => {
-  return props.selectedList.includes(productId);
+const addSelected = () => {
+  checkedItems.value.forEach((product) => {
+    emits("addToSelectList", product);
+  });
+  checkedIds.value = new Set();
+  emits("close");
 };
-
-const columns = [
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
-  {
-    accessorKey: "name",
-    header: "Название",
-  },
-  {
-    accessorKey: "sku",
-    header: "Артикул",
-  },
-  {
-    accessorKey: "price",
-    header: "Цена",
-    cell: ({ row }: any) => `${row.original.price || 0}₽`,
-  },
-  {
-    accessorKey: "stock",
-    header: "Остаток",
-    cell: ({ row }: any) => row.original.stock || 0,
-  },
-];
 </script>
 
-<style scoped></style>
+<style scoped>
+input[type="checkbox"]:indeterminate {
+  background-color: #6366f1;
+}
+</style>

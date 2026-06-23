@@ -2,6 +2,17 @@
   <div class="flex items-center gap-1">
     <span class="whitespace-nowrap">{{ label }}</span>
 
+    <!-- Кнопка «Сбросить фильтр» — показывается только когда фильтр активен -->
+    <button
+        v-if="active"
+        type="button"
+        class="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors whitespace-nowrap"
+        title="Сбросить фильтр"
+        @click.stop="onClear"
+    >
+      Сбросить
+    </button>
+
     <Popover v-model:open="open">
       <PopoverTrigger as-child>
         <button
@@ -12,11 +23,6 @@
             @click.stop
         >
           <FilterIcon class="h-3.5 w-3.5"/>
-          <span
-              v-if="active"
-              class="absolute -mt-3 ml-2 inline-block w-1.5 h-1.5 rounded-full bg-blue-600"
-              aria-hidden="true"
-          />
         </button>
       </PopoverTrigger>
 
