@@ -125,6 +125,12 @@ const getColumns = async () => {
       required: false,
     },
     {
+      name: 'is_coming_soon',
+      component: 'checkbox',
+      label: 'Скоро в продаже (автоматически добавлять товары без остатка)',
+      required: false,
+    },
+    {
       name: 'menu_order',
       component: 'text',
       type: 'number',

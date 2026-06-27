@@ -8,6 +8,7 @@ export class Promotion {
   endsAt: string | undefined;
   minPurchaseAmount: number | null | undefined;
   allowPromoCodes: boolean | undefined;
+  isStackable: boolean | undefined;
   isActive: boolean | undefined;
   priority: number | undefined;
   maxUses: number | null | undefined;
@@ -29,6 +30,7 @@ export class Promotion {
     this.endsAt = undefined;
     this.minPurchaseAmount = null;
     this.allowPromoCodes = false;
+    this.isStackable = false;
     this.isActive = true;
     this.priority = 10;
     this.maxUses = null;
@@ -70,6 +72,7 @@ export class Promotion {
     promotion.endsAt = json.ends_at ?? undefined;
     promotion.minPurchaseAmount = json.min_purchase_amount ?? null;
     promotion.allowPromoCodes = !!json.allow_promo_codes;
+    promotion.isStackable = !!json.is_stackable;
     promotion.isActive = !!json.is_active;
     promotion.priority = json.priority ?? 10;
     promotion.maxUses = json.max_uses ?? null;
@@ -118,6 +121,7 @@ export class Promotion {
       ends_at: this.endsAt ?? null,
       min_purchase_amount: this.minPurchaseAmount ?? null,
       allow_promo_codes: this.allowPromoCodes ?? false,
+      is_stackable: this.isStackable ?? false,
       is_active: this.isActive ?? true,
       priority: this.priority ?? 10,
       max_uses: this.maxUses ?? null,
@@ -136,6 +140,7 @@ export class Promotion {
     cloned.endsAt = this.endsAt;
     cloned.minPurchaseAmount = this.minPurchaseAmount;
     cloned.allowPromoCodes = this.allowPromoCodes;
+    cloned.isStackable = this.isStackable;
     cloned.isActive = this.isActive;
     cloned.priority = this.priority;
     cloned.maxUses = this.maxUses;

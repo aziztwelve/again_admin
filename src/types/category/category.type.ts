@@ -8,6 +8,7 @@ export interface Category {
     show_in_catalog_menu: boolean;
     show_as_home_banner: boolean;
     is_new_product: boolean;
+    is_coming_soon: boolean;
     menu_order: number;
 
     banner_image_desktop?: string;

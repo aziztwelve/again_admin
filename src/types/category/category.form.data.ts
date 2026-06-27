@@ -8,6 +8,7 @@ export interface CategoryFormData {
     show_in_catalog_menu: boolean;
     show_as_home_banner: boolean;
     is_new_product: boolean;
+    is_coming_soon: boolean;
     menu_order: number | null;
 
     banner_image_desktop: File | null | string;
@@ -27,6 +28,7 @@ export const initialCategoryFormData: CategoryFormData = {
     show_in_catalog_menu: false,
     show_as_home_banner: false,
     is_new_product: false,
+    is_coming_soon: false,
     menu_order: null,
 
     banner_image_desktop: null,

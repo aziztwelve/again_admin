@@ -6,6 +6,7 @@ export interface Promotion {
   ends_at: string;
   min_purchase_amount: number | null;
   allow_promo_codes: boolean;
+  is_stackable: boolean;
   is_active: boolean;
   priority: number;
   max_uses: number | null;
@@ -67,6 +68,7 @@ export interface PromotionFormData {
   ends_at: string;
   min_purchase_amount: number | null;
   allow_promo_codes: boolean;
+  is_stackable: boolean;
   is_active: boolean;
   priority: number;
   max_uses: number | null;

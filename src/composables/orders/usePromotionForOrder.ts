@@ -1,11 +1,18 @@
 /**
- * Composable для работы с активной промо-акцией при создании заказа в админке.
+ * Composable для работы с применёнными промо-акциями при создании заказа в админке.
  *
- * Поведение полностью повторяет клиентский Pinia-стор `stores/promotion.js` в nuxt-shop:
- *   1) По переданным items + total опрашиваем `/public/promotions/check-applicable`
- *   2) Берём первую (наиболее приоритетную) применимую акцию
- *   3) Даём оператору выбрать подарок и (если у подарка есть размеры) — конкретный variant
- *   4) Возвращаем готовый payload-fragment для тела запроса POST /orders
+ * Мультиакционная (стекируемая) модель — повторяет витрину `stores/promotion.js`:
+ *   1) По items + total опрашиваем `/public/promotions/check-applicable` — бэк
+ *      возвращает ИТОГОВЫЙ набор применённых акций (с учётом is_stackable + priority).
+ *   2) Рисуем все акции из ответа, по блоку на акцию. У каждой оператор выбирает
+ *      ОДИН подарок (+ цвет→размер) либо «скидку вместо подарка».
+ *   3) getPayloadFragment() возвращает массив promotions[] для тела POST /orders.
+ *
+ * Нюанс админки: цвет подарка автоселектится, а РАЗМЕР выбирает оператор вручную
+ * (автовыбор размера опасен — можно случайно отгрузить «не тот» размер).
+ *
+ * Дубли подарков разрешены (Q3): один и тот же товар-подарок от двух акций —
+ * два независимых выбора, поэтому ключи цвета/размера включают promotionId.
  *
  * Защита от race condition: применяется ответ только последнего запроса.
  */
@@ -51,6 +58,7 @@ export interface ApplicablePromotion {
   name: string;
   description: string | null;
   allow_promo_codes: boolean;
+  is_stackable?: boolean;
   min_purchase_amount: number;
   priority: number;
   gift_products: PromotionGiftProduct[];
@@ -66,70 +74,83 @@ export function usePromotionForOrder(
   items: Ref<CartItemForCheck[]>,
   total: Ref<number>,
 ) {
-  const activePromotion = ref<ApplicablePromotion | null>(null);
-  const selectedGift = ref<PromotionGiftProduct | null>(null);
-  const selectedGiftVariantByGiftId = ref<Record<number, number>>({});
-  // Двухшаговый выбор как на витрине: сначала цвет, потом размер. Храним
-  // выбранный цвет на каждый подарок отдельно, чтобы переключение между
-  // подарками не сбрасывало выбор друг друга.
-  const selectedGiftColorByGiftId = ref<Record<number, number>>({});
-  // 'gift' | 'discount' — выбор оператора между подарком и скидкой/промокодом
-  const userChoice = ref<"gift" | "discount">("gift");
+  // Итоговый набор применённых акций (как пришёл с бэка)
+  const appliedPromotions = ref<ApplicablePromotion[]>([]);
+  // Выбранный подарок по каждой акции: { [promotionId]: giftId }
+  const selectedGiftByPromotionId = ref<Record<number, number>>({});
+  // Выбранный размер по ключу `${promotionId}:${giftId}`
+  const selectedGiftVariantByKey = ref<Record<string, number>>({});
+  // Выбранный цвет по ключу `${promotionId}:${giftId}`
+  const selectedGiftColorByKey = ref<Record<string, number>>({});
+  // Режим по каждой акции: 'gift' | 'discount'
+  const userChoiceByPromotionId = ref<Record<number, "gift" | "discount">>({});
   const isLoading = ref(false);
   const errorMessage = ref<string>("");
 
   let requestId = 0;
 
-  const hasPromotion = computed(() => !!activePromotion.value);
+  const keyOf = (promotionId: number, giftId: number) =>
+    `${promotionId}:${giftId}`;
 
-  const allowPromoCodes = computed(() => {
-    if (!activePromotion.value) return true;
-    return !!activePromotion.value.allow_promo_codes;
-  });
+  // ========================================
+  // HELPERS (по конкретной акции)
+  // ========================================
 
-  const giftProducts = computed<PromotionGiftProduct[]>(() => {
-    if (!activePromotion.value) return [];
-    return activePromotion.value.gift_products || [];
-  });
+  const giftProductsFor = (
+    promotion: ApplicablePromotion | null | undefined,
+  ): PromotionGiftProduct[] => promotion?.gift_products || [];
 
-  const useDiscountInstead = computed(() => userChoice.value === "discount");
+  const userChoiceFor = (promotionId: number): "gift" | "discount" =>
+    userChoiceByPromotionId.value[promotionId] || "gift";
 
-  const selectedGiftVariant = computed<PromotionGiftVariant | null>(() => {
-    if (!selectedGift.value) return null;
-    const variantId = selectedGiftVariantByGiftId.value[selectedGift.value.id];
+  const useDiscountInsteadFor = (promotionId: number): boolean =>
+    userChoiceFor(promotionId) === "discount";
+
+  const selectedGiftIdFor = (promotionId: number): number | null =>
+    selectedGiftByPromotionId.value[promotionId] ?? null;
+
+  const selectedGiftFor = (
+    promotion: ApplicablePromotion | null | undefined,
+  ): PromotionGiftProduct | null => {
+    if (!promotion) return null;
+    const giftId = selectedGiftByPromotionId.value[promotion.id];
+    if (!giftId) return null;
+    return giftProductsFor(promotion).find((g) => g.id === giftId) || null;
+  };
+
+  const selectedColorIdFor = (
+    promotionId: number,
+    giftId: number,
+  ): number | null =>
+    selectedGiftColorByKey.value[keyOf(promotionId, giftId)] ?? null;
+
+  const selectedVariantIdFor = (
+    promotionId: number,
+    giftId: number,
+  ): number | null =>
+    selectedGiftVariantByKey.value[keyOf(promotionId, giftId)] ?? null;
+
+  const selectedVariantFor = (
+    promotion: ApplicablePromotion | null | undefined,
+  ): PromotionGiftVariant | null => {
+    const gift = selectedGiftFor(promotion);
+    if (!gift || !promotion) return null;
+    const variantId = selectedVariantIdFor(promotion.id, gift.id);
     if (!variantId) return null;
-    return (
-      (selectedGift.value.variants || []).find((v) => v.id === variantId) ||
-      null
-    );
-  });
+    return (gift.variants || []).find((v) => v.id === variantId) || null;
+  };
 
-  const needsVariantSelection = computed(() => {
-    if (!selectedGift.value) return false;
-    if (!selectedGift.value.has_variants) return false;
-    return (selectedGift.value.variants || []).length > 0;
-  });
-
-  const isGiftSelectionComplete = computed(() => {
-    if (!activePromotion.value) return true;
-    if (useDiscountInstead.value) return true;
-    if (!selectedGift.value) return false;
-    if (!needsVariantSelection.value) return true;
-    return !!selectedGiftVariant.value;
-  });
-
-  const reset = () => {
-    activePromotion.value = null;
-    selectedGift.value = null;
-    selectedGiftVariantByGiftId.value = {};
-    selectedGiftColorByGiftId.value = {};
-    userChoice.value = "gift";
-    errorMessage.value = "";
+  const needsVariantSelectionFor = (
+    promotion: ApplicablePromotion | null | undefined,
+  ): boolean => {
+    const gift = selectedGiftFor(promotion);
+    if (!gift) return false;
+    if (!gift.has_variants) return false;
+    return (gift.variants || []).length > 0;
   };
 
   /**
    * Уникальные цвета у вариантов подарка. Используем для шага 1 в UI.
-   * Возвращает [] если у подарка нет вариантов или ни у одного нет color.
    */
   const uniqueColorsForGift = (
     gift: PromotionGiftProduct | null,
@@ -148,8 +169,7 @@ export function usePromotionForOrder(
     return result;
   };
 
-  // Стандартная сортировка размеров — повторяем порядок витрины, чтобы
-  // не путать оператора.
+  // Стандартная сортировка размеров — повторяет порядок витрины.
   const SIZE_ORDER = [
     "XXS",
     "XS",
@@ -179,44 +199,125 @@ export function usePromotionForOrder(
   };
 
   /**
-   * Варианты подарка, отфильтрованные выбранным цветом (шаг 2 в UI).
-   * Если у подарка цветов нет — возвращает все варианты.
+   * Варианты подарка для конкретной акции, отфильтрованные выбранным цветом.
    */
   const variantsForGiftByColor = (
+    promotionId: number,
     gift: PromotionGiftProduct | null,
   ): PromotionGiftVariant[] => {
     if (!gift?.variants) return [];
-    const colorId = selectedGiftColorByGiftId.value[gift.id];
+    const colorId = selectedGiftColorByKey.value[keyOf(promotionId, gift.id)];
     const filtered = colorId
       ? gift.variants.filter((v) => v.color?.id === colorId)
       : gift.variants;
     return sortBySize(filtered);
   };
 
+  // ========================================
+  // COMPUTED
+  // ========================================
+
+  const hasPromotion = computed(() => appliedPromotions.value.length > 0);
+
+  // Промокоды разрешены, только если ВСЕ применённые акции их разрешают.
+  const allowPromoCodes = computed(() => {
+    if (appliedPromotions.value.length === 0) return true;
+    return appliedPromotions.value.every((p) => !!p.allow_promo_codes);
+  });
+
+  // Акции, запрещающие промокоды (для пояснения оператору).
+  const promoBlockingPromotions = computed(() =>
+    appliedPromotions.value.filter((p) => !p.allow_promo_codes),
+  );
+
+  // Выбор завершён по ВСЕМ применённым акциям.
+  const isGiftSelectionComplete = computed(() => {
+    if (appliedPromotions.value.length === 0) return true;
+    return appliedPromotions.value.every((p) => {
+      if (useDiscountInsteadFor(p.id)) return true;
+      const gift = selectedGiftFor(p);
+      if (!gift) return false;
+      if (!gift.has_variants) return true;
+      const variants = gift.variants || [];
+      if (variants.length === 0) return false;
+      return !!selectedVariantIdFor(p.id, gift.id);
+    });
+  });
+
+  // ========================================
+  // ACTIONS
+  // ========================================
+
+  const reset = () => {
+    appliedPromotions.value = [];
+    selectedGiftByPromotionId.value = {};
+    selectedGiftVariantByKey.value = {};
+    selectedGiftColorByKey.value = {};
+    userChoiceByPromotionId.value = {};
+    errorMessage.value = "";
+  };
+
   /**
-   * Выбрать цвет подарка. Если ранее выбранный variant другого цвета —
-   * сбрасываем, чтобы UI не оставался в противоречивом состоянии.
+   * Пересобрать карты выбора под актуальный набор акций. Сохраняет валидный
+   * прошлый выбор, чистит устаревшее, автоселектит подарок и ЦВЕТ (но не размер —
+   * размер выбирает оператор). Акции, выпавшие из набора, теряют свой выбор;
+   * остальные сохраняются.
    */
-  const selectGiftColor = (
-    gift: PromotionGiftProduct | null,
-    colorId: number,
-  ) => {
-    if (!gift) return;
-    selectedGiftColorByGiftId.value = {
-      ...selectedGiftColorByGiftId.value,
-      [gift.id]: colorId,
-    };
-    const currentVariantId = selectedGiftVariantByGiftId.value[gift.id];
-    if (currentVariantId) {
-      const currentVariant = (gift.variants || []).find(
-        (v) => v.id === currentVariantId,
-      );
-      if (!currentVariant || currentVariant.color?.id !== colorId) {
-        const newMap = { ...selectedGiftVariantByGiftId.value };
-        delete newMap[gift.id];
-        selectedGiftVariantByGiftId.value = newMap;
+  const rebuildSelections = (promotions: ApplicablePromotion[]) => {
+    const nextGift: Record<number, number> = {};
+    const nextColor: Record<string, number> = {};
+    const nextVariant: Record<string, number> = {};
+    const nextChoice: Record<number, "gift" | "discount"> = {};
+
+    for (const p of promotions) {
+      const gifts = giftProductsFor(p);
+
+      let choice = userChoiceByPromotionId.value[p.id] || "gift";
+      if (!p.allow_promo_codes) choice = "gift";
+      nextChoice[p.id] = choice;
+
+      if (choice === "discount") continue;
+
+      const prevGiftId = selectedGiftByPromotionId.value[p.id];
+      let gift = prevGiftId ? gifts.find((g) => g.id === prevGiftId) : null;
+      if (!gift && gifts.length > 0) gift = gifts[0];
+      if (!gift) continue;
+      nextGift[p.id] = gift.id;
+
+      if (
+        gift.has_variants &&
+        Array.isArray(gift.variants) &&
+        gift.variants.length > 0
+      ) {
+        const key = keyOf(p.id, gift.id);
+
+        // Цвет: сохраняем валидный, иначе цвет первого варианта (автоселект).
+        let colorId: number | null = selectedGiftColorByKey.value[key] ?? null;
+        const colorValid =
+          colorId != null && gift.variants.some((v) => v.color?.id === colorId);
+        if (!colorValid) {
+          colorId = gift.variants[0]?.color?.id ?? null;
+        }
+        if (colorId != null) nextColor[key] = colorId;
+
+        // Размер: сохраняем валидный прошлый выбор (совпадающий с цветом),
+        // но НЕ автоселектим новый — это делает оператор.
+        const prevVariantId = selectedGiftVariantByKey.value[key];
+        const variantValid =
+          prevVariantId != null &&
+          gift.variants.some(
+            (v) =>
+              v.id === prevVariantId &&
+              (colorId == null || v.color?.id === colorId),
+          );
+        if (variantValid) nextVariant[key] = prevVariantId;
       }
     }
+
+    selectedGiftByPromotionId.value = nextGift;
+    selectedGiftColorByKey.value = nextColor;
+    selectedGiftVariantByKey.value = nextVariant;
+    userChoiceByPromotionId.value = nextChoice;
   };
 
   const checkApplicable = async () => {
@@ -245,63 +346,12 @@ export function usePromotionForOrder(
         return;
       }
 
-      activePromotion.value = promos[0];
-      const giftList = activePromotion.value.gift_products || [];
-
-      // Сохраняем выбор подарка, если он всё ещё доступен в новой выборке акции
-      const previouslySelectedGiftId = selectedGift.value?.id;
-      const stillAvailable = previouslySelectedGiftId
-        ? giftList.find((g) => g.id === previouslySelectedGiftId)
-        : null;
-
-      if (stillAvailable) {
-        selectedGift.value = stillAvailable;
-      } else if (giftList.length > 0) {
-        selectedGift.value = giftList[0];
-      } else {
-        selectedGift.value = null;
-      }
-
-      // Чистим устаревшие выборы variant'ов
-      const validGiftIds = new Set(giftList.map((g) => g.id));
-      const cleaned: Record<number, number> = {};
-      for (const [k, v] of Object.entries(selectedGiftVariantByGiftId.value)) {
-        const giftId = Number(k);
-        if (!validGiftIds.has(giftId)) continue;
-        const g = giftList.find((x) => x.id === giftId);
-        if (g && (g.variants || []).find((variant) => variant.id === v)) {
-          cleaned[giftId] = v;
-        }
-      }
-      selectedGiftVariantByGiftId.value = cleaned;
-
-      // Автовыбор цвета для активного подарка (но не размера — размер
-      // выбирает оператор сам). Логика повторяет витрину.
-      if (
-        selectedGift.value &&
-        selectedGift.value.has_variants &&
-        Array.isArray(selectedGift.value.variants) &&
-        selectedGift.value.variants.length > 0 &&
-        !selectedGiftColorByGiftId.value[selectedGift.value.id]
-      ) {
-        const firstColor = selectedGift.value.variants[0]?.color;
-        if (firstColor?.id != null) {
-          selectedGiftColorByGiftId.value = {
-            ...selectedGiftColorByGiftId.value,
-            [selectedGift.value.id]: firstColor.id,
-          };
-        }
-      }
-
-      // Если промокоды не разрешены — принудительно выбираем подарок
-      if (!activePromotion.value.allow_promo_codes) {
-        userChoice.value = "gift";
-      }
+      appliedPromotions.value = promos;
+      rebuildSelections(promos);
     } catch (e: any) {
       if (myRequestId === requestId) {
         errorMessage.value =
-          e?.response?.data?.message ||
-          "Не удалось проверить доступные акции";
+          e?.response?.data?.message || "Не удалось проверить доступные акции";
         // не сбрасываем стейт, чтобы оператор не потерял выбор подарка
       }
     } finally {
@@ -311,102 +361,166 @@ export function usePromotionForOrder(
     }
   };
 
-  const selectGift = (gift: PromotionGiftProduct | null) => {
-    selectedGift.value = gift;
-    userChoice.value = "gift";
+  const selectGift = (
+    promotionId: number,
+    gift: PromotionGiftProduct | null,
+  ) => {
+    userChoiceByPromotionId.value = {
+      ...userChoiceByPromotionId.value,
+      [promotionId]: "gift",
+    };
+
+    if (!gift) return;
+
+    selectedGiftByPromotionId.value = {
+      ...selectedGiftByPromotionId.value,
+      [promotionId]: gift.id,
+    };
 
     if (
-      gift &&
       gift.has_variants &&
       Array.isArray(gift.variants) &&
       gift.variants.length > 0
     ) {
-      // Авто-выбор цвета: если ещё не выбран — берём цвет первого варианта.
-      // Размер оператор выбирает сам — это критичный шаг и автовыбор плохо
-      // воспринимается (можно случайно отгрузить «не тот» размер).
-      if (!selectedGiftColorByGiftId.value[gift.id]) {
+      const key = keyOf(promotionId, gift.id);
+
+      // Авто-выбор цвета (но не размера — размер выбирает оператор).
+      if (!selectedGiftColorByKey.value[key]) {
         const firstColor = gift.variants[0]?.color;
         if (firstColor?.id != null) {
-          selectedGiftColorByGiftId.value = {
-            ...selectedGiftColorByGiftId.value,
-            [gift.id]: firstColor.id,
+          selectedGiftColorByKey.value = {
+            ...selectedGiftColorByKey.value,
+            [key]: firstColor.id,
           };
         }
       }
 
-      // Если ранее уже был выбран variant, проверяем что он всё ещё в наличии
-      // и совпадает с выбранным цветом — иначе чистим, чтобы UI был валиден.
-      const already = selectedGiftVariantByGiftId.value[gift.id];
-      const colorId = selectedGiftColorByGiftId.value[gift.id];
+      // Если ранее выбранный размер не совпадает с цветом/недоступен — чистим.
+      const already = selectedGiftVariantByKey.value[key];
+      const colorId = selectedGiftColorByKey.value[key];
       const stillAvailable = already
         ? gift.variants.find(
             (v) => v.id === already && (!colorId || v.color?.id === colorId),
           )
         : null;
       if (!stillAvailable && already) {
-        const newMap = { ...selectedGiftVariantByGiftId.value };
-        delete newMap[gift.id];
-        selectedGiftVariantByGiftId.value = newMap;
+        const newMap = { ...selectedGiftVariantByKey.value };
+        delete newMap[key];
+        selectedGiftVariantByKey.value = newMap;
       }
     }
   };
 
-  const selectGiftVariant = (variant: PromotionGiftVariant) => {
-    if (!selectedGift.value || !variant) return;
-    selectedGiftVariantByGiftId.value = {
-      ...selectedGiftVariantByGiftId.value,
-      [selectedGift.value.id]: variant.id,
+  const selectGiftColor = (
+    promotionId: number,
+    gift: PromotionGiftProduct | null,
+    colorId: number,
+  ) => {
+    if (!gift) return;
+    const key = keyOf(promotionId, gift.id);
+    selectedGiftColorByKey.value = {
+      ...selectedGiftColorByKey.value,
+      [key]: colorId,
+    };
+    const currentVariantId = selectedGiftVariantByKey.value[key];
+    if (currentVariantId) {
+      const currentVariant = (gift.variants || []).find(
+        (v) => v.id === currentVariantId,
+      );
+      if (!currentVariant || currentVariant.color?.id !== colorId) {
+        const newMap = { ...selectedGiftVariantByKey.value };
+        delete newMap[key];
+        selectedGiftVariantByKey.value = newMap;
+      }
+    }
+  };
+
+  const selectGiftVariant = (
+    promotionId: number,
+    gift: PromotionGiftProduct | null,
+    variant: PromotionGiftVariant,
+  ) => {
+    if (!gift || !variant) return;
+    selectedGiftVariantByKey.value = {
+      ...selectedGiftVariantByKey.value,
+      [keyOf(promotionId, gift.id)]: variant.id,
     };
   };
 
-  const selectDiscount = () => {
-    if (!allowPromoCodes.value) return;
-    userChoice.value = "discount";
-    selectedGift.value = null;
+  const selectDiscount = (promotionId: number) => {
+    const promotion = appliedPromotions.value.find((p) => p.id === promotionId);
+    if (promotion && !promotion.allow_promo_codes) return;
+    userChoiceByPromotionId.value = {
+      ...userChoiceByPromotionId.value,
+      [promotionId]: "discount",
+    };
+    const newGiftMap = { ...selectedGiftByPromotionId.value };
+    delete newGiftMap[promotionId];
+    selectedGiftByPromotionId.value = newGiftMap;
   };
 
   /**
-   * Формирует часть payload-а для POST /orders с информацией об акции.
-   * Если активной акции нет — возвращает пустой объект.
+   * Формирует часть payload-а для POST /orders — массив promotions[].
+   * Если применённых акций нет — возвращает пустой объект (ничего не добавляет).
    */
   const getPayloadFragment = (): Record<string, unknown> => {
-    if (!activePromotion.value) return {};
-    const out: Record<string, unknown> = {
-      promotion_id: activePromotion.value.id,
-      use_discount_instead: useDiscountInstead.value,
-    };
-    if (!useDiscountInstead.value && selectedGift.value) {
-      out.gift_product_id = selectedGift.value.id;
-      if (selectedGift.value.has_variants && selectedGiftVariant.value) {
-        out.gift_product_variant_id = selectedGiftVariant.value.id;
+    if (appliedPromotions.value.length === 0) return {};
+
+    const promotions = appliedPromotions.value.map((p) => {
+      const useDiscount = useDiscountInsteadFor(p.id);
+      const entry: Record<string, unknown> = {
+        promotion_id: p.id,
+        use_discount_instead: useDiscount,
+      };
+      if (!useDiscount) {
+        const gift = selectedGiftFor(p);
+        if (gift) {
+          entry.gift_product_id = gift.id;
+          if (gift.has_variants) {
+            const variant = selectedVariantFor(p);
+            if (variant) entry.gift_product_variant_id = variant.id;
+          }
+        }
       }
-    }
-    return out;
+      return entry;
+    });
+
+    return { promotions };
   };
 
   // Авто-обновление при изменении корзины/суммы
-  watch([items, total], () => {
-    checkApplicable();
-  }, { deep: true });
+  watch(
+    [items, total],
+    () => {
+      checkApplicable();
+    },
+    { deep: true },
+  );
 
   return {
     // state
-    activePromotion,
-    selectedGift,
-    selectedGiftVariantByGiftId,
-    selectedGiftColorByGiftId,
-    userChoice,
+    appliedPromotions,
+    selectedGiftByPromotionId,
+    selectedGiftVariantByKey,
+    selectedGiftColorByKey,
+    userChoiceByPromotionId,
     isLoading,
     errorMessage,
     // computed
     hasPromotion,
     allowPromoCodes,
-    giftProducts,
-    useDiscountInstead,
-    selectedGiftVariant,
-    needsVariantSelection,
+    promoBlockingPromotions,
     isGiftSelectionComplete,
-    // helpers (для UI: цвет → размер)
+    // helpers (per-promotion)
+    giftProductsFor,
+    userChoiceFor,
+    useDiscountInsteadFor,
+    selectedGiftIdFor,
+    selectedGiftFor,
+    selectedColorIdFor,
+    selectedVariantIdFor,
+    selectedVariantFor,
+    needsVariantSelectionFor,
     uniqueColorsForGift,
     variantsForGiftByColor,
     // actions

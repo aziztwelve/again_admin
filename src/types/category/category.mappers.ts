@@ -11,6 +11,7 @@ export function categoryFormUpdate(c: Category): CategoryFormData {
         show_in_catalog_menu: !!c.show_in_catalog_menu,
         show_as_home_banner: !!c.show_as_home_banner,
         is_new_product: !!c.is_new_product,
+        is_coming_soon: !!c.is_coming_soon,
         menu_order: c.menu_order ?? null,
 
         banner_image_desktop: null,

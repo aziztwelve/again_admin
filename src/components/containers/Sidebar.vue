@@ -411,7 +411,9 @@ import {
   PhX,
   PhUsers,
   PhCodesandboxLogo,
-  PhLineSegments
+  PhLineSegments,
+  PhMegaphone,
+  PhShoppingCart
 } from '@phosphor-icons/vue';
 
 import {BookMinus, AlarmClockCheck, ChartNoAxesGantt} from 'lucide-vue-next'
@@ -481,6 +483,7 @@ const navigation = computed(() => [
     children: [
       {name: 'Все заказы', href: '/orders/list', icon: PhList, notification: ordersCount.value},
       {name: 'Заявки', href: '/contact-requests', icon: BookMinus, notification: requests.value},
+      {name: 'Скоро в продаже', href: '/restock-subscriptions', icon: BookMinus},
       {name: 'Задачи', href: '/orders/tasks', icon: AlarmClockCheck, notification: tasksCount.value},
     ],
   },
@@ -521,7 +524,23 @@ const navigation = computed(() => [
       {name: 'Аналитика', href: '/integrations/analytics', icon: PhChartPie},
     ]
   },
-  {name: 'Аналитика', href: '/analytics/summary', icon: PhChartPie},
+  {
+    name: 'Аналитика',
+    href: '/analytics/summary',
+    icon: PhChartPie,
+    children: [
+      {name: 'Сводка', href: '/analytics/summary', icon: PhChartPie},
+      {name: 'Источники заказов', href: '/analytics/order-sources', icon: PhChartPie},
+    ]
+  },
+  {
+    name: 'Продвижение',
+    href: '/promotion/abandoned-carts',
+    icon: PhMegaphone,
+    children: [
+      {name: 'Брошенные корзины', href: '/promotion/abandoned-carts', icon: PhShoppingCart},
+    ]
+  },
   {name: 'Диалоги', icon: PhChatTeardropDots, href: '/dialogs/chats', notification: conversationCount.value},
   {name: 'Пользователи', href: '/users', icon: PhUsers},
 ])

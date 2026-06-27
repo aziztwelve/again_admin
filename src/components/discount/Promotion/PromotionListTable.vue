@@ -114,6 +114,24 @@ const columns = [
         : h(X, { class: "h-4 w-4 text-red-500" });
     },
   },
+  {
+    accessorKey: "is_stackable",
+    header: "Стекируется",
+    cell: ({ row }: any) => {
+      return row.original.isStackable
+        ? h(
+            "span",
+            {
+              class:
+                "inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700",
+              title:
+                "Акция суммируется с другими суммируемыми акциями (накопительные подарки)",
+            },
+            "Стекируется",
+          )
+        : h(X, { class: "h-4 w-4 text-gray-300" });
+    },
+  },
 ];
 
 const { formatDateToRussian } = useDateFormat();

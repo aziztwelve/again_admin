@@ -79,6 +79,18 @@ const routes = [
                 component: () => import('../components/contact_request/list/ContactList.vue'),
             },
 
+            {
+                path: 'restock-subscriptions',
+                name: 'restock_subscription',
+                component: () => import('../components/restock_subscription/RestockSubscriptionList.vue'),
+            },
+
+            {
+                path: '/promotion/abandoned-carts',
+                name: 'promotion-abandoned-carts',
+                component: () => import('../components/analytics/abandoned-carts/Index.vue'),
+            },
+
 
             {
                 path: '/products',
@@ -291,6 +303,11 @@ const routes = [
                         name: 'analytics-summary',
                         component: () => import('../components/analytics/summary/index.vue'),
 
+                    },
+                    {
+                        path: '/analytics/order-sources',
+                        name: 'analytics-order-sources',
+                        component: () => import('../components/analytics/utm/Index.vue'),
                     }
                 ]
             },

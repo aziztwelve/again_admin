@@ -3,6 +3,7 @@ import {cn} from '@/lib/utils'
 import {Button} from '@/components/ui/button'
 import {Calendar} from '@/components/ui/calendar'
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
+import {PopoverClose} from 'reka-ui'
 import {
   DateFormatter,
   type DateValue,
@@ -162,6 +163,21 @@ watch(
             initial-focus
             locale="ru-RU"
         />
+        <div class="flex items-center justify-between gap-2 border-t p-2">
+          <Button
+              v-if="clearable"
+              variant="ghost"
+              size="sm"
+              :disabled="disabled || !internalValue"
+              @click="clear"
+          >
+            Сбросить
+          </Button>
+          <span v-else></span>
+          <PopoverClose as-child>
+            <Button size="sm">Применить</Button>
+          </PopoverClose>
+        </div>
       </PopoverContent>
     </Popover>
     <button
