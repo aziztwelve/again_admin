@@ -69,7 +69,7 @@
 
             <TableCell>
               <div class="flex flex-col">
-                <span class="font-medium text-gray-800">{{ row.customer.name || '—' }}</span>
+                <span class="font-medium text-gray-800">{{ row.customer.name || (row.customer.is_guest ? 'Гость' : '—') }}</span>
                 <span v-if="row.customer.phone" class="text-xs text-gray-500">{{ row.customer.phone }}</span>
                 <span v-if="row.customer.email" class="text-xs text-gray-500">{{ row.customer.email }}</span>
               </div>
@@ -93,12 +93,14 @@
             <TableCell class="text-right font-semibold">{{ formatMoney(row.total) }}</TableCell>
 
             <TableCell class="text-center">
-              <component
-                  :is="channelIcon(row.last_communication?.channel)"
+              <span
                   v-if="row.last_communication?.channel && row.last_communication.channel !== 'none'"
-                  class="inline h-4 w-4 text-gray-500"
+                  class="inline-flex items-center gap-1 text-xs text-gray-600"
                   :title="row.last_communication.channel"
-              />
+              >
+                <component :is="channelIcon(row.last_communication.channel)" class="h-4 w-4 text-gray-500"/>
+                {{ channelLabel(row.last_communication.channel) }}
+              </span>
               <span v-else class="text-gray-300">—</span>
             </TableCell>
 
@@ -203,6 +205,21 @@ const channelIcon = (channel?: string) => {
       return Globe
     default:
       return Globe
+  }
+}
+
+const channelLabel = (channel?: string): string => {
+  switch (channel) {
+    case 'email':
+      return 'Email'
+    case 'telegram':
+      return 'Telegram'
+    case 'whatsapp':
+      return 'WhatsApp'
+    case 'vk':
+      return 'VK'
+    default:
+      return channel ?? ''
   }
 }
 

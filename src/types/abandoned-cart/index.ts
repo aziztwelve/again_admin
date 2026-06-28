@@ -79,6 +79,7 @@ export interface AbandonedCartCustomer {
     name: string | null
     phone: string | null
     email: string | null
+    is_guest?: boolean
 }
 
 export interface AbandonedCartCommunication {
