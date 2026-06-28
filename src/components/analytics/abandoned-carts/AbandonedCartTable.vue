@@ -68,8 +68,16 @@
             </TableCell>
 
             <TableCell>
-              <div class="flex flex-col">
-                <span class="font-medium text-gray-800">{{ row.customer.name || (row.customer.is_guest ? 'Гость' : '—') }}</span>
+              <div class="flex flex-col gap-0.5">
+                <div class="flex items-center gap-1.5">
+                  <span v-if="row.customer.name" class="font-medium text-gray-800">{{ row.customer.name }}</span>
+                  <span
+                      class="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                      :class="row.customer.is_guest ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'"
+                  >
+                    {{ row.customer.is_guest ? 'Гость' : 'Клиент' }}
+                  </span>
+                </div>
                 <span v-if="row.customer.phone" class="text-xs text-gray-500">{{ row.customer.phone }}</span>
                 <span v-if="row.customer.email" class="text-xs text-gray-500">{{ row.customer.email }}</span>
               </div>
