@@ -6,7 +6,7 @@
     </h3>
 
     <div v-if="hasData" class="relative h-[300px]">
-      <DoughnutChart :chartData="chartData" :options="options"/>
+      <DoughnutChart :chartData="chartData" :options="options" :styles="chartStyles"/>
     </div>
     <div v-else class="h-[300px] flex items-center justify-center text-sm text-gray-400">
       Нет корзин за выбранный период
@@ -27,6 +27,9 @@ const props = defineProps<{
 }>()
 
 const hasData = computed(() => (props.conversion?.total ?? 0) > 0)
+
+// Явная высота обёртки, иначе canvas тянется к дефолтным 400px.
+const chartStyles = {height: '100%', width: '100%', position: 'relative' as const}
 
 const chartData = computed(() => ({
   labels: ['Заказы', 'Брошенные'],

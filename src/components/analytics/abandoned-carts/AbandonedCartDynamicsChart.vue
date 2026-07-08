@@ -24,7 +24,7 @@
     </div>
 
     <div v-if="hasData" class="relative h-[300px]">
-      <BarChart :chartData="chartData" :options="options"/>
+      <BarChart :chartData="chartData" :options="options" :styles="chartStyles"/>
     </div>
     <div v-else class="h-[300px] flex items-center justify-center text-sm text-gray-400">
       Нет данных за выбранный период
@@ -53,6 +53,10 @@ const orderedTotal = computed(() =>
 const orderedAmount = computed(() =>
     (props.chart?.ordered_amount ?? []).reduce((a, b) => a + b, 0),
 )
+
+// vue-chart-3 не наследует высоту от родителя, поэтому задаём её обёртке явно,
+// иначе canvas тянется к дефолтным 400px и вылезает за карточку.
+const chartStyles = {height: '100%', width: '100%', position: 'relative' as const}
 
 const formatInt = (v: number) => (v ?? 0).toLocaleString('ru-RU')
 const formatMoney = (v: number) =>
