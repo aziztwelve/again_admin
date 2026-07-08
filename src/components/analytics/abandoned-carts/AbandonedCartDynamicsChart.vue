@@ -85,6 +85,9 @@ const chartData = computed(() => ({
 const options = {
   responsive: true,
   maintainAspectRatio: false,
+  layout: {
+    padding: {bottom: 8},
+  },
   plugins: {
     legend: {
       position: 'top' as const,
@@ -102,7 +105,16 @@ const options = {
     x: {
       stacked: false,
       grid: {display: false},
-      ticks: {color: '#6B7280', font: {family: 'Inter, sans-serif'}},
+      ticks: {
+        color: '#6B7280',
+        font: {family: 'Inter, sans-serif'},
+        // Держим подписи горизонтальными и прореживаем их,
+        // чтобы даты не наезжали друг на друга и не вылезали за карточку.
+        autoSkip: true,
+        autoSkipPadding: 12,
+        maxRotation: 0,
+        minRotation: 0,
+      },
     },
     y: {
       beginAtZero: true,

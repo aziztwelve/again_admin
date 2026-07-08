@@ -8,9 +8,18 @@
             v-model="search"
             type="text"
             placeholder="Поиск по ID, имени, телефону или email"
-            class="w-full h-9 rounded-md border border-gray-300 pl-8 pr-2 text-sm"
+            class="w-full h-9 rounded-md border border-gray-300 pl-8 pr-8 text-sm"
             @keyup.enter="emitFilters"
         />
+        <button
+            v-if="search"
+            type="button"
+            class="absolute right-2 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            title="Сбросить поиск"
+            @click="clearSearch"
+        >
+          <X class="h-4 w-4"/>
+        </button>
       </div>
 
       <select
@@ -23,7 +32,7 @@
         <option value="ordered">Заказанная</option>
       </select>
 
-      <Button @click="emitFilters">Применить</Button>
+      <Button v-if="isFiltered" variant="outline" @click="resetFilters">Сбросить</Button>
     </div>
 
     <!-- Таблица -->
@@ -142,11 +151,11 @@
 </template>
 
 <script setup lang="ts">
-import {ref, watch} from 'vue'
+import {computed, onBeforeUnmount, ref, watch} from 'vue'
 import {Button} from '@/components/ui/button'
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
 import Pagination from '@/components/common/Pagination.vue'
-import {Search, Mail, Send, MessageCircle, Globe} from 'lucide-vue-next'
+import {Search, Mail, Send, MessageCircle, Globe, X} from 'lucide-vue-next'
 import type {AbandonedCartRow, CartStatus} from '@/types/abandoned-cart'
 
 const props = defineProps<{
@@ -168,8 +177,43 @@ const emit = defineEmits<{
 const search = ref('')
 const status = ref<CartStatus | ''>('')
 
+const isFiltered = computed(() => search.value !== '' || status.value !== '')
+
 const emitFilters = () => {
   emit('filter', {search: search.value, status: status.value})
+}
+
+// Автопоиск по введённым символам с задержкой (debounce).
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+let suppressWatch = false
+watch(search, () => {
+  if (suppressWatch) {
+    suppressWatch = false
+    return
+  }
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(emitFilters, 400)
+})
+
+onBeforeUnmount(() => {
+  if (searchTimer) clearTimeout(searchTimer)
+})
+
+// Сброс только строки поиска (крестик в поле).
+const clearSearch = () => {
+  if (searchTimer) clearTimeout(searchTimer)
+  if (search.value !== '') suppressWatch = true
+  search.value = ''
+  emitFilters()
+}
+
+// Полный сброс фильтров (кнопка «Сбросить»).
+const resetFilters = () => {
+  if (searchTimer) clearTimeout(searchTimer)
+  if (search.value !== '') suppressWatch = true
+  search.value = ''
+  status.value = ''
+  emitFilters()
 }
 
 // Склонение слова «версия» по числу (1 версия / 2 версии / 5 версий).
