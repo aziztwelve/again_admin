@@ -116,7 +116,7 @@ const columns = [
   },
   {
     accessorKey: "is_stackable",
-    header: "Стекируется",
+    header: "Суммируется",
     cell: ({ row }: any) => {
       return row.original.isStackable
         ? h(
@@ -127,7 +127,7 @@ const columns = [
               title:
                 "Акция суммируется с другими суммируемыми акциями (накопительные подарки)",
             },
-            "Стекируется",
+            "Суммируется",
           )
         : h(X, { class: "h-4 w-4 text-gray-300" });
     },
