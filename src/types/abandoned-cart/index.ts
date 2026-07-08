@@ -28,21 +28,6 @@ export interface AbandonedCartTopProduct {
     total_quantity: number
 }
 
-// Разрез гость / зарегистрированный (универсальная корзина).
-export interface AbandonedCartSegment {
-    abandoned: number
-    ordered: number
-    total: number
-    rate: number // %
-    lost_revenue: number
-    revenue: number
-}
-
-export interface AbandonedCartSegments {
-    guest: AbandonedCartSegment
-    registered: AbandonedCartSegment
-}
-
 export interface AbandonedCartAnalytics {
     // Карточки-метрики
     average_cart_value: number // Средняя стоимость корзины (по брошенным)
@@ -51,9 +36,6 @@ export interface AbandonedCartAnalytics {
 
     // Круговая «Конверсия в заказ»
     conversion: AbandonedCartConversion
-
-    // Разрез гость / зарегистрированный
-    segments: AbandonedCartSegments
 
     // Динамика по дням/месяцам
     chart: AbandonedCartChart
@@ -79,7 +61,6 @@ export interface AbandonedCartCustomer {
     name: string | null
     phone: string | null
     email: string | null
-    is_guest?: boolean
 }
 
 export interface AbandonedCartCommunication {

@@ -41,9 +41,6 @@
       <AbandonedCartConversionChart :conversion="analytics?.conversion ?? emptyConversion"/>
     </div>
 
-    <!-- Разрез гость / зарегистрированный -->
-    <AbandonedCartSegments :segments="analytics?.segments ?? emptySegments"/>
-
     <!-- Таблица корзин -->
     <div>
       <h3 class="text-base font-semibold text-gray-800 mb-2">
@@ -73,7 +70,6 @@ import StatCard from '@/components/ui/StatCard.vue'
 import AbandonedCartFilters from '@/components/analytics/abandoned-carts/AbandonedCartFilters.vue'
 import AbandonedCartDynamicsChart from '@/components/analytics/abandoned-carts/AbandonedCartDynamicsChart.vue'
 import AbandonedCartConversionChart from '@/components/analytics/abandoned-carts/AbandonedCartConversionChart.vue'
-import AbandonedCartSegments from '@/components/analytics/abandoned-carts/AbandonedCartSegments.vue'
 import AbandonedCartTable from '@/components/analytics/abandoned-carts/AbandonedCartTable.vue'
 import {useAbandonedCartFunctions} from '@/composables/useAbandonedCartFunctions'
 import type {
@@ -83,7 +79,6 @@ import type {
   AbandonedCartConversion,
   AbandonedCartListFilters,
   AbandonedCartRow,
-  AbandonedCartSegments as AbandonedCartSegmentsType,
   CartStatus,
   Paginated,
 } from '@/types/abandoned-cart'
@@ -115,11 +110,6 @@ const emptyChart: AbandonedCartChart = {
 
 const emptyConversion: AbandonedCartConversion = {
   ordered: 0, abandoned: 0, total: 0, rate: 0,
-}
-
-const emptySegments: AbandonedCartSegmentsType = {
-  guest: {abandoned: 0, ordered: 0, total: 0, rate: 0, lost_revenue: 0, revenue: 0},
-  registered: {abandoned: 0, ordered: 0, total: 0, rate: 0, lost_revenue: 0, revenue: 0},
 }
 
 const periodLabel = computed(() => {
