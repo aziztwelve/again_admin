@@ -178,6 +178,21 @@ export function useUtmFunctions() {
             .finally(() => sending.value = false)
     }
 
+    // Точечное переключение активности метки. Без общего sending-guard: тумблеры
+    // разных строк должны работать независимо (иначе клик во время другого запроса
+    // тихо теряется). Параллельность на строку гасится флагом в компоненте.
+    const setLinkActive = async (id: number, isActive: boolean): Promise<UtmLink> => {
+        return await axios.put(`utm/links/${id}`, {is_active: isActive})
+            .then(res => {
+                useSuccessHandler().showSuccess(res)
+                return res.data.data
+            })
+            .catch(e => {
+                useErrorHandler().showError(e)
+                throw e
+            })
+    }
+
     const deleteLink = async (id: number): Promise<void> => {
         if (sending.value) return
         sending.value = true
@@ -228,6 +243,7 @@ export function useUtmFunctions() {
         getLinks,
         createLink,
         updateLink,
+        setLinkActive,
         deleteLink,
         // analytics
         getAnalytics,

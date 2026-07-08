@@ -78,9 +78,17 @@
                 </div>
               </TableCell>
               <TableCell>
-                <span :class="link.is_active ? 'text-green-600' : 'text-gray-400'">
-                  {{ link.is_active ? 'Активна' : 'Выключена' }}
-                </span>
+                <div class="flex items-center gap-2">
+                  <Switch
+                      :model-value="link.is_active"
+                      :disabled="togglingId === link.id"
+                      :title="link.is_active ? 'Метка активна — нажмите, чтобы выключить' : 'Метка выключена — нажмите, чтобы включить'"
+                      @update:model-value="(v: boolean) => toggleActive(link, v)"
+                  />
+                  <span class="text-xs" :class="link.is_active ? 'text-green-600' : 'text-gray-400'">
+                    {{ link.is_active ? 'Активна' : 'Выключена' }}
+                  </span>
+                </div>
               </TableCell>
               <TableCell class="text-right">
                 <div class="inline-flex gap-1">
@@ -119,6 +127,7 @@
 import {computed, onMounted, ref} from 'vue'
 import {Button} from '@/components/ui/button'
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
+import {Switch} from '@/components/ui/switch'
 import {Copy, Pencil, Plus, Trash2} from 'lucide-vue-next'
 import {toast} from 'vue-sonner'
 import DynamicTitle from '@/components/dynamics/DynamicTitle.vue'
@@ -139,7 +148,7 @@ import type {
   UtmTag,
 } from '@/types/utm'
 
-const {getChannels, getTags, getLinks, getAnalytics, deleteLink} = useUtmFunctions()
+const {getChannels, getTags, getLinks, getAnalytics, deleteLink, setLinkActive} = useUtmFunctions()
 
 const channels = ref<MarketingChannel[]>([])
 const tags = ref<UtmTag[]>([])
@@ -153,6 +162,8 @@ const filters = ref<UtmAnalyticsFilters>({
   from: undefined,
   to: undefined,
 })
+
+const togglingId = ref<number | null>(null)
 
 const linkModal = ref<InstanceType<typeof UtmLinkFormModal> | null>(null)
 const channelsModal = ref<InstanceType<typeof UtmChannelsModal> | null>(null)
@@ -185,6 +196,20 @@ const loadAnalytics = async () => {
 const onDictionariesChanged = async () => {
   await loadDictionaries()
   await loadAnalytics()
+}
+
+const toggleActive = async (link: UtmLink, value: boolean) => {
+  if (togglingId.value === link.id || link.is_active === value) return
+  const prev = link.is_active
+  link.is_active = value // оптимистично
+  togglingId.value = link.id
+  try {
+    await setLinkActive(link.id, value)
+  } catch (e) {
+    link.is_active = prev // откат при ошибке
+  } finally {
+    togglingId.value = null
+  }
 }
 
 const removeLink = async (link: UtmLink) => {
