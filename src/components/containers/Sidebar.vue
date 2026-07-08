@@ -521,6 +521,7 @@ const navigation = computed(() => [
       {name: 'Сервисы доставки', href: '/integrations/delivery', icon: PhTruck},
       {name: 'Email-рассылки', href: '/integrations/email', icon: PhChatTeardropDots},
       {name: 'Мессенджеры', href: '/integrations/messengers', icon: PhChatTeardropDots},
+      {name: 'VPN Amnezia', href: '/integrations/amnezia-vpn', icon: PhComputerTower},
       {name: 'Аналитика', href: '/integrations/analytics', icon: PhChartPie},
     ]
   },

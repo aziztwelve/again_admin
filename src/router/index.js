@@ -273,6 +273,11 @@ const routes = [
                         component: () => import('../components/integrations/messengers/index.vue'),
                     },
                     {
+                        path: '/integrations/amnezia-vpn',
+                        name: 'integrations-amnezia-vpn',
+                        component: () => import('../components/integrations/amnezia-vpn/index.vue'),
+                    },
+                    {
                         path: '/integrations/email',
                         name: 'integrations-email',
                         component: () => import('../components/integrations/email/index.vue'),
