@@ -158,7 +158,7 @@ const analytics = ref<UtmAnalyticsResponse | undefined>(undefined)
 const filters = ref<UtmAnalyticsFilters>({
   channel_id: null,
   tag_id: null,
-  link_id: null,
+  link_ids: [],
   from: undefined,
   to: undefined,
 })

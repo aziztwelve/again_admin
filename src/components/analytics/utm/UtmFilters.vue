@@ -25,16 +25,17 @@
         </select>
       </div>
 
-      <!-- Метка (кампания) -->
+      <!-- Метка (кампания) — мульти-выбор -->
       <div>
         <label class="block text-xs font-medium text-gray-600 mb-1">Метка</label>
-        <select
-            v-model="model.link_id"
-            class="w-full h-9 rounded-md border border-gray-300 px-2 text-sm bg-white"
-        >
-          <option :value="null">Все</option>
-          <option v-for="l in links" :key="l.id" :value="l.id">{{ l.name }}</option>
-        </select>
+        <MultiSelect
+            :model-value="model.link_ids ?? []"
+            :options="links"
+            option-label="name"
+            option-value="id"
+            placeholder="Все"
+            @update:model-value="(v: number[]) => model.link_ids = v"
+        />
       </div>
 
       <!-- Период с -->
@@ -60,6 +61,7 @@
 <script setup lang="ts">
 import {Button} from '@/components/ui/button'
 import DatePicker from '@/components/dynamics/DatePicker.vue'
+import MultiSelect from '@/components/common/MultiSelect.vue'
 import type {MarketingChannel, UtmTag, UtmLink, UtmAnalyticsFilters} from '@/types/utm'
 
 const model = defineModel<UtmAnalyticsFilters>({required: true})
@@ -77,7 +79,7 @@ const emit = defineEmits<{
 const reset = () => {
   model.value.channel_id = null
   model.value.tag_id = null
-  model.value.link_id = null
+  model.value.link_ids = []
   model.value.from = undefined
   model.value.to = undefined
   emit('apply')

@@ -214,6 +214,11 @@ export function useUtmFunctions() {
         // Чистим пустые/null параметры, чтобы не слать ?channel_id=
         const params: Record<string, any> = {}
         Object.entries(filters).forEach(([key, value]) => {
+            // Пустой массив меток (link_ids) не шлём — иначе бэк вернёт пусто.
+            if (Array.isArray(value)) {
+                if (value.length) params[key] = value
+                return
+            }
             if (value !== undefined && value !== null && value !== '') {
                 params[key] = value
             }

@@ -123,7 +123,7 @@ export interface UtmAnalyticsFilters {
     granularity?: 'day' | 'month'
     channel_id?: number | null
     tag_id?: number | null
-    link_id?: number | null
+    link_ids?: number[]
 }
 
 export const initialUtmLinkForm: CreateUtmLinkRequest = {
