@@ -1,6 +1,6 @@
 <template>
   <Dialog v-model:open="dialogOpen">
-    <button :disabled="disabled">
+    <button type="button" :disabled="disabled">
       <DialogTrigger as-child>
         <slot name="button" />
       </DialogTrigger>
