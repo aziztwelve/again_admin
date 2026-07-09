@@ -1,5 +1,21 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import store from '@/store'
+import axios from 'axios'
+
+const redirectIfAnalyticsInactive = async (to, from, next) => {
+    try {
+        const response = await axios.get('third-party-integrations/settings/analytics')
+        const isActive = Boolean(response.data?.data?.yandex_metrika_enabled)
+
+        if (!isActive) {
+            return next({path: '/dashboard'})
+        }
+    } catch (e) {
+        return next({path: '/dashboard'})
+    }
+
+    next()
+}
 
 const routes = [
     {
@@ -313,6 +329,7 @@ const routes = [
                         path: '/analytics/order-sources',
                         name: 'analytics-order-sources',
                         component: () => import('../components/analytics/utm/Index.vue'),
+                        beforeEnter: redirectIfAnalyticsInactive,
                     }
                 ]
             },

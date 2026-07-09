@@ -177,25 +177,57 @@
     </TransitionRoot>
 
     <!-- Static sidebar for desktop -->
-    <div class="hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-72 lg:flex-col">
-      <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 py-4 shadow-sm">
-        <div class="flex h-16 shrink-0 items-center">
-          <img class="h-8 w-auto" :src='logo' alt="Company Logo"/>
+    <div
+        :class="[
+          isDesktopSidebarCollapsed ? 'lg:w-20' : 'lg:w-72',
+          'hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:flex-col transition-[width] duration-200'
+        ]"
+    >
+      <div
+          :class="[
+            isDesktopSidebarCollapsed ? 'px-3' : 'px-6',
+            'flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white py-4 shadow-sm transition-[padding] duration-200'
+          ]"
+      >
+        <div
+            :class="[
+              isDesktopSidebarCollapsed ? 'justify-center' : 'justify-start',
+              'flex h-16 shrink-0 items-center gap-2'
+            ]"
+        >
+          <img
+              :class="[isDesktopSidebarCollapsed ? 'h-8 w-8 object-contain' : 'h-8 w-auto']"
+              :src='logo'
+              alt="Company Logo"
+          />
         </div>
+
+        <button
+            type="button"
+            class="absolute -right-4 top-24 z-40 inline-flex size-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-md transition-colors hover:bg-gray-50 hover:text-red-600"
+            :title="isDesktopSidebarCollapsed ? 'Показать меню' : 'Скрыть меню'"
+            @click="toggleDesktopSidebar"
+        >
+          <span class="sr-only">{{ isDesktopSidebarCollapsed ? 'Показать меню' : 'Скрыть меню' }}</span>
+          <PhCaretRight v-if="isDesktopSidebarCollapsed" class="size-4" aria-hidden="true"/>
+          <PhCaretLeft v-else class="size-4" aria-hidden="true"/>
+        </button>
 
         <nav class="flex flex-1 flex-col">
           <ul role="list" class="flex flex-1 flex-col gap-y-4">
             <li>
-              <ul role="list" class="-mx-2 space-y-1">
+              <ul role="list" :class="[isDesktopSidebarCollapsed ? 'space-y-2' : '-mx-2 space-y-1']">
                 <li v-for="item in updatedNavigation" :key="item.name">
                   <router-link
                       v-if="!item.children"
                       :to="item.href"
+                      :title="isDesktopSidebarCollapsed ? item.name : null"
                       :class="[
                       item.current
-                        ? 'bg-gradient-to-r from-red-50 to-white text-red-600 border-l-4 border-red-500'
+                        ? (isDesktopSidebarCollapsed ? 'bg-red-50 text-red-600 ring-1 ring-red-100' : 'bg-gradient-to-r from-red-50 to-white text-red-600 border-l-4 border-red-500')
                         : 'text-gray-700 hover:bg-gray-50 hover:text-red-600',
-                      'group flex gap-x-3 rounded-md p-2 text-sm font-medium transition-colors'
+                      isDesktopSidebarCollapsed ? 'relative justify-center p-3' : 'gap-x-3 p-2',
+                      'group flex rounded-md text-sm font-medium transition-colors'
                     ]"
                   >
                     <component
@@ -208,13 +240,41 @@
                       ]"
                         aria-hidden="true"
                     />
-                    {{ item.name }}
+                    <span v-if="!isDesktopSidebarCollapsed">{{ item.name }}</span>
                     <span v-if="item.notification && item.notification > 0"
-                          class="ml-auto inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+                          :class="[
+                            isDesktopSidebarCollapsed ? 'absolute right-1 top-1 min-w-4 justify-center px-1 text-[10px]' : 'ml-auto px-2 py-0.5 text-xs',
+                            'inline-flex items-center rounded-full bg-red-100 font-medium text-red-800'
+                          ]">
                       {{ item.notification }}
                     </span>
                   </router-link>
 
+
+                  <router-link
+                      v-else-if="isDesktopSidebarCollapsed"
+                      :to="item.href"
+                      :title="item.name"
+                      :class="[
+                        item.current
+                          ? 'bg-red-50 text-red-600 ring-1 ring-red-100'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-red-600',
+                        'group relative flex justify-center rounded-md p-3 text-sm font-medium transition-colors'
+                      ]"
+                  >
+                    <component
+                        :is="item.icon"
+                        :class="[
+                          item.current ? 'text-red-600' : 'text-gray-400 group-hover:text-red-600',
+                          'size-6 shrink-0'
+                        ]"
+                        aria-hidden="true"
+                    />
+                    <span v-if="item.notification && item.notification > 0"
+                          class="absolute right-1 top-1 inline-flex min-w-4 items-center justify-center rounded-full bg-red-100 px-1 text-[10px] font-medium text-red-800">
+                      {{ item.notification }}
+                    </span>
+                  </router-link>
 
                   <Disclosure as="div" v-else v-slot="{ open }">
 
@@ -285,10 +345,14 @@
             <li class="mt-auto">
               <router-link
                   to="/settings"
-                  class="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
+                  :title="isDesktopSidebarCollapsed ? 'Настройки' : null"
+                  :class="[
+                    isDesktopSidebarCollapsed ? 'mx-auto justify-center p-3' : '-mx-2 gap-x-3 p-2',
+                    'group flex rounded-md text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-red-600'
+                  ]"
               >
                 <PhGear class="size-6 shrink-0 text-gray-400 group-hover:text-red-600" aria-hidden="true"/>
-                Настройки
+                <span v-if="!isDesktopSidebarCollapsed">Настройки</span>
               </router-link>
             </li>
           </ul>
@@ -297,7 +361,7 @@
     </div>
 
     <!-- Main content area -->
-    <div class="lg:pl-72">
+    <div class="admin-shell-offset">
       <div class="sticky top-0 z-20 lg:mx-auto lg:px-8">
         <div
             class="flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-0 lg:shadow-none"
@@ -375,7 +439,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onBeforeUnmount, computed} from 'vue'
+import {ref, onMounted, onBeforeUnmount, computed, watch} from 'vue'
 import {useRoute} from 'vue-router';
 import {
   Dialog,
@@ -393,6 +457,7 @@ import {
 import {
   PhBag,
   PhBell,
+  PhCaretLeft,
   PhCaretRight,
   PhChartPie,
   PhChatTeardropDots,
@@ -425,6 +490,8 @@ import {assetPath} from "@/utils/assetPath";
 
 
 const store = useStore()
+const desktopSidebarStorageKey = 'again-admin-sidebar-collapsed'
+const isDesktopSidebarCollapsed = ref(false)
 
 const user = computed(() => {
   const userData = store.state.auth.user
@@ -442,6 +509,8 @@ function handleClickOutside(e) {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+
+  isDesktopSidebarCollapsed.value = localStorage.getItem(desktopSidebarStorageKey) === 'true'
 })
 
 onBeforeUnmount(() => {
@@ -570,4 +639,28 @@ const sidebarOpen = ref(false)
 const closeSidebar = () => {
   sidebarOpen.value = false;
 };
+
+const toggleDesktopSidebar = () => {
+  isDesktopSidebarCollapsed.value = !isDesktopSidebarCollapsed.value
+}
+
+watch(
+    isDesktopSidebarCollapsed,
+    (isCollapsed) => {
+      const width = isCollapsed ? '5rem' : '18rem'
+
+      document.documentElement.style.setProperty('--admin-sidebar-width', width)
+      localStorage.setItem(desktopSidebarStorageKey, String(isCollapsed))
+    },
+    {immediate: true}
+)
 </script>
+
+<style>
+@media (min-width: 1024px) {
+  .admin-shell-offset {
+    padding-left: var(--admin-sidebar-width, 18rem);
+    transition: padding-left 200ms ease;
+  }
+}
+</style>
