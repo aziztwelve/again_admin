@@ -48,6 +48,7 @@ import EditableOrderCell from "@/components/products/list/online/EditableOrderCe
 import EditableAbsorbencyCell from "@/components/products/list/online/AbsorbencyLevel/EditableAbsorbencyCell.vue";
 import EditableFitTypeCell from "@/components/products/list/online/EditCell/EditableFitTypeCell.vue";
 import {useProductAttributeFunctions} from "@/composables/Product/useProductAttributeFunctions";
+import {isProductOutOfStock} from "@/utils/productStock";
 
 interface Props {
   items: Product[];
@@ -127,12 +128,19 @@ const columns = [
     cell: ({row}: any) => {
       const product = row.original;
 
-      return h('span', {
-            class: 'text-blue-500 cursor-pointer hover:underline',
-            onClick: () => editProduct(product)
-          },
-          `${product.name} ${product?.color ? ' / ' + product.color.name : ''}`
-      );
+      return h('div', {class: 'flex flex-wrap items-center gap-2'}, [
+        h('span', {
+              class: 'text-blue-500 cursor-pointer hover:underline',
+              onClick: () => editProduct(product)
+            },
+            `${product.name} ${product?.color ? ' / ' + product.color.name : ''}`
+        ),
+        isProductOutOfStock(product)
+            ? h('span', {
+              class: 'inline-flex items-center rounded border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 whitespace-nowrap'
+            }, 'Нет в наличии')
+            : null
+      ]);
     }
   },
 

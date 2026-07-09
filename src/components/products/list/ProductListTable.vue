@@ -45,6 +45,7 @@ import {useProductFunctions} from "@/composables/useProductFunctions";
 import {useSelectableColumn} from "@/composables/useSelectableColumn";
 import {Eye, EyeOff} from "lucide-vue-next"
 import BulkActionsMenu from "@/components/dynamics/BulkActionsMenu.vue"
+import {isProductOutOfStock} from "@/utils/productStock";
 
 const props = defineProps({
   items: {
@@ -134,10 +135,17 @@ const columns = [
     cell: ({row}: any) => {
       const product = row.original;
 
-      return h('span', {
-        class: 'text-blue-500 cursor-pointer hover:underline',
-        onClick: () => editProduct(product)
-      }, product.name);
+      return h('div', {class: 'flex flex-wrap items-center gap-2'}, [
+        h('span', {
+          class: 'text-blue-500 cursor-pointer hover:underline',
+          onClick: () => editProduct(product)
+        }, product.name),
+        isProductOutOfStock(product)
+            ? h('span', {
+              class: 'inline-flex items-center rounded border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 whitespace-nowrap'
+            }, 'Нет в наличии')
+            : null
+      ]);
     }
   },
 

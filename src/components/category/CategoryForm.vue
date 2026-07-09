@@ -19,6 +19,7 @@ import {useProductFunctions} from "@/composables/useProductFunctions";
 import {Product} from "@/models/Product";
 import Loader from "@/components/common/Loader.vue";
 import {Category, CategoryFormData} from "@/types/category";
+import {isProductOutOfStock} from "@/utils/productStock";
 
 
 interface Props {
@@ -54,9 +55,16 @@ onMounted(async () => {
       })
 
   products.value =
-      await getProducts({per_page: 200, paginate: false})
+      await getProducts({per_page: 200, paginate: false, admin: true})
           .then(response => {
-            return response.map((item: any) => Product.fromJSON(item))
+            return response.map((item: any) => {
+              const product = Product.fromJSON(item) as Product & { select_label?: string };
+              product.select_label = isProductOutOfStock(product)
+                  ? `${product.name} - Нет в наличии`
+                  : product.name;
+
+              return product;
+            })
           })
 
 
@@ -94,7 +102,7 @@ const getColumns = async () => {
       required: false,
       placeholder: 'Выберите товары',
       options: products.value ?? [],
-      optionLabel: 'name',
+      optionLabel: 'select_label',
       optionValue: 'id'
     },
     {
@@ -127,7 +135,7 @@ const getColumns = async () => {
     {
       name: 'is_coming_soon',
       component: 'checkbox',
-      label: 'Скоро в продаже (автоматически добавлять товары без остатка)',
+      label: 'Скоро в продаже (показывать выбранные товары без остатка)',
       required: false,
     },
     {
