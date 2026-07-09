@@ -22,10 +22,12 @@
         @apply="loadAnalytics"
     />
 
-    <!-- Графики -->
-    <div class="grid gap-4 lg:grid-cols-2 grid-cols-1">
-      <UtmBarChart :chart="analytics?.chart ?? {labels: [], series: []}"/>
-      <UtmDonutChart :pie="analytics?.pie ?? {labels: [], data: []}"/>
+    <!-- График -->
+    <div>
+      <UtmBarChart
+          :chart="analytics?.chart ?? {labels: [], series: []}"
+          :orders-by-link="ordersByLink"
+      />
     </div>
 
     <!-- Сводная таблица -->
@@ -133,7 +135,6 @@ import {toast} from 'vue-sonner'
 import DynamicTitle from '@/components/dynamics/DynamicTitle.vue'
 import UtmFilters from '@/components/analytics/utm/UtmFilters.vue'
 import UtmBarChart from '@/components/analytics/utm/UtmBarChart.vue'
-import UtmDonutChart from '@/components/analytics/utm/UtmDonutChart.vue'
 import UtmSummaryTable from '@/components/analytics/utm/UtmSummaryTable.vue'
 import UtmLinkFormModal from '@/components/analytics/utm/UtmLinkFormModal.vue'
 import UtmChannelsModal from '@/components/analytics/utm/UtmChannelsModal.vue'
@@ -159,6 +160,7 @@ const filters = ref<UtmAnalyticsFilters>({
   channel_id: null,
   tag_id: null,
   link_ids: [],
+  user_type: 'all',
   from: undefined,
   to: undefined,
 })
@@ -178,6 +180,15 @@ const periodLabel = computed(() => {
   if (!analytics.value?.from || !analytics.value?.to) return ''
   const fmt = (s: string) => s.split('-').reverse().join('.')
   return `за период ${fmt(analytics.value.from)} — ${fmt(analytics.value.to)}`
+})
+
+// Кол-во заказов на метку (link_id → orders) для тултипа графика.
+const ordersByLink = computed<Record<number, number>>(() => {
+  const map: Record<number, number> = {}
+  for (const row of analytics.value?.rows ?? []) {
+    map[row.link_id] = row.orders
+  }
+  return map
 })
 
 const loadDictionaries = async () => {

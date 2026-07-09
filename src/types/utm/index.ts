@@ -116,6 +116,8 @@ export interface UtmAnalyticsResponse {
     to: string
 }
 
+export type UtmUserType = 'all' | 'authorized' | 'guest'
+
 export interface UtmAnalyticsFilters {
     from?: string
     to?: string
@@ -124,6 +126,8 @@ export interface UtmAnalyticsFilters {
     channel_id?: number | null
     tag_id?: number | null
     link_ids?: number[]
+    // Тип пользователя: все / авторизованные / гостевые.
+    user_type?: UtmUserType
 }
 
 export const initialUtmLinkForm: CreateUtmLinkRequest = {

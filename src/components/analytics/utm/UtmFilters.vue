@@ -1,6 +1,6 @@
 <template>
   <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-    <div class="grid gap-3 md:grid-cols-5 grid-cols-1 items-end">
+    <div class="grid gap-3 md:grid-cols-6 grid-cols-1 items-end">
       <!-- Канал -->
       <div>
         <label class="block text-xs font-medium text-gray-600 mb-1">Канал маркетинга</label>
@@ -10,6 +10,19 @@
         >
           <option :value="null">Все</option>
           <option v-for="c in channels" :key="c.id" :value="c.id">{{ c.name }}</option>
+        </select>
+      </div>
+
+      <!-- Тип пользователя -->
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Пользователи</label>
+        <select
+            v-model="model.user_type"
+            class="w-full h-9 rounded-md border border-gray-300 px-2 text-sm bg-white"
+        >
+          <option value="all">Все</option>
+          <option value="authorized">Авторизованные</option>
+          <option value="guest">Гостевые</option>
         </select>
       </div>
 
@@ -80,6 +93,7 @@ const reset = () => {
   model.value.channel_id = null
   model.value.tag_id = null
   model.value.link_ids = []
+  model.value.user_type = 'all'
   model.value.from = undefined
   model.value.to = undefined
   emit('apply')

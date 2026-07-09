@@ -21,6 +21,8 @@ Chart.register(...registerables)
 
 const props = defineProps<{
   chart: { labels: string[]; series: UtmAnalyticsChartSeries[] }
+  // Кол-во заказов на метку (link_id → orders) для тултипа.
+  ordersByLink?: Record<number, number>
 }>()
 
 const PALETTE = [
@@ -41,6 +43,8 @@ const chartData = computed(() => ({
     backgroundColor: PALETTE[i % PALETTE.length],
     borderRadius: 4,
     maxBarThickness: 28,
+    // link_id прокидываем в датасет, чтобы в тултипе достать кол-во заказов метки.
+    linkId: s.link_id,
   })),
 }))
 
@@ -57,6 +61,18 @@ const options = {
         pointStyle: 'circle',
         boxWidth: 8,
         padding: 14,
+      },
+    },
+    tooltip: {
+      callbacks: {
+        // Основная строка: «Метка: N посещений».
+        label: (ctx: any) => ` ${ctx.dataset.label}: ${ctx.parsed.y} посещений`,
+        // Доп. строка: кол-во заказов по этой метке за период.
+        afterLabel: (ctx: any) => {
+          const linkId = ctx.dataset.linkId
+          const orders = props.ordersByLink?.[linkId] ?? 0
+          return `Заказов: ${orders}`
+        },
       },
     },
   },
