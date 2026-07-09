@@ -8,6 +8,7 @@
     />
     <DiscountListModal
       trigger-label="Скидка"
+      :client-id="order.client?.id ?? order.client_id ?? null"
       @select="onDiscountSelect"
     />
     <span class="ml-auto flex items-center gap-2">

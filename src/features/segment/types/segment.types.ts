@@ -1,5 +1,6 @@
 import {PromoCode} from "@/types/promo-code";
 import {SegmentClient} from "@/features/segment/types";
+import type {CustomerType} from "@/constants/DiscountType";
 
 
 /**
@@ -11,6 +12,7 @@ export interface Segment {
     description: string | null
     conditions: SegmentConditions | null
     is_active: boolean
+    customer_type: CustomerType
     recalculate_frequency: 'on_view' | 'manual'
     last_recalculated_at: string | null
     clients_count?: number

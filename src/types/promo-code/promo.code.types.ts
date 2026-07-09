@@ -1,5 +1,6 @@
 import {DiscountType} from "@/types/discount";
 import {PromoCodeDiscountBehavior, PromoCodeTemplateType, PromoCodeType} from "@/types/promo-code";
+import {CustomerType} from "@/constants/DiscountType";
 
 
 export interface PromoCode {
@@ -19,6 +20,7 @@ export interface PromoCode {
     times_uses: number;
 
     is_active: boolean;
+    customer_type: CustomerType;
     applies_to_all_products: boolean;
     applies_to_all_clients: boolean;
 
@@ -29,4 +31,3 @@ export interface PromoCode {
     updated_at: string;
     deleted_at: string | null;
 }
-

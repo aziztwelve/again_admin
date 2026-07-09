@@ -163,9 +163,13 @@ const fetchPromoCodes = async () => {
 
 const filteredCodes = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
+  const customerType = props.clientId ? 'authorized' : 'guest';
   const list = props.clientId
-      ? promoCodes.value
-      : promoCodes.value.filter((c) => c.applies_to_all_clients);
+      ? promoCodes.value.filter((c) => !c.customer_type || c.customer_type === 'all' || c.customer_type === customerType)
+      : promoCodes.value.filter((c) => {
+        const target = c.customer_type || 'all';
+        return c.applies_to_all_clients && (target === 'all' || target === customerType);
+      });
 
   if (!query) return list;
 

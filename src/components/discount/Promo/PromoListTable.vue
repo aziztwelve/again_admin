@@ -27,7 +27,7 @@ import {usePromoCodeFunctions} from "@/composables/usePromoCodeFunctions";
 import {useDateFormat} from "@/composables/useDateFormat";
 import PromoEdit from "@/components/discount/Promo/PromoEdit.vue";
 import {useStore} from "vuex";
-import {getDiscountTargetLabel} from "@/constants/DiscountType";
+import {getCustomerTypeLabel, getDiscountTargetLabel} from "@/constants/DiscountType";
 
 const props = defineProps({
   items: {
@@ -174,6 +174,11 @@ const columns = [
     cell: ({row}: any) => {
       return getDiscountTargetLabel(row.original.promo_code_type);
     }
+  },
+  {
+    accessorKey: "customerType",
+    header: "Аудитория",
+    cell: ({row}: any) => getCustomerTypeLabel(row.original.customerType)
   },
 
   {

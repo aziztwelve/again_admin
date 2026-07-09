@@ -40,6 +40,7 @@ import {Discount} from "@/models/Discount";
 import {useDateFormat} from "@/composables/useDateFormat";
 import DiscountEditModal from "@/components/discount/DiscountEditModal.vue";
 import {useDiscountFunctions} from "@/composables/useDiscountFunctions";
+import {getCustomerTypeLabel} from "@/constants/DiscountType";
 
 
 const props = defineProps({
@@ -100,6 +101,11 @@ const columns = [
   {
     accessorKey: "discountTypeLabel",
     header: "Применение",
+  },
+  {
+    accessorKey: "customerType",
+    header: "Аудитория",
+    cell: ({row}: any) => getCustomerTypeLabel(row.original.customerType)
   },
   // {
   //   accessorKey: "priority",

@@ -93,7 +93,7 @@
 import {ref, onMounted, watch, computed} from 'vue'
 import DynamicForm from '@/components/dynamics/DynamicForm.vue'
 import {PromoCode} from "@/models/PromoCode";
-import {DiscountTargetType, PromoCodeTargetOptions} from "@/constants/DiscountType";
+import {CustomerTypeOptions, DiscountTargetType, PromoCodeTargetOptions} from "@/constants/DiscountType";
 import PromoProductSelectModal from "@/components/discount/Promo/promo_product/PromoProductSelectModal.vue";
 import {Product} from "@/models/Product";
 import {Button} from "@/components/ui/button";
@@ -247,6 +247,17 @@ const buildFormFields = () => {
       optionLabel: 'label',
       optionValue: 'value',
       placeholder: 'Выберите поведение',
+    },
+
+    {
+      name: 'customerType',
+      component: 'select',
+      label: 'Аудитория',
+      required: true,
+      options: CustomerTypeOptions,
+      optionLabel: 'label',
+      optionValue: 'value',
+      placeholder: 'Выберите аудиторию',
     },
 
     [

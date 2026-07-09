@@ -18,7 +18,12 @@ import DynamicForm from '@/components/dynamics/DynamicForm.vue'
 import {useCategoryFunctions} from "@/composables/useCategoryFunctions";
 import {useProductFunctions} from "@/composables/useProductFunctions";
 import {Product} from "@/models/Product";
-import {DiscountTargetOptions, DiscountTargetType, DiscountValueOptions} from "@/constants/DiscountType";
+import {
+  CustomerTypeOptions,
+  DiscountTargetOptions,
+  DiscountTargetType,
+  DiscountValueOptions
+} from "@/constants/DiscountType";
 import {Discount} from "@/models/Discount";
 import {Category} from "@/models/Category";
 import Loader from "@/components/common/Loader.vue";
@@ -112,6 +117,17 @@ const buildFormFields = () => {
       label: 'Название',
       required: true,
       placeholder: 'Введите название'
+    },
+
+    {
+      name: 'customerType',
+      component: 'select',
+      label: 'Аудитория',
+      required: true,
+      options: CustomerTypeOptions,
+      optionLabel: 'label',
+      optionValue: 'value',
+      placeholder: 'Выберите аудиторию',
     },
 
     [

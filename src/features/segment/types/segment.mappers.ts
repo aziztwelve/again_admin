@@ -4,6 +4,7 @@ import type {
     CreateSegmentRequest,
     UpdateSegmentRequest,
 } from './segment-form.types'
+import {CustomerType} from '@/constants/DiscountType'
 
 /**
  * Конвертировать Segment в SegmentFormData (для редактирования)
@@ -13,6 +14,7 @@ export function segmentToFormData(segment: Segment): SegmentFormData {
         name: segment.name,
         description: segment.description ?? '',
         is_active: segment.is_active,
+        customer_type: segment.customer_type ?? CustomerType.ALL,
         recalculate_frequency: segment.recalculate_frequency,
 
         // Распаковываем conditions
@@ -41,6 +43,7 @@ export function formDataToCreateRequest(
         name: formData.name,
         description: formData.description || null,
         is_active: formData.is_active,
+        customer_type: formData.customer_type,
         recalculate_frequency: formData.recalculate_frequency,
         conditions: hasConditions
             ? {

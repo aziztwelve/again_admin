@@ -52,3 +52,26 @@ export const getDiscountTargetLabel = (targetType: DiscountTargetType): string =
 export const getDiscountValueLabel = (valueType: DiscountValueType): string => {
     return DiscountValueLabels[valueType] || valueType;
 };
+
+export enum CustomerType {
+    AUTHORIZED = 'authorized',
+    GUEST = 'guest',
+    ALL = 'all',
+}
+
+export const CustomerTypeLabels: Record<CustomerType, string> = {
+    [CustomerType.AUTHORIZED]: 'Авторизованный пользователь',
+    [CustomerType.GUEST]: 'Гостевой пользователь',
+    [CustomerType.ALL]: 'Все пользователи',
+};
+
+export const CustomerTypeOptions = Object.entries(CustomerTypeLabels).map(
+    ([value, label]) => ({
+        value: value as CustomerType,
+        label,
+    }),
+);
+
+export const getCustomerTypeLabel = (customerType?: string): string => {
+    return CustomerTypeLabels[customerType as CustomerType] || CustomerTypeLabels[CustomerType.ALL];
+};

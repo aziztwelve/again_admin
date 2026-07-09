@@ -46,6 +46,7 @@ import SegmentEdit from "@/features/segment/components/edit/SegmentEdit.vue";
 import {useSegments} from "@/features/segment/composables/useSegments";
 import {useTableColumns} from "@/composables/Table/useTableColumns";
 import router from "@/router";
+import {getCustomerTypeLabel} from "@/constants/DiscountType";
 
 
 interface segmentProps {
@@ -117,6 +118,11 @@ const columns = [
   {
     accessorKey: "clients_count",
     header: "Клиентов",
+  },
+  {
+    accessorKey: "customer_type",
+    header: "Аудитория",
+    cell: ({row}: any) => getCustomerTypeLabel(row.original.customer_type)
   },
 
 

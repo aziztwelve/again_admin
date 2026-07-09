@@ -35,6 +35,13 @@
           </p>
         </div>
 
+        <div>
+          <p class="text-sm text-gray-600">Аудитория</p>
+          <p class="text-xs">
+            {{ getCustomerTypeLabel(segment.customer_type) }}
+          </p>
+        </div>
+
         <!-- Количество промокодов -->
         <div>
           <p class="text-sm text-gray-600">Промокодов</p>
@@ -66,6 +73,7 @@ import {Card, CardHeader, CardTitle, CardDescription, CardContent} from '@/compo
 import {Badge} from '@/components/ui/badge'
 import {useDateFormat} from '@/composables/useDateFormat'
 import {SegmentDetail} from '@/features/segment/types'
+import {getCustomerTypeLabel} from '@/constants/DiscountType'
 
 interface Props {
   segment: SegmentDetail

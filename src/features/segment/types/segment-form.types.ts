@@ -1,4 +1,5 @@
 import type {SegmentConditions} from './segment.types'
+import type {CustomerType} from '@/constants/DiscountType'
 
 /**
  * Форма создания/редактирования сегмента
@@ -7,6 +8,7 @@ export interface SegmentFormData {
     name: string
     description: string
     is_active: boolean
+    customer_type: CustomerType
     recalculate_frequency: 'on_view' | 'manual'
 
     period: 'all_time' | 'last_month' | 'last_6_months' | 'last_year' | ''
@@ -24,6 +26,7 @@ export interface CreateSegmentRequest {
     description?: string | null
     conditions?: SegmentConditions | null
     is_active?: boolean
+    customer_type?: CustomerType
     recalculate_frequency?: 'on_view' | 'manual'
 }
 
@@ -35,6 +38,7 @@ export interface UpdateSegmentRequest {
     description?: string | null
     conditions?: SegmentConditions | null
     is_active?: boolean
+    customer_type?: CustomerType
     recalculate_frequency?: 'on_view' | 'manual'
 }
 

@@ -1,5 +1,5 @@
 import {Product} from "@/models/Product";
-import {DiscountTargetLabels, DiscountTargetType} from "@/constants/DiscountType";
+import {CustomerType, DiscountTargetLabels, DiscountTargetType} from "@/constants/DiscountType";
 
 export class Discount {
     id: number | undefined;
@@ -7,6 +7,7 @@ export class Discount {
     type: string | undefined;
     value: number | undefined;
     isActive: boolean | undefined;
+    customerType: CustomerType | undefined;
     startsAt: string | undefined;
     endsAt: string | null | undefined;
     priority: number | undefined;
@@ -27,6 +28,7 @@ export class Discount {
         this.type = undefined;
         this.value = undefined;
         this.isActive = undefined;
+        this.customerType = CustomerType.ALL;
         this.startsAt = undefined;
         this.endsAt = undefined;
         this.priority = undefined;
@@ -70,6 +72,7 @@ export class Discount {
         discount.type = json.type;
         discount.value = json.value ? Number(json.value) : 0;
         discount.isActive = !!json.is_active;
+        discount.customerType = json.customer_type ?? CustomerType.ALL;
         discount.startsAt = json.starts_at ?? undefined;
         discount.endsAt = json.ends_at ?? undefined;
         discount.is_unlimited = json.ends_at === null;
@@ -96,6 +99,7 @@ export class Discount {
             ends_at: this.endsAt ?? null,
             priority: this.priority ?? null,
             is_active: this.isActive ?? null,
+            customer_type: this.customerType ?? CustomerType.ALL,
             value: this.value ?? null,
             categories: this.categoryIds ?? null,
             products: this.productIds ?? null,
@@ -112,6 +116,7 @@ export class Discount {
         cloned.type = this.type;
         cloned.value = this.value;
         cloned.isActive = this.isActive;
+        cloned.customerType = this.customerType;
         cloned.startsAt = this.startsAt;
         cloned.endsAt = this.endsAt;
         cloned.priority = this.priority;

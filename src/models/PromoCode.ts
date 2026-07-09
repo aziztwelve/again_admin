@@ -1,5 +1,5 @@
 import {Product} from "@/models/Product";
-import {DiscountTargetType} from "@/constants/DiscountType";
+import {CustomerType, DiscountTargetType} from "@/constants/DiscountType";
 
 export class PromoCode {
     id: number | undefined;
@@ -17,6 +17,7 @@ export class PromoCode {
     maxUses: number | undefined;
     timesUsed: number | undefined;
     isActive: boolean | undefined;
+    customerType: CustomerType | undefined;
     is_unlimited: boolean | undefined;
     applies_to_all_products: boolean | undefined;
     applies_to_all_clients: boolean | undefined;
@@ -39,6 +40,7 @@ export class PromoCode {
         this.maxUses = undefined;
         this.timesUsed = 0;
         this.isActive = true;
+        this.customerType = CustomerType.ALL;
         this.applies_to_all_products = false;
         this.applies_to_all_clients = false;
         this.createdAt = undefined;
@@ -78,6 +80,7 @@ export class PromoCode {
         promo.maxUses = json.max_uses ?? undefined;
         promo.timesUsed = json.times_used ?? 0;
         promo.isActive = !!json.is_active;
+        promo.customerType = json.customer_type ?? CustomerType.ALL;
         promo.applies_to_all_products = !!json.applies_to_all_products;
         promo.applies_to_all_clients = !!json.applies_to_all_clients;
         promo.createdAt = json.created_at ?? undefined;
@@ -102,6 +105,7 @@ export class PromoCode {
             max_uses: this.maxUses ?? null,
             times_used: this.timesUsed ?? 0,
             is_active: this.isActive ?? null,
+            customer_type: this.customerType ?? CustomerType.ALL,
             is_unlimited: this.is_unlimited ?? null,
         };
     }
@@ -121,6 +125,7 @@ export class PromoCode {
         formData.append('max_uses', String(this.maxUses ?? ''));
         formData.append('times_used', String(this.timesUsed ?? 0));
         formData.append('is_active', this.isActive ? '1' : '0');
+        formData.append('customer_type', this.customerType ?? CustomerType.ALL);
         formData.append('is_unlimited', this.is_unlimited ? '1' : '0');
         formData.append('applies_to_all_clients', this.applies_to_all_clients ? '1' : '0');
 
@@ -173,6 +178,7 @@ export class PromoCode {
         cloned.maxUses = this.maxUses;
         cloned.timesUsed = this.timesUsed;
         cloned.isActive = this.isActive;
+        cloned.customerType = this.customerType;
         cloned.is_unlimited = this.is_unlimited;
         cloned.createdAt = this.createdAt;
         cloned.updatedAt = this.updatedAt;

@@ -61,6 +61,7 @@
               />
               <DiscountListModal
                 trigger-label="Скидка"
+                :client-id="formData.client_id"
                 @select="onDiscountSelected"
               />
             </div>

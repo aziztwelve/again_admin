@@ -87,6 +87,10 @@ const props = defineProps({
     type: String,
     default: 'Скидка',
   },
+  clientId: {
+    type: [Number, String],
+    default: null,
+  },
 });
 
 const emit = defineEmits(['select']);
@@ -122,10 +126,14 @@ const fetchDiscounts = async () => {
 
 const filteredDiscounts = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
-  if (!query) return discounts.value;
-  return discounts.value.filter((d) =>
-    (d.name || '').toLowerCase().includes(query)
-  );
+  const customerType = props.clientId ? 'authorized' : 'guest';
+  const byCustomer = discounts.value.filter((d) => {
+    const target = d.customer_type || 'all';
+    return target === 'all' || target === customerType;
+  });
+
+  if (!query) return byCustomer;
+  return byCustomer.filter((d) => (d.name || '').toLowerCase().includes(query));
 });
 
 const formatDiscount = (discount) => {
