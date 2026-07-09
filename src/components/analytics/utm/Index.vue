@@ -26,7 +26,7 @@
     <div>
       <UtmBarChart
           :chart="analytics?.chart ?? {labels: [], series: []}"
-          :orders-by-link="ordersByLink"
+          :rows-by-link="rowsByLink"
       />
     </div>
 
@@ -144,6 +144,7 @@ import type {
   MarketingChannel,
   UtmAnalyticsFilters,
   UtmAnalyticsResponse,
+  UtmAnalyticsRow,
   UtmAnalyticsTotals,
   UtmLink,
   UtmTag,
@@ -182,11 +183,11 @@ const periodLabel = computed(() => {
   return `за период ${fmt(analytics.value.from)} — ${fmt(analytics.value.to)}`
 })
 
-// Кол-во заказов на метку (link_id → orders) для тултипа графика.
-const ordersByLink = computed<Record<number, number>>(() => {
-  const map: Record<number, number> = {}
+// Строки аналитики по метке (link_id → row) для подробного тултипа графика.
+const rowsByLink = computed<Record<number, UtmAnalyticsRow>>(() => {
+  const map: Record<number, UtmAnalyticsRow> = {}
   for (const row of analytics.value?.rows ?? []) {
-    map[row.link_id] = row.orders
+    map[row.link_id] = row
   }
   return map
 })

@@ -70,6 +70,19 @@ export interface CreateUtmLinkRequest {
 
 export type UpdateUtmLinkRequest = Partial<CreateUtmLinkRequest>
 
+// Полная разбивка гость/клиент по метке (для тултипа графика).
+export interface UtmAnalyticsBreakdown {
+    orders_total: number
+    orders_guest: number
+    orders_client: number
+    purchases_total: number
+    purchases_guest: number
+    purchases_client: number
+    amount_total: number
+    amount_guest: number
+    amount_client: number
+}
+
 // Строка сводной таблицы аналитики
 export interface UtmAnalyticsRow {
     link_id: number
@@ -88,6 +101,7 @@ export interface UtmAnalyticsRow {
     clients: number
     cr_order: number
     cr_purchase: number
+    breakdown?: UtmAnalyticsBreakdown
 }
 
 export interface UtmAnalyticsTotals {

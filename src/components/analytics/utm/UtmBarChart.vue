@@ -15,15 +15,19 @@
 import {BarChart} from 'vue-chart-3'
 import {Chart, registerables} from 'chart.js'
 import {computed} from 'vue'
-import type {UtmAnalyticsChartSeries} from '@/types/utm'
+import type {UtmAnalyticsChartSeries, UtmAnalyticsRow} from '@/types/utm'
 
 Chart.register(...registerables)
 
 const props = defineProps<{
   chart: { labels: string[]; series: UtmAnalyticsChartSeries[] }
-  // Кол-во заказов на метку (link_id → orders) для тултипа.
-  ordersByLink?: Record<number, number>
+  // Строки аналитики по метке (link_id → row) для подробного тултипа.
+  rowsByLink?: Record<number, UtmAnalyticsRow>
 }>()
+
+const fmtInt = (v: number) => (v ?? 0).toLocaleString('ru-RU')
+const fmtMoney = (v: number) =>
+    (v ?? 0).toLocaleString('ru-RU', {minimumFractionDigits: 0, maximumFractionDigits: 2}) + ' ₽'
 
 const PALETTE = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -64,14 +68,30 @@ const options = {
       },
     },
     tooltip: {
+      // Разрешаем многострочный тултип с полной разбивкой по метке.
+      displayColors: false,
       callbacks: {
-        // Основная строка: «Метка: N посещений».
+        // Основная строка: «Метка: N посещений» (за конкретный день/бакет).
         label: (ctx: any) => ` ${ctx.dataset.label}: ${ctx.parsed.y} посещений`,
-        // Доп. строка: кол-во заказов по этой метке за период.
-        afterLabel: (ctx: any) => {
+        // Полная разбивка по метке за период (заказы/покупки/оборот, гость/клиент).
+        afterBody: (items: any[]) => {
+          const ctx = items?.[0]
+          if (!ctx) return []
           const linkId = ctx.dataset.linkId
-          const orders = props.ordersByLink?.[linkId] ?? 0
-          return `Заказов: ${orders}`
+          const row = props.rowsByLink?.[linkId]
+          const b = row?.breakdown
+          if (!b) return []
+          return [
+            '',
+            'За период по метке:',
+            `Заказы: ${fmtInt(b.orders_total)} (клиенты ${fmtInt(b.orders_client)}, гости ${fmtInt(b.orders_guest)})`,
+            `Покупки: ${fmtInt(b.purchases_total)} (клиенты ${fmtInt(b.purchases_client)}, гости ${fmtInt(b.purchases_guest)})`,
+            `Оборот: ${fmtMoney(b.amount_total)}`,
+            `  • клиенты: ${fmtMoney(b.amount_client)}`,
+            `  • гости: ${fmtMoney(b.amount_guest)}`,
+            `Посещения всего: ${fmtInt(row!.visits)}`,
+            `Клиентов (уник.): ${fmtInt(row!.clients)}`,
+          ]
         },
       },
     },
