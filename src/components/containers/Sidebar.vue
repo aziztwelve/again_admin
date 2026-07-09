@@ -186,7 +186,8 @@
       <div
           :class="[
             isDesktopSidebarCollapsed ? 'px-3' : 'px-6',
-            'flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white py-4 shadow-sm transition-[padding] duration-200'
+            isDesktopSidebarCollapsed ? 'overflow-visible' : 'overflow-y-auto',
+            'flex grow flex-col gap-y-5 border-r border-gray-200 bg-white py-4 shadow-sm transition-[padding] duration-200'
           ]"
       >
         <div
@@ -251,30 +252,74 @@
                   </router-link>
 
 
-                  <router-link
+                  <div
                       v-else-if="isDesktopSidebarCollapsed"
-                      :to="item.href"
-                      :title="item.name"
-                      :class="[
-                        item.current
-                          ? 'bg-red-50 text-red-600 ring-1 ring-red-100'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-red-600',
-                        'group relative flex justify-center rounded-md p-3 text-sm font-medium transition-colors'
-                      ]"
+                      class="collapsed-nav-item group relative"
                   >
-                    <component
-                        :is="item.icon"
+                    <button
+                        type="button"
+                        :title="item.name"
                         :class="[
-                          item.current ? 'text-red-600' : 'text-gray-400 group-hover:text-red-600',
-                          'size-6 shrink-0'
+                          item.current
+                            ? 'bg-red-50 text-red-600 ring-1 ring-red-100'
+                            : 'text-gray-700 hover:bg-gray-50 hover:text-red-600',
+                          'group relative flex w-full justify-center rounded-md p-3 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-red-200'
                         ]"
-                        aria-hidden="true"
-                    />
-                    <span v-if="item.notification && item.notification > 0"
-                          class="absolute right-1 top-1 inline-flex min-w-4 items-center justify-center rounded-full bg-red-100 px-1 text-[10px] font-medium text-red-800">
-                      {{ item.notification }}
-                    </span>
-                  </router-link>
+                    >
+                      <component
+                          :is="item.icon"
+                          :class="[
+                            item.current ? 'text-red-600' : 'text-gray-400 group-hover:text-red-600',
+                            'size-6 shrink-0'
+                          ]"
+                          aria-hidden="true"
+                      />
+                      <span v-if="item.notification && item.notification > 0"
+                            class="absolute right-1 top-1 inline-flex min-w-4 items-center justify-center rounded-full bg-red-100 px-1 text-[10px] font-medium text-red-800">
+                        {{ item.notification }}
+                      </span>
+                    </button>
+
+                    <div
+                        class="collapsed-nav-flyout invisible absolute left-full top-0 z-50 ml-3 w-64 translate-x-1 rounded-md border border-gray-200 bg-white p-2 opacity-0 shadow-xl ring-1 ring-black/5 transition-all duration-150 group-hover:visible group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-x-0 group-focus-within:opacity-100"
+                    >
+                      <router-link
+                          :to="item.href"
+                          class="mb-1 flex items-center gap-x-2 rounded-md px-3 py-2 text-sm font-semibold text-gray-900 transition-colors hover:bg-red-50 hover:text-red-600"
+                      >
+                        <component :is="item.icon" class="size-5 shrink-0 text-gray-400" aria-hidden="true"/>
+                        {{ item.name }}
+                      </router-link>
+
+                      <ul role="list" class="space-y-1">
+                        <li v-for="subItem in item.children" :key="subItem.name">
+                          <router-link
+                              :to="subItem.href"
+                              :class="[
+                                subItem.current
+                                  ? 'bg-red-50 text-red-600'
+                                  : 'text-gray-700 hover:bg-gray-50 hover:text-red-600',
+                                'group/sub flex items-center gap-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors'
+                              ]"
+                          >
+                            <component
+                                :is="subItem.icon"
+                                :class="[
+                                  subItem.current ? 'text-red-600' : 'text-gray-400 group-hover/sub:text-red-600',
+                                  'size-5 shrink-0'
+                                ]"
+                                aria-hidden="true"
+                            />
+                            <span class="min-w-0 flex-1 truncate">{{ subItem.name }}</span>
+                            <span v-if="subItem.notification && subItem.notification > 0"
+                                  class="inline-flex min-w-5 items-center justify-center rounded-full bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800">
+                              {{ subItem.notification }}
+                            </span>
+                          </router-link>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
 
                   <Disclosure as="div" v-else v-slot="{ open }">
 
