@@ -10,11 +10,11 @@
         variant="outline"
         size="sm"
         type="button"
-        :disabled="!clientId"
+        :disabled="!orderId"
         :title="
-          clientId
-            ? 'Открыть чат с клиентом'
-            : 'У заказа нет клиента — чат недоступен'
+          orderId
+            ? 'Открыть чат по заказу'
+            : 'Заказ ещё не сохранён — чат недоступен'
         "
         class="relative"
         @click.stop="onOpen"
@@ -126,10 +126,11 @@ import { useChatsFunctions } from "@/composables/useChatsFunctions";
 
 const props = defineProps({
   clientId: { type: [Number, String], default: null },
+  orderId: { type: [Number, String], default: null },
 });
 
 const router = useRouter();
-const { getConversationsByClient, getConversationByIdWithMessages } =
+const { getConversationsByClient, getConversationsByOrder, getConversationByIdWithMessages } =
   useChatsFunctions();
 
 const modalRef = ref(null);
@@ -171,7 +172,7 @@ const sourceLabel = (source) => {
 };
 
 const loadConversations = async () => {
-  if (!props.clientId) {
+  if (!props.orderId && !props.clientId) {
     conversations.value = [];
     selectedConversation.value = null;
     selectedId.value = null;
@@ -179,7 +180,9 @@ const loadConversations = async () => {
   }
   isLoadingList.value = true;
   try {
-    const list = await getConversationsByClient(props.clientId);
+    const list = props.orderId
+      ? await getConversationsByOrder(props.orderId)
+      : await getConversationsByClient(props.clientId);
     conversations.value = Array.isArray(list) ? list : [];
     if (conversations.value.length) {
       // По умолчанию открываем самый свежий диалог (бэк уже сортирует по
@@ -223,9 +226,11 @@ const selectConversation = async (id) => {
 
 const onHasNewMessage = async () => {
   // После ответа подтянем свежий список (last_message_at + порядок).
-  if (!props.clientId) return;
+  if (!props.orderId && !props.clientId) return;
   try {
-    const list = await getConversationsByClient(props.clientId);
+    const list = props.orderId
+      ? await getConversationsByOrder(props.orderId)
+      : await getConversationsByClient(props.clientId);
     conversations.value = Array.isArray(list) ? list : [];
   } catch (e) {
     /* ignore */
@@ -238,7 +243,7 @@ const goToFullPage = () => {
 };
 
 const onOpen = async () => {
-  if (!props.clientId) return;
+  if (!props.orderId && !props.clientId) return;
   modalRef.value?.open?.();
   // Подгружаем диалоги при каждом открытии — admin мог получить новые
   // сообщения с момента предыдущего просмотра.
@@ -250,6 +255,16 @@ watch(
   () => {
     // При смене клиента сбросим состояние, чтобы badge / список не «прилипли»
     // от предыдущего заказа.
+    conversations.value = [];
+    selectedConversation.value = null;
+    selectedId.value = null;
+    hasLoaded.value = false;
+  },
+);
+
+watch(
+  () => props.orderId,
+  () => {
     conversations.value = [];
     selectedConversation.value = null;
     selectedId.value = null;

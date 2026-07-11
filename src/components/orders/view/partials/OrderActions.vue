@@ -32,7 +32,10 @@
         <Mail class="mr-2 h-4 w-4" />
         {{ isSendingEmail ? "Отправка..." : "Письмо" }}
       </Button>
-      <OrderChat :client-id="order.client?.id ?? order.client_id ?? null" />
+      <OrderChat
+        :client-id="order.client?.id ?? order.client_id ?? null"
+        :order-id="order?.id ?? null"
+      />
     </span>
   </section>
 </template>

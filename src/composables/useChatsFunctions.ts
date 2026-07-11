@@ -132,12 +132,29 @@ export function useChatsFunctions() {
         }
     }
 
+    const getConversationsByOrder = async (
+        orderId: number | string
+    ): Promise<Conversation[]> => {
+        if (!orderId) return []
+        sending.value = true
+        try {
+            const { data } = await axios.get(`conversations/by-order/${orderId}`)
+            return (data?.data || []) as Conversation[]
+        } catch (e) {
+            useErrorHandler().showError(e)
+            throw e
+        } finally {
+            sending.value = false
+        }
+    }
+
     return {
         sending,
         progress,
         getConversations,
         getConversationByIdWithMessages,
         getConversationsByClient,
+        getConversationsByOrder,
         conversationReplyById
     }
 }
