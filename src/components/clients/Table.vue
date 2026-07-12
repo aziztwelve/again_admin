@@ -118,6 +118,21 @@ const columns = [
     header: "Почта",
   },
 
+  {
+    accessorKey: "hasAccount",
+    header: "ЛК",
+    cell: ({row}: any) => {
+      const hasAccount = row.original?.hasAccount;
+      return h(
+          "span",
+          {
+            class: "text-base",
+            title: hasAccount ? "Есть личный кабинет" : "Без личного кабинета",
+          },
+          hasAccount ? "✅" : "👤"
+      );
+    },
+  },
 
   {
     accessorKey: "profile.birthday",
