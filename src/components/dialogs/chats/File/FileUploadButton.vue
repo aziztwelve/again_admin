@@ -61,7 +61,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   multiple: true,
   maxFiles: MAX_FILES_COUNT,
-  title: 'Прикрепить файл (JPG, PNG, MP3, WAV, OGG, M4A)'
+  title: 'Прикрепить файл (JPG, PNG, MP3, WAV, OGG, M4A, MP4)'
 })
 
 const emit = defineEmits<{

@@ -34,16 +34,17 @@ export type AllowedFileType =
   | "audio/mpeg"
   | "audio/wav"
   | "audio/ogg"
-  | "audio/mp4";
+  | "audio/mp4"
+  | "video/mp4";
 
 export const ALLOWED_FILE_TYPES: AllowedFileType[] = [
   "image/jpeg",
-  // 'image/jpg',
   "image/png",
-  // 'audio/mpeg',   // mp3
-  // 'audio/wav',
-  // 'audio/ogg',
-  // 'audio/mp4'     // m4a
+  "audio/mpeg",
+  "audio/wav",
+  "audio/ogg",
+  "audio/mp4",
+  "video/mp4",
 ];
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -93,7 +94,7 @@ export function validateFile(file: File): FileValidationResult {
     return {
       valid: false,
       error:
-        "Неподдерживаемый формат файла. Разрешены: JPG, PNG, MP3, WAV, OGG, M4A",
+        "Неподдерживаемый формат файла. Разрешены: JPG, PNG, MP3, WAV, OGG, M4A, MP4",
     };
   }
 
