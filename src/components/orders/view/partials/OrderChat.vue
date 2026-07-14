@@ -163,11 +163,7 @@ const loadConversations = async () => {
 
   isLoadingList.value = true;
   try {
-    const list = props.orderId
-      ? await getConversationsByOrder(props.orderId)
-      : await getConversationsByClient(props.clientId);
-
-    conversations.value = Array.isArray(list) ? list : [];
+    await refreshConversationList();
     if (conversations.value.length) {
       await selectConversation(conversations.value[0].id, true);
     } else {
@@ -182,6 +178,17 @@ const loadConversations = async () => {
   }
 };
 
+// После отправки/получения сообщения нужно обновить время и непрочитанные в
+// списке каналов, но не заменять selectedConversation. Иначе ChatWidget
+// получает новый массив сообщений и браузер сбрасывает позицию прокрутки.
+const refreshConversationList = async () => {
+  const list = props.orderId
+    ? await getConversationsByOrder(props.orderId)
+    : await getConversationsByClient(props.clientId);
+
+  conversations.value = Array.isArray(list) ? list : [];
+};
+
 const openChat = async () => {
   isOpen.value = true;
   await loadConversations();
@@ -192,9 +199,13 @@ const closeChat = () => {
 };
 
 const onHasNewMessage = async () => {
-  const currentId = selectedId.value;
-  await loadConversations();
-  if (currentId) await selectConversation(currentId, true);
+  try {
+    await refreshConversationList();
+  } catch (error) {
+    // Само сообщение уже есть в текущем ChatWidget, поэтому ошибка
+    // обновления списка каналов не должна ломать переписку или прокрутку.
+    console.error("Failed to refresh conversation list", error);
+  }
 };
 
 const onKeydown = (event) => {

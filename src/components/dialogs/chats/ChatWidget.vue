@@ -369,6 +369,12 @@ watch(
   () => scrollToBottom(),
 );
 
+// При переключении между каналами сразу показываем конец выбранного диалога.
+watch(
+  () => props.conversation?.id,
+  () => scrollToBottom("auto"),
+);
+
 const urlPattern = /(\bhttps?:\/\/[^\s<>]+[^\s<.,:;"')\]\s])/g;
 
 function linkify(text = ""): string {
