@@ -161,6 +161,10 @@
 
       <!-- Боковая колонка -->
       <aside class="space-y-6">
+        <OrderChat
+          :client-id="order.client?.id ?? order.client_id ?? null"
+          :order-id="order.id"
+        />
         <SideApps :order="order" />
         <SideDelivery
           :order="order"
@@ -209,6 +213,7 @@ import OrderComments from "./partials/OrderComments.vue";
 import OrderSellerComment from "./partials/OrderSellerComment.vue";
 import OrderHistory from "./partials/OrderHistory.vue";
 import OrderSimilarClients from "./partials/OrderSimilarClients.vue";
+import OrderChat from "./partials/OrderChat.vue";
 
 import SideApps from "./partials/side/SideApps.vue";
 import SideDelivery from "./partials/side/SideDelivery.vue";
