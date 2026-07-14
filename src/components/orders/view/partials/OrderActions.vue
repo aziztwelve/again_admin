@@ -32,6 +32,10 @@
         <Mail class="mr-2 h-4 w-4" />
         {{ isSendingEmail ? "Отправка..." : "Письмо" }}
       </Button>
+      <OrderChat
+        :client-id="order.client?.id ?? order.client_id ?? null"
+        :order-id="order?.id ?? null"
+      />
     </span>
   </section>
 </template>
@@ -45,6 +49,7 @@ import Button from "@/components/ui/button/Button.vue";
 import OrderProductPickerModal from "@/components/orders/modals/OrderProductPickerModal.vue";
 import PromoCodeListModal from "@/components/orders/modals/PromoCodeListModal.vue";
 import DiscountListModal from "@/components/orders/modals/DiscountListModal.vue";
+import OrderChat from "@/components/orders/view/partials/OrderChat.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 
 const props = defineProps({
