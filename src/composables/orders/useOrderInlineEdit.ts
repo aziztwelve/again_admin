@@ -150,6 +150,7 @@ export function useOrderInlineEdit() {
           order?.delivery_method?.name || order?.deliveryMethod?.name || null,
       },
       notes: order?.notes ?? null,
+      seller_comment: order?.seller_comment ?? null,
       ...(order?.promo_code?.code
         ? { promo_code: order.promo_code.code }
         : {}),

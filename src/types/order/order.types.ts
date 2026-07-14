@@ -47,6 +47,7 @@ export interface Order {
     ip_address: string | null;
     user_agent: string | null;
     notes: string | null;
+    seller_comment: string | null;
 
     // Временные метки
     created_at: string; // ISO datetime

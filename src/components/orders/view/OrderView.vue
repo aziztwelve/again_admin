@@ -150,7 +150,11 @@
           @save="onCustomFieldsSave"
         />
         <OrderComments :order="order" />
-        <OrderBonuses :order="order" />
+        <OrderSellerComment
+          :order="order"
+          :saving="isSavingSellerComment"
+          @save="onSellerCommentSave"
+        />
         <OrderHistory :history="history" />
         <OrderSimilarClients :clients="similarClients" />
       </div>
@@ -202,7 +206,7 @@ import OrderDeliveryRow from "./partials/OrderDeliveryRow.vue";
 import OrderTotals from "./partials/OrderTotals.vue";
 import OrderCustomFields from "./partials/OrderCustomFields.vue";
 import OrderComments from "./partials/OrderComments.vue";
-import OrderBonuses from "./partials/OrderBonuses.vue";
+import OrderSellerComment from "./partials/OrderSellerComment.vue";
 import OrderHistory from "./partials/OrderHistory.vue";
 import OrderSimilarClients from "./partials/OrderSimilarClients.vue";
 
@@ -243,6 +247,7 @@ const isSavingClient = ref(false);
 const isSavingCoupon = ref(false);
 const isSavingCustomFields = ref(false);
 const isSavingDiscount = ref(false);
+const isSavingSellerComment = ref(false);
 
 // Состояние купона
 const appliedCouponCode = ref("");
@@ -452,6 +457,13 @@ const onClientSave = async (payload) => {
 const onCustomFieldsSave = async (payload) => {
   const { onSuccess, ...patch } = payload || {};
   const ok = await applyPatch(patch, isSavingCustomFields);
+  if (ok && typeof onSuccess === "function") onSuccess();
+};
+
+// Комментарий продавца (внутренний)
+const onSellerCommentSave = async (payload) => {
+  const { onSuccess, ...patch } = payload || {};
+  const ok = await applyPatch(patch, isSavingSellerComment);
   if (ok && typeof onSuccess === "function") onSuccess();
 };
 
