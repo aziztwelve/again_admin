@@ -8,7 +8,7 @@
         <div class="flex items-center space-x-2">
           <Avatar class="h-8 w-8">
             <AvatarImage
-              :src="conversation.client?.profile?.image || clientIcon"
+              :src="clientAvatar"
             />
             <AvatarFallback>{{
               conversation.client?.profile?.full_name
@@ -210,6 +210,18 @@ const emits = defineEmits(["hasNewMessage"]);
 const { conversationReplyById } = useChatsFunctions();
 
 const clientIcon = assetPath("icons/client.png");
+
+// API чатов возвращает путь к аватару клиента из user_profiles (без
+// домена и /storage). В карточке заказа относительный путь иначе превращается
+// в /admin/order/user_profiles/... и даёт 404.
+const clientAvatar = computed(() => {
+  const image = props.conversation?.client?.profile?.image;
+  if (!image) return clientIcon;
+  if (/^(https?:|data:)/i.test(image)) return image;
+
+  const path = image.replace(/^\/+/, "").replace(/^storage\//, "");
+  return `/storage/${path}`;
+});
 
 const newMessage = ref("");
 const messagesEndRef = ref<HTMLDivElement | null>(null);
