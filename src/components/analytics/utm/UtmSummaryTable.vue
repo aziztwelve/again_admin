@@ -45,7 +45,7 @@
           </TableCell>
           <TableCell class="text-right">{{ formatInt(row.visits) }}</TableCell>
           <TableCell class="text-right">{{ formatInt(row.orders) }}</TableCell>
-          <TableCell class="text-right font-semibold">{{ formatMoney(row.orders_amount) }}</TableCell>
+          <TableCell class="text-right font-semibold whitespace-nowrap">{{ formatMoney(row.orders_amount) }}</TableCell>
           <TableCell class="text-right">{{ formatInt(row.purchases) }}</TableCell>
           <TableCell class="text-right">{{ formatMoney(row.purchases_amount) }}</TableCell>
           <TableCell class="text-right">{{ row.cr_order }}%</TableCell>
@@ -58,7 +58,7 @@
           <TableCell class="font-semibold" colspan="4">Всего</TableCell>
           <TableCell class="text-right font-semibold">{{ formatInt(totals.visits) }}</TableCell>
           <TableCell class="text-right font-semibold">{{ formatInt(totals.orders) }}</TableCell>
-          <TableCell class="text-right font-semibold">{{ formatMoney(totals.orders_amount) }}</TableCell>
+          <TableCell class="text-right font-semibold whitespace-nowrap">{{ formatMoney(totals.orders_amount) }}</TableCell>
           <TableCell class="text-right font-semibold">{{ formatInt(totals.purchases) }}</TableCell>
           <TableCell class="text-right font-semibold">{{ formatMoney(totals.purchases_amount) }}</TableCell>
           <TableCell class="text-right font-semibold">{{ totals.cr_order }}%</TableCell>
