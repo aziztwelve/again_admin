@@ -8,7 +8,6 @@ export function syncFormDataToSegment(formData: SegmentFormData, segment: Segmen
     segment.name = formData.name
     segment.description = formData.description || null
     segment.is_active = formData.is_active
-    segment.customer_type = formData.customer_type
     segment.recalculate_frequency = formData.recalculate_frequency
 
     const hasConditions =

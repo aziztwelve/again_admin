@@ -10,7 +10,7 @@
     </CardHeader>
 
     <CardContent>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
         <!-- Статус -->
         <div>
           <p class="text-sm text-gray-600">Статус</p>
@@ -32,13 +32,6 @@
           <p class="text-sm text-gray-600">Клиентов</p>
           <p class=" font-bold text-blue-600">
             {{ segment.clients_count || 0 }}
-          </p>
-        </div>
-
-        <div>
-          <p class="text-sm text-gray-600">Аудитория</p>
-          <p class="text-xs">
-            {{ getCustomerTypeLabel(segment.customer_type) }}
           </p>
         </div>
 
@@ -73,7 +66,6 @@ import {Card, CardHeader, CardTitle, CardDescription, CardContent} from '@/compo
 import {Badge} from '@/components/ui/badge'
 import {useDateFormat} from '@/composables/useDateFormat'
 import {SegmentDetail} from '@/features/segment/types'
-import {getCustomerTypeLabel} from '@/constants/DiscountType'
 
 interface Props {
   segment: SegmentDetail

@@ -17,7 +17,6 @@ import DynamicForm from '@/components/dynamics/DynamicForm.vue'
 import type {SegmentFormData} from '@/features/segment/types'
 import {PERIOD_OPTIONS, RECALCULATE_FREQUENCY_OPTIONS} from '@/features/segment/types'
 import {Spinner} from "@/components/ui/spinner";
-import {CustomerTypeOptions} from "@/constants/DiscountType";
 
 interface SegmentFormFieldsProps {
   formData: SegmentFormData
@@ -71,17 +70,6 @@ const buildFormFields = () => {
         placeholder: 'Выберите частоту',
       },
     ],
-
-    {
-      name: 'customer_type',
-      component: 'select',
-      label: 'Аудитория',
-      required: true,
-      options: CustomerTypeOptions,
-      optionLabel: 'label',
-      optionValue: 'value',
-      placeholder: 'Выберите аудиторию',
-    },
 
     // Описание на всю ширину
     {

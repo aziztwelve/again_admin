@@ -1,5 +1,4 @@
 import type {SegmentFormData} from './segment-form.types'
-import {CustomerType} from '@/constants/DiscountType'
 
 /**
  * Начальное состояние формы
@@ -8,7 +7,6 @@ export const initialSegmentFormData: SegmentFormData = {
     name: '',
     description: '',
     is_active: true,
-    customer_type: CustomerType.ALL,
     recalculate_frequency: 'on_view',
     period: '',
     min_orders_count: null,
