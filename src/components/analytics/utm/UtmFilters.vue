@@ -13,16 +13,16 @@
         </select>
       </div>
 
-      <!-- Тип пользователя -->
+      <!-- Фильтр заказов по наличию привязанного клиента -->
       <div>
-        <label class="block text-xs font-medium text-gray-600 mb-1">Пользователи</label>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Заказы</label>
         <select
             v-model="model.user_type"
             class="w-full h-9 rounded-md border border-gray-300 px-2 text-sm bg-white"
         >
-          <option value="all">Все</option>
-          <option value="authorized">Авторизованные</option>
-          <option value="guest">Гостевые</option>
+          <option value="all">Все заказы</option>
+          <option value="authorized">С привязанным клиентом</option>
+          <option value="guest">Без привязанного клиента</option>
         </select>
       </div>
 
