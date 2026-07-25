@@ -46,9 +46,9 @@
             <TableHead>Статус</TableHead>
             <TableHead class="text-right">Позиций</TableHead>
             <TableHead class="text-right">Сумма</TableHead>
-            <TableHead class="text-center">Канал</TableHead>
             <TableHead>Коммуникация</TableHead>
             <TableHead>Тип</TableHead>
+            <TableHead>Конверсия письма</TableHead>
             <TableHead class="text-right"></TableHead>
           </TableRow>
         </TableHeader>
@@ -102,18 +102,6 @@
 
             <TableCell class="text-right font-semibold">{{ formatMoney(row.total) }}</TableCell>
 
-            <TableCell class="text-center">
-              <span
-                  v-if="row.last_communication?.channel && row.last_communication.channel !== 'none'"
-                  class="inline-flex items-center gap-1 text-xs text-gray-600"
-                  :title="row.last_communication.channel"
-              >
-                <component :is="channelIcon(row.last_communication.channel)" class="h-4 w-4 text-gray-500"/>
-                {{ channelLabel(row.last_communication.channel) }}
-              </span>
-              <span v-else class="text-gray-300">—</span>
-            </TableCell>
-
             <TableCell class="text-sm text-gray-600">
               {{ row.last_communication?.sent_at ? formatDate(row.last_communication.sent_at) : '—' }}
             </TableCell>
@@ -121,6 +109,7 @@
             <TableCell class="text-sm text-gray-600">
               {{ row.last_communication ? communicationTypeLabel(row.last_communication.type) : '—' }}
             </TableCell>
+            <TableCell class="text-sm text-gray-600">{{ row.email_conversion ?? '—' }}</TableCell>
 
             <TableCell class="text-right">
               <button

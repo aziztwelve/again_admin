@@ -16,6 +16,7 @@ export interface AbandonedCartConversion {
 export interface AbandonedCartChart {
     labels: string[]
     abandoned: number[]
+    abandoned_amount: number[]
     ordered: number[]
     ordered_amount: number[]
     granularity: 'day' | 'month'
@@ -83,6 +84,7 @@ export interface AbandonedCartRow {
     abandoned_at: string | null
     customer: AbandonedCartCustomer
     last_communication: AbandonedCartCommunication | null
+    email_conversion: string | null
 }
 
 // Стандартный пагинатор Laravel

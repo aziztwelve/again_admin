@@ -9,7 +9,7 @@
           <span class="inline-block h-2.5 w-2.5 rounded-full" style="background:#EF4444"></span>
           Брошенные корзины
         </span>
-        <span class="text-xl font-semibold text-gray-800">{{ formatInt(abandonedTotal) }} шт.</span>
+        <span class="text-xl font-semibold text-gray-800">{{ formatInt(abandonedTotal) }} шт.<span v-if="abandonedAmount" class="text-sm font-normal text-gray-400"> на {{ formatMoney(abandonedAmount) }}</span></span>
       </div>
       <div class="flex flex-col">
         <span class="flex items-center gap-1.5 text-sm text-gray-500">
@@ -53,6 +53,7 @@ const orderedTotal = computed(() =>
 const orderedAmount = computed(() =>
     (props.chart?.ordered_amount ?? []).reduce((a, b) => a + b, 0),
 )
+const abandonedAmount = computed(() => (props.chart?.abandoned_amount ?? []).reduce((a, b) => a + b, 0))
 
 // vue-chart-3 не наследует высоту от родителя, поэтому задаём её обёртке явно,
 // иначе canvas тянется к дефолтным 400px и вылезает за карточку.
@@ -89,6 +90,7 @@ const chartData = computed(() => ({
 const options = {
   responsive: true,
   maintainAspectRatio: false,
+  indexAxis: 'y' as const,
   layout: {
     padding: {bottom: 8},
   },

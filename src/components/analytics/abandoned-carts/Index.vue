@@ -12,7 +12,7 @@
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 grid-cols-1">
       <StatCard
           label="Средняя стоимость корзины"
-          :value="analytics?.average_cart_value ?? 0"
+          :value="Math.round(analytics?.average_cart_value ?? 0)"
           icon="shopping-cart"
           icon-color="blue"
           is-currency
@@ -107,7 +107,7 @@ const listFilters = ref<AbandonedCartListFilters>({
 })
 
 const emptyChart: AbandonedCartChart = {
-  labels: [], abandoned: [], ordered: [], ordered_amount: [],
+  labels: [], abandoned: [], abandoned_amount: [], ordered: [], ordered_amount: [],
   granularity: 'day', from: '', to: '',
 }
 

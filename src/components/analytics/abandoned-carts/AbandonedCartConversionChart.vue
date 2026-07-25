@@ -60,7 +60,7 @@ const options = {
     },
     tooltip: {
       callbacks: {
-        label: (ctx: any) => ` ${ctx.label}: ${ctx.parsed} шт`,
+        label: (ctx: any) => ` ${ctx.label}: ${ctx.parsed} шт. (${props.conversion.total ? ((ctx.parsed / props.conversion.total) * 100).toFixed(1) : 0}%)`,
       },
     },
   },
