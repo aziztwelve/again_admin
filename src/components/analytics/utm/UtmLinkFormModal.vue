@@ -66,6 +66,18 @@
             </Button>
           </div>
         </div>
+
+        <!-- Длинную ссылку показываем только в карточке уже созданной метки. -->
+        <div v-if="editingLink" class="rounded-md bg-gray-50 border border-gray-200 p-3">
+          <label class="block text-xs font-medium text-gray-600 mb-1">Длинная ссылка с UTM-параметрами</label>
+          <div class="flex items-center gap-2">
+            <code class="flex-1 truncate text-xs text-gray-700">{{ editingLink.target_url_with_params }}</code>
+            <Button size="sm" variant="outline" @click="copy(editingLink.target_url_with_params)">
+              <Copy class="h-4 w-4 mr-1"/>
+              Копировать
+            </Button>
+          </div>
+        </div>
       </div>
     </template>
 
@@ -104,6 +116,7 @@ const modalRef = ref<{ closeModal: () => void; openModal: () => void } | null>(n
 const form = ref<CreateUtmLinkRequest>({...initialUtmLinkForm})
 const editingId = ref<number | null>(null)
 const createdLink = ref<UtmLink | null>(null)
+const editingLink = ref<UtmLink | null>(null)
 
 const isValid = computed(() =>
     !!form.value.name && !!form.value.marketing_channel_id && !!form.value.target_url
@@ -112,6 +125,7 @@ const isValid = computed(() =>
 const openCreate = () => {
   editingId.value = null
   createdLink.value = null
+  editingLink.value = null
   form.value = {...initialUtmLinkForm}
   modalRef.value?.openModal()
 }
@@ -119,6 +133,7 @@ const openCreate = () => {
 const openEdit = (link: UtmLink) => {
   editingId.value = link.id
   createdLink.value = null
+  editingLink.value = link
   form.value = {
     name: link.name,
     marketing_channel_id: link.marketing_channel_id,
