@@ -51,8 +51,26 @@
       :show-print-button="false"
       :pagination="pagination"
       :loading="sending"
+      :custom-actions="true"
       @deleted="handleDeleted"
-  />
+  >
+    <template #actions="{row}">
+      <button type="button" class="text-gray-500 hover:text-blue-600" title="Открыть карточку" @click="subscriptionModal?.open(row.original.id)">
+        <Eye class="h-4 w-4"/>
+      </button>
+      <AlertDialog
+          :show-icon="true"
+          title="Подтверждение удаления"
+          description="Вы уверены что хотите удалить эту заявку?"
+          button-name="Удалить"
+          button-style="bg-red-500 hover:bg-red-600"
+          :icon="Trash2"
+          @continue="handleDeleted(row.original)"
+      />
+    </template>
+  </DynamicsDataTable>
+
+  <RestockSubscriptionModal ref="subscriptionModal" @saved="fetchData"/>
 </template>
 
 <script setup lang="ts">
@@ -60,7 +78,9 @@ import {ref, onMounted, computed, watch, h} from 'vue';
 import DynamicTitle from "@/components/dynamics/DynamicTitle.vue";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import Button from "@/components/ui/button/Button.vue";
-import {X} from "lucide-vue-next";
+import {Eye, Trash2, X} from "lucide-vue-next";
+import AlertDialog from "@/components/dynamics/AlertDialog.vue";
+import RestockSubscriptionModal from "@/components/restock_subscription/RestockSubscriptionModal.vue";
 import {useDateFormat} from "@/composables/useDateFormat";
 import {useTableColumns} from "@/composables/Table/useTableColumns";
 import {
@@ -88,6 +108,7 @@ const pagination = ref<PaginationMeta>({
 });
 
 const subscriptions = ref<RestockSubscription[]>([]);
+const subscriptionModal = ref<InstanceType<typeof RestockSubscriptionModal> | null>(null);
 
 const statusLabels: Record<string, { label: string, color: string }> = {
   pending: {label: 'Ожидает', color: '#d97706'},

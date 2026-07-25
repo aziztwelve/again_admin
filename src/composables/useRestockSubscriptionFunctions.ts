@@ -15,10 +15,12 @@ export interface RestockSubscription {
     status: 'pending' | 'notified'
     notified_at: string | null
     source: string | null
+    manager_comment?: string | null
     created_at: string
     product?: { id: number, name: string, slug: string, stock_quantity: number }
     variant?: { id: number, name: string } | null
     client?: any
+    history?: Array<{ id: number, action: string, description: string, created_at: string, user?: { id: number, name: string } | null }>
 }
 
 export function useRestockSubscriptionFunctions() {
@@ -76,10 +78,35 @@ export function useRestockSubscriptionFunctions() {
             .finally(() => sending.value = false)
     }
 
+    const getRestockSubscription = async (id: number | string): Promise<RestockSubscription | null> => {
+        return await axios.get(`restock-subscriptions/${id}`)
+            .then(res => res.data.data as RestockSubscription)
+            .catch(e => {
+                useErrorHandler().showError(e)
+                return null
+            })
+    }
+
+    const updateRestockSubscription = async (id: number | string, payload: { manager_comment: string | null }): Promise<RestockSubscription | null> => {
+        sending.value = true
+        return await axios.put(`restock-subscriptions/${id}`, payload)
+            .then(res => {
+                useSuccessHandler().showSuccess(res)
+                return res.data.data as RestockSubscription
+            })
+            .catch(e => {
+                useErrorHandler().showError(e)
+                return null
+            })
+            .finally(() => sending.value = false)
+    }
+
     return {
         sending,
         getRestockSubscriptions,
         getCount,
         deleteRestockSubscription,
+        getRestockSubscription,
+        updateRestockSubscription,
     }
 }
