@@ -98,11 +98,11 @@ export interface Paginated<T> {
 
 // ---------- Фильтры ----------
 
-export type PeriodPreset = '7d' | '30d' | 'custom'
+export type PeriodPreset = '7d' | '30d' | '3m' | '6m' | '12m' | 'custom'
 
 export interface AbandonedCartAnalyticsFilters {
-    from?: string
-    to?: string
+    date_from?: string
+    date_to?: string
     granularity?: 'day' | 'month'
 }
 

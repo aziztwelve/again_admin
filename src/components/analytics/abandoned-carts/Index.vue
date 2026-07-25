@@ -36,7 +36,10 @@
     <!-- Графики -->
     <div class="grid gap-4 lg:grid-cols-3 grid-cols-1">
       <div class="lg:col-span-2">
-        <AbandonedCartDynamicsChart :chart="analytics?.chart ?? emptyChart"/>
+        <AbandonedCartDynamicsChart
+            :key="`${analytics?.chart?.from ?? ''}-${analytics?.chart?.to ?? ''}-${analytics?.chart?.granularity ?? ''}`"
+            :chart="analytics?.chart ?? emptyChart"
+        />
       </div>
       <AbandonedCartConversionChart :conversion="analytics?.conversion ?? emptyConversion"/>
     </div>
@@ -124,8 +127,8 @@ const loadAnalytics = async () => {
 
 const loadCarts = async () => {
   // Список фильтруем тем же периодом, что и аналитику.
-  listFilters.value.date_from = analyticsFilters.value.from
-  listFilters.value.date_to = analyticsFilters.value.to
+  listFilters.value.date_from = analyticsFilters.value.date_from
+  listFilters.value.date_to = analyticsFilters.value.date_to
   carts.value = await getCarts(listFilters.value)
 }
 
