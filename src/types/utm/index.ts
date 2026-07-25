@@ -36,6 +36,7 @@ export interface UtmLink {
     is_active: boolean
     tracking_url: string
     target_url_with_params: string
+    default_url: string
     created_at?: string
     updated_at?: string
 }

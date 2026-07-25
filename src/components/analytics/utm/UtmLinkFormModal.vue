@@ -71,8 +71,8 @@
         <div v-if="editingLink" class="rounded-md bg-gray-50 border border-gray-200 p-3">
           <label class="block text-xs font-medium text-gray-600 mb-1">Длинная ссылка с UTM-параметрами</label>
           <div class="flex items-center gap-2">
-            <code class="flex-1 truncate text-xs text-gray-700">{{ editingLink.target_url_with_params }}</code>
-            <Button size="sm" variant="outline" @click="copy(editingLink.target_url_with_params)">
+            <code class="flex-1 truncate text-xs text-gray-700">{{ editingLink.default_url }}</code>
+            <Button size="sm" variant="outline" @click="copy(editingLink.default_url)">
               <Copy class="h-4 w-4 mr-1"/>
               Копировать
             </Button>
