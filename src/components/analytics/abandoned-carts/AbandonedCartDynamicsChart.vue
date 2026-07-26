@@ -24,7 +24,7 @@
     </div>
 
     <div v-if="hasData" class="relative h-[300px]">
-      <BarChart :chartData="chartData" :options="options" :styles="chartStyles"/>
+      <LineChart :chartData="chartData" :options="options" :styles="chartStyles"/>
     </div>
     <div v-else class="h-[300px] flex items-center justify-center text-sm text-gray-400">
       Нет данных за выбранный период
@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import {BarChart} from 'vue-chart-3'
+import {LineChart} from 'vue-chart-3'
 import {Chart, registerables} from 'chart.js'
 import {computed} from 'vue'
 import type {AbandonedCartChart} from '@/types/abandoned-cart'
@@ -73,16 +73,30 @@ const chartData = computed(() => ({
     {
       label: 'Брошенные корзины',
       data: props.chart?.abandoned ?? [],
-      backgroundColor: '#EF4444',
-      borderRadius: 4,
-      maxBarThickness: 28,
+      borderColor: '#EF4444',
+      backgroundColor: 'rgba(239, 68, 68, 0.05)',
+      borderWidth: 3,
+      tension: 0.3,
+      fill: true,
+      pointBackgroundColor: '#EF4444',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
     },
     {
       label: 'Заказы',
       data: props.chart?.ordered ?? [],
-      backgroundColor: '#10B981',
-      borderRadius: 4,
-      maxBarThickness: 28,
+      borderColor: '#10B981',
+      backgroundColor: 'rgba(16, 185, 129, 0.05)',
+      borderWidth: 3,
+      tension: 0.3,
+      fill: true,
+      pointBackgroundColor: '#10B981',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
     },
   ],
 }))
@@ -90,7 +104,6 @@ const chartData = computed(() => ({
 const options = {
   responsive: true,
   maintainAspectRatio: false,
-  indexAxis: 'y' as const,
   layout: {
     padding: {bottom: 8},
   },
@@ -106,11 +119,23 @@ const options = {
         padding: 14,
       },
     },
+    tooltip: {
+      backgroundColor: '#1F2937',
+      titleColor: '#F9FAFB',
+      bodyColor: '#F9FAFB',
+      borderColor: '#374151',
+      borderWidth: 1,
+      padding: 12,
+      usePointStyle: true,
+      callbacks: {
+        label: (context: any) => ` ${context.dataset.label}: ${context.parsed.y} шт.`,
+      },
+    },
   },
   scales: {
     x: {
       stacked: false,
-      grid: {display: false},
+      grid: {display: false, drawBorder: false},
       ticks: {
         color: '#6B7280',
         font: {family: 'Inter, sans-serif'},
@@ -124,9 +149,12 @@ const options = {
     },
     y: {
       beginAtZero: true,
-      grid: {color: '#F3F4F6'},
+      grid: {color: '#F3F4F6', drawBorder: false, tickLength: 8},
       ticks: {color: '#6B7280', precision: 0},
     },
+  },
+  elements: {
+    line: {cubicInterpolationMode: 'monotone' as const},
   },
 }
 </script>
