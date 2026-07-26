@@ -94,12 +94,12 @@ const {createIndexColumn} = useTableColumns();
 
 const searchParams = ref({
   search: '',
-  status: 'pending',
+  status: '',
 });
 
 const pendingCount = ref(0);
 
-const hasActiveFilters = computed(() => !!searchParams.value.search || searchParams.value.status !== 'pending');
+const hasActiveFilters = computed(() => !!searchParams.value.search || !!searchParams.value.status);
 
 const pagination = ref<PaginationMeta>({
   page: 1,
@@ -189,7 +189,7 @@ function onFilterChange() {
 }
 
 function resetFilters() {
-  searchParams.value = {search: '', status: 'pending'};
+  searchParams.value = {search: '', status: ''};
   pagination.value.page = 1;
   fetchData();
 }
