@@ -6,6 +6,7 @@
       <div v-if="subscription" class="space-y-5 text-sm">
         <section class="grid grid-cols-1 gap-3 rounded-md border border-gray-200 p-3 sm:grid-cols-2">
           <div><p class="text-xs text-gray-500">Товар</p><p class="font-medium">{{ subscription.product?.name ?? '—' }}</p></div>
+          <div><p class="text-xs text-gray-500">Цвета</p><p>{{ subscription.colors?.length ? subscription.colors.map(color => color.name).join(', ') : 'Все цвета' }}</p></div>
           <div><p class="text-xs text-gray-500">Статус</p><p>{{ statusLabel }}</p></div>
           <div><p class="text-xs text-gray-500">Покупатель</p><p>{{ subscription.name || '—' }}</p></div>
           <div><p class="text-xs text-gray-500">Контакты</p><p>{{ subscription.email }}<span v-if="subscription.phone"> · {{ subscription.phone }}</span></p></div>

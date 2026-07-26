@@ -18,6 +18,8 @@ export interface RestockSubscription {
     manager_comment?: string | null
     created_at: string
     product?: { id: number, name: string, slug: string, stock_quantity: number }
+    color_ids?: number[] | null
+    colors?: Array<{ id: number, name: string, code: string }>
     variant?: { id: number, name: string } | null
     client?: any
     history?: Array<{ id: number, action: string, description: string, created_at: string, user?: { id: number, name: string } | null }>

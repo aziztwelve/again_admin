@@ -130,6 +130,13 @@ const columns = [
     cell: ({row}: any) => h("span", {}, row.original?.product?.name ?? '—'),
   },
   {
+    accessorKey: "colors",
+    header: "Цвет",
+    cell: ({row}: any) => row.original?.colors?.length
+        ? row.original.colors.map((color: any) => color.name).join(', ')
+        : 'Все цвета',
+  },
+  {
     accessorKey: "name",
     header: "Имя",
   },
