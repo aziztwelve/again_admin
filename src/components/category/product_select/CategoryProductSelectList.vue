@@ -76,14 +76,16 @@ async function fetchData() {
     per_page: itemsPerPage.value,
     page: currentPage.value,
     paginate: true,
-    admin: true,
+    // Не вызываем МойСклад во время открытия модалки выбора товара.
+    admin: false,
     search: paramsSearch.value.search,
     is_active: 1,
     sort_by: "display_order",
     sort_order: "asc",
   });
 
-  data.value = result?.data?.map((item: any) => Product.fromJSON(item)) ?? [];
+  const rawProducts = Array.isArray(result) ? result : result?.data ?? [];
+  data.value = rawProducts.map((item: any) => Product.fromJSON(item));
   totalItems.value = result?.meta?.total ?? 0;
 
   isLoading.value = false;

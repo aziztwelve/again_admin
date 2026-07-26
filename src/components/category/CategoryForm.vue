@@ -101,33 +101,34 @@ const formFields = ref<FormDynamicFieldType[]>([])
 
 
 onMounted(async () => {
+  try {
+    const categoryResponse = await getCategories({
+      get_children: false,
+      per_page: 100,
+    })
+    categories.value = categoryResponse?.data ?? []
 
-  await getCategories({
-    get_children: false,
-    per_page: 100
-  })
-      .then(res => {
-        categories.value = res.data
-      })
+    // Для выбора товаров достаточно локальных остатков из БД. admin=true
+    // вызывает синхронный запрос к МойСклад и из-за его timeout'а зависала
+    // вся форма редактирования категории.
+    const productResponse = await getProducts({
+      per_page: 1000,
+      paginate: false,
+      admin: false,
+      is_active: 1,
+      sort_by: 'display_order',
+      sort_order: 'asc',
+    })
+    const rawProducts = Array.isArray(productResponse)
+        ? productResponse
+        : productResponse?.data ?? []
+    products.value = rawProducts.map((item: any) => Product.fromJSON(item))
 
-  products.value =
-      await getProducts({
-        per_page: 1000,
-        paginate: false,
-        admin: true,
-        is_active: 1,
-        sort_by: 'display_order',
-        sort_order: 'asc',
-      })
-          .then(response => {
-            return response.map((item: any) => Product.fromJSON(item))
-          })
-
-
-  formFields.value = await getColumns()
-
-  loading.value = false
-
+    formFields.value = await getColumns()
+  } finally {
+    // Ошибка одного из справочников не должна оставлять модалку в прелоаде.
+    loading.value = false
+  }
 })
 
 const selectedProductIds = computed<number[]>({
