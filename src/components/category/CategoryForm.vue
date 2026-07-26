@@ -29,7 +29,7 @@
           Товары не выбраны
         </div>
 
-        <div v-else class="mt-2 space-y-2">
+        <div v-else class="mt-2 max-h-72 space-y-2 overflow-y-auto pr-1">
           <div
               v-for="product in selectedProducts"
               :key="product.id"
