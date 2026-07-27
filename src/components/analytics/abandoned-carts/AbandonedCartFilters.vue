@@ -52,14 +52,14 @@
           <label class="block text-xs font-medium text-gray-600 mb-1">По</label>
           <DatePicker v-model="model.date_to" placeholder="Конец"/>
         </div>
-        <Button @click="emit('apply')">Применить</Button>
+        <Button :disabled="!canApplyCustomRange" @click="applyCustomRange">Применить</Button>
       </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import {Button} from '@/components/ui/button'
 import DatePicker from '@/components/dynamics/DatePicker.vue'
 import type {AbandonedCartAnalyticsFilters, PeriodPreset} from '@/types/abandoned-cart'
@@ -81,6 +81,25 @@ const monthPresets: Array<{preset: Extract<PeriodPreset, '3m' | '6m' | '12m'>; l
 const toIsoDate = (d: Date): string => {
   const pad = (n: number) => n.toString().padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+// DatePicker отдаёт ISO-дату с временем. Для API этого раздела нужен именно
+// календарный день, иначе в URL попадают разные представления одной даты.
+const toDateOnly = (value?: string): string | undefined => value?.split('T')[0] || undefined
+
+const canApplyCustomRange = computed(() => {
+  const from = toDateOnly(model.value.date_from)
+  const to = toDateOnly(model.value.date_to)
+
+  return Boolean(from && to && from <= to)
+})
+
+const applyCustomRange = () => {
+  if (!canApplyCustomRange.value) return
+
+  model.value.date_from = toDateOnly(model.value.date_from)
+  model.value.date_to = toDateOnly(model.value.date_to)
+  emit('apply')
 }
 
 const applyRangeDays = (days: number) => {
@@ -114,8 +133,12 @@ const selectPreset = (p: PeriodPreset) => {
       applyRangeMonths(option.months)
       emit('apply')
     }
+  } else {
+    // Иначе повторное нажатие «Применить» незаметно применяет предыдущий
+    // пресет, хотя пользователь ещё не задал свой диапазон.
+    model.value.date_from = undefined
+    model.value.date_to = undefined
   }
-  // 'custom' — ждём ручного выбора дат и кнопки «Применить»
 }
 
 // Инициализируем дефолт — 30 дней.

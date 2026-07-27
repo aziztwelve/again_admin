@@ -95,8 +95,8 @@ const carts = ref<Paginated<AbandonedCartRow> | undefined>(undefined)
 const sendingId = ref<number | null>(null)
 
 const analyticsFilters = ref<AbandonedCartAnalyticsFilters>({
-  from: undefined,
-  to: undefined,
+  date_from: undefined,
+  date_to: undefined,
 })
 
 const listFilters = ref<AbandonedCartListFilters>({
