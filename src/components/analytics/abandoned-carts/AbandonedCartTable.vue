@@ -100,7 +100,7 @@
               <span :title="`${row.items_qty} шт`">{{ row.positions_count }}</span>
             </TableCell>
 
-            <TableCell class="text-right font-semibold">{{ formatMoney(row.total) }}</TableCell>
+            <TableCell class="text-right font-semibold whitespace-nowrap">{{ formatMoney(row.total) }}</TableCell>
 
             <TableCell class="text-sm text-gray-600">
               {{ row.last_communication?.sent_at ? formatDate(row.last_communication.sent_at) : '—' }}
