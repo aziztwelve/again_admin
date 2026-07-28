@@ -71,7 +71,7 @@
               <div class="flex flex-col">
                 <span>#{{ row.id }}</span>
                 <span v-if="row.versions_count > 1" class="text-xs font-normal text-gray-400">
-                  {{ row.versions_count }} {{ versionsWord(row.versions_count) }}
+                  Корзин у клиента: {{ row.versions_count }}
                 </span>
               </div>
             </TableCell>
@@ -203,15 +203,6 @@ const resetFilters = () => {
   search.value = ''
   status.value = ''
   emitFilters()
-}
-
-// Склонение слова «версия» по числу (1 версия / 2 версии / 5 версий).
-const versionsWord = (n: number): string => {
-  const mod10 = n % 10
-  const mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return 'версия'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'версии'
-  return 'версий'
 }
 
 const statusLabel = (s: CartStatus) =>
