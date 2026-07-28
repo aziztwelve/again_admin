@@ -2,29 +2,29 @@
     <div class="flex items-center justify-between shadow ring-1 ring-black/5 bg-white px-4 py-3 sm:px-6">
         <div class="flex flex-1 justify-between sm:hidden">
             <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                Previous
+                Назад
             </button>
             <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                Next
+                Далее
             </button>
         </div>
-  
+
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
                 <p class="text-sm text-gray-700">
-                    Showing
+                    Показано
                     <span class="font-medium">{{ startItem }}</span>
-                    to
+                    –
                     <span class="font-medium">{{ endItem }}</span>
-                    of
+                    из
                     <span class="font-medium">{{ totalItems }}</span>
-                    results
+                    результатов
                 </p>
             </div>
             <div>
                 <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                     <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="sr-only">Previous</span>
+                        <span class="sr-only">Предыдущая страница</span>
                         <ChevronLeftIcon class="size-5" aria-hidden="true" />
                     </button>
         
@@ -33,7 +33,7 @@
                     </button>
         
                     <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="sr-only">Next</span>
+                        <span class="sr-only">Следующая страница</span>
                         <ChevronRightIcon class="size-5" aria-hidden="true" />
                     </button>
                 </nav>
@@ -111,5 +111,3 @@ const changePage = (page) => {
     }
 };
 </script>
-
-  
