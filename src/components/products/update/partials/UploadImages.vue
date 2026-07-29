@@ -1,5 +1,12 @@
 <template>
   <div class="space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-medium">Фотографии товара</h3>
+        <p class="text-sm text-gray-500">Первое фото используется как главное на витрине.</p>
+      </div>
+      <span class="text-sm text-gray-500">{{ (product.images?.length ?? 0) + images.length }} фото</span>
+    </div>
     <div
         class="border-dashed border-2 p-4 cursor-pointer text-center rounded-lg"
         @dragover.prevent
@@ -9,7 +16,7 @@
       <input type="file" ref="fileInput" multiple accept="image/jpeg, image/png, image/jpg, image/gif" class="hidden"
              @change="handleFiles"/>
       <p class="text-gray-500">
-        Перетащите файлы сюда или нажмите, чтобы выбрать. Допустимые форматы: JPEG, PNG, JPG.
+        Перетащите файлы сюда или нажмите, чтобы выбрать. JPEG, PNG, WEBP до 32 МБ.
       </p>
     </div>
     <div v-if="images.length || product.images?.length"
@@ -22,6 +29,7 @@
         </button>
       </div>
       <div v-for="(img, i) in product.images" :key="i" class="relative border border-gray-300 rounded-lg">
+        <span v-if="i === 0" class="absolute left-1 top-1 z-10 rounded bg-black/70 px-1.5 py-0.5 text-xs text-white">Главное</span>
         <img :src="`${back_url}/products/${product.id}/image?path=${img.path}`" alt="image"
 
              class="rounded-lg w-24 h-24 object-cover"/>
@@ -66,7 +74,7 @@ const handleFiles = (event: Event) => {
 };
 
 const processFiles = (filesList: FileList) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
 
   for (let i = 0; i < filesList.length; i++) {
     const file = filesList[i];
@@ -97,7 +105,7 @@ const removeImage = (index: number) => {
 };
 
 const removeImageToBack = async (index: number, image: any) => {
-  product.value.images.splice(product.value.images.indexOf(index), 1);
+  product.value.images.splice(index, 1);
 
   await axios.delete(`/products/${product.value.id}/images/${image.id}`)
       .then(res => {
