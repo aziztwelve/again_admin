@@ -223,6 +223,14 @@ const columns = [
   {
     accessorKey: "description",
     header: "Описание",
+    cell: ({row}: any) => {
+      const description = row.original.description || '—';
+
+      return h('span', {
+        class: 'block w-56 truncate',
+        title: description,
+      }, description);
+    },
   },
 
 ];
