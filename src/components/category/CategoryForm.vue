@@ -31,13 +31,13 @@
 
         <div v-else class="mt-2 max-h-72 space-y-2 overflow-y-auto pr-1">
           <div
-              v-for="product in selectedProducts"
+              v-for="(product, index) in selectedProducts"
               :key="product.id"
               class="flex items-center justify-between gap-3 rounded border p-2"
           >
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="font-medium">{{ product.name }}</span>
+                <span class="font-medium">{{ index + 1 }}. {{ product.name }}</span>
                 <span class="text-sm text-gray-500">(ID: {{ product.id }})</span>
                 <span
                     v-if="isProductOutOfStock(product)"
@@ -48,14 +48,17 @@
               </div>
             </div>
 
-            <Button
-                variant="ghost"
-                size="sm"
-                type="button"
-                @click="removeProduct(product.id)"
-            >
-              <X class="h-4 w-4"/>
-            </Button>
+            <div class="flex items-center gap-1">
+              <Button variant="ghost" size="sm" type="button" :disabled="index === 0" @click="moveProduct(product.id, -1)">
+                <ChevronUp class="h-4 w-4"/>
+              </Button>
+              <Button variant="ghost" size="sm" type="button" :disabled="index === selectedProducts.length - 1" @click="moveProduct(product.id, 1)">
+                <ChevronDown class="h-4 w-4"/>
+              </Button>
+              <Button variant="ghost" size="sm" type="button" @click="removeProduct(product.id)">
+                <X class="h-4 w-4"/>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -75,7 +78,7 @@ import {Category, CategoryFormData} from "@/types/category";
 import {isProductOutOfStock} from "@/utils/productStock";
 import CategoryProductSelectModal from "@/components/category/product_select/CategoryProductSelectModal.vue";
 import {Button} from "@/components/ui/button";
-import {X} from "lucide-vue-next";
+import {ChevronDown, ChevronUp, X} from "lucide-vue-next";
 
 
 interface Props {
@@ -149,6 +152,17 @@ const selectedProducts = computed(() => {
 const removeProduct = (productId: number | null) => {
   if (!productId) return;
   selectedProductIds.value = selectedProductIds.value.filter((id) => id !== productId);
+}
+
+const moveProduct = (productId: number | null, direction: -1 | 1) => {
+  if (!productId) return;
+  const index = selectedProductIds.value.indexOf(productId);
+  const targetIndex = index + direction;
+  if (index < 0 || targetIndex < 0 || targetIndex >= selectedProductIds.value.length) return;
+
+  const ids = [...selectedProductIds.value];
+  [ids[index], ids[targetIndex]] = [ids[targetIndex], ids[index]];
+  selectedProductIds.value = ids;
 }
 
 const getColumns = async () => {
