@@ -142,6 +142,7 @@
           :order="order"
           :saving="isSavingDelivery"
           @save="onDeliverySave"
+          @refresh="fetchOrder(order.id)"
         />
         <OrderTotals :order="order" :summary="summary" />
         <OrderCustomFields

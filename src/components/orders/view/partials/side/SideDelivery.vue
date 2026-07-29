@@ -28,6 +28,27 @@
       </div>
     </dl>
 
+    <div v-if="isYandexDelivery" class="mt-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm">
+      <div class="font-medium text-yellow-900">Яндекс.Доставка</div>
+      <div class="mt-1 text-yellow-800">
+        {{ yandexOrder?.internal_status ? yandexStatusLabel(yandexOrder.internal_status) : 'Заявка ещё не создана' }}
+      </div>
+      <div v-if="yandexOrder?.claim_id" class="mt-1 break-all text-xs text-yellow-700">
+        Трек-номер: {{ yandexOrder.claim_id }}
+      </div>
+      <a v-if="yandexOrder?.tracking_url" :href="yandexOrder.tracking_url" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block text-xs font-medium underline">
+        Открыть отслеживание
+      </a>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" :disabled="yandexLoading" @click="createOrSyncYandex">
+          {{ yandexOrder?.claim_id ? 'Обновить статус' : 'Создать заявку' }}
+        </Button>
+        <Button v-if="yandexOrder?.claim_id" variant="destructive" size="sm" :disabled="yandexLoading" @click="cancelYandex">
+          Отменить доставку
+        </Button>
+      </div>
+    </div>
+
     <Dialog v-model:open="dialogOpen">
       <DialogContent class="flex max-h-[95vh] w-full flex-col overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
@@ -108,12 +129,41 @@ const props = defineProps({
   saving: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["save"]);
+const emit = defineEmits(["save", "refresh"]);
 
 const dialogOpen = ref(false);
 const deliveryMethodOptions = ref([]);
 
 const addressObj = computed(() => props.order?.delivery_address || null);
+const isYandexDelivery = computed(() => String(props.order?.delivery_method?.code || props.order?.deliveryMethod?.code || '').startsWith('yandex_'));
+const yandexOrder = computed(() => props.order?.yandex_order || props.order?.yandexOrder || null);
+const yandexLoading = ref(false);
+
+const yandexStatusLabel = (status) => ({
+  created: 'Заявка создана', courier_assigned: 'Курьер назначен', picked_up: 'Заказ передан в доставку',
+  delivered: 'Заказ доставлен', returning: 'Оформляется возврат', cancelled: 'Доставка отменена', failed: 'Ошибка доставки',
+}[status] || status);
+
+const createOrSyncYandex = async () => {
+  yandexLoading.value = true;
+  try {
+    await axios.post(`/orders/${props.order.id}/yandex-delivery/create`);
+    emit('refresh');
+  } finally {
+    yandexLoading.value = false;
+  }
+};
+
+const cancelYandex = async () => {
+  if (!window.confirm('Отменить заявку в Яндекс.Доставке?')) return;
+  yandexLoading.value = true;
+  try {
+    await axios.post(`/orders/${props.order.id}/yandex-delivery/cancel`);
+    emit('refresh');
+  } finally {
+    yandexLoading.value = false;
+  }
+};
 
 const recipientName = computed(() => {
   const a = addressObj.value;
