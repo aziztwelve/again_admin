@@ -47,6 +47,9 @@
           Отменить доставку
         </Button>
       </div>
+      <button type="button" class="mt-3 text-xs text-yellow-800 underline" @click="exportYandex">
+        Скачать экспорт доставок CSV
+      </button>
     </div>
 
     <Dialog v-model:open="dialogOpen">
@@ -160,9 +163,26 @@ const cancelYandex = async () => {
   try {
     await axios.post(`/orders/${props.order.id}/yandex-delivery/cancel`);
     emit('refresh');
+  } catch (error) {
+    if (error?.response?.status === 409 && window.confirm('Курьер уже назначен. Подтверждаете возможную платную отмену?')) {
+      await axios.post(`/orders/${props.order.id}/yandex-delivery/cancel`, { force: true });
+      emit('refresh');
+    } else {
+      throw error;
+    }
   } finally {
     yandexLoading.value = false;
   }
+};
+
+const exportYandex = async () => {
+  const { data } = await axios.get('/orders/yandex-delivery/export', { responseType: 'blob' });
+  const url = URL.createObjectURL(data);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'yandex-delivery.csv';
+  link.click();
+  URL.revokeObjectURL(url);
 };
 
 const recipientName = computed(() => {
