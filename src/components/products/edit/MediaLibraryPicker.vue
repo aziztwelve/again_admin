@@ -25,7 +25,7 @@
 
         <div v-if="uploading" class="flex items-center gap-2 rounded-md border p-3 text-sm text-muted-foreground">
           <Loader2 class="h-4 w-4 animate-spin"/>
-          Фото добавляются...
+          Фото добавляются{{ uploadTotal ? `: ${uploadDone}/${uploadTotal}` : '...' }}
         </div>
 
         <div v-if="loading" class="text-sm text-muted-foreground">
@@ -93,6 +93,8 @@ const open = ref(false)
 const loading = ref(false)
 const attaching = ref(false)
 const uploading = ref(false)
+const uploadDone = ref(0)
+const uploadTotal = ref(0)
 const files = ref<any[]>([])
 const selectedIds = ref<number[]>([])
 
@@ -132,17 +134,25 @@ const upload = async (event: Event) => {
   if (!props.productId || !selectedFiles.length) return
 
   uploading.value = true
+  uploadDone.value = 0
+  uploadTotal.value = selectedFiles.length
   try {
-    const formData = new FormData()
-    selectedFiles.forEach((file) => formData.append('files[]', file, file.name))
-    if (props.targetVariantId) {
-      formData.append('variant_id', String(props.targetVariantId))
+    let images: ImageModel[] = []
+
+    for (const file of selectedFiles) {
+      const formData = new FormData()
+      formData.append('files[]', file, file.name)
+      if (props.targetVariantId) {
+        formData.append('variant_id', String(props.targetVariantId))
+      }
+
+      const {data} = await axios.post(`/products/${props.productId}/media-library/attach`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      })
+      images = (data.data ?? []).map((image: any) => ImageModel.fromJSON(image))
+      uploadDone.value++
     }
 
-    const {data} = await axios.post(`/products/${props.productId}/media-library/attach`, formData, {
-      headers: {'Content-Type': 'multipart/form-data'},
-    })
-    const images = (data.data ?? []).map((image: any) => ImageModel.fromJSON(image))
     emit('update:modelValue', images)
     emit('attached', images)
     toast.success('Фото загружены')
@@ -151,6 +161,8 @@ const upload = async (event: Event) => {
     toast.error(error.response?.data?.message ?? 'Не удалось загрузить фото')
   } finally {
     uploading.value = false
+    uploadDone.value = 0
+    uploadTotal.value = 0
     input.value = ''
   }
 }
