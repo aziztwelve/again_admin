@@ -35,6 +35,7 @@
                         :show-button-save="false"
                         :horizontal="true"
                         :show-upload="false"
+                        @remove-image="deleteProductImage"
                     />
                   </div>
 
@@ -207,5 +208,19 @@ watch(() => product.value.images, async (images) => {
     uploadingProductImages = false
   }
 }, {deep: true})
+
+const deleteProductImage = async (image: any) => {
+  if (!product.value.id || !image?.id || image?.file instanceof File) return
+
+  try {
+    await axios.delete(`/products/${product.value.id}/media-library/images/${image.id}`)
+    toast.success('Фото товара удалено')
+  } catch (error: any) {
+    toast.error(error.response?.data?.message ?? 'Не удалось удалить фото')
+    await getProductsById(route.params.id, {admin: true}).then(res => {
+      product.value = Product.fromJSON(res)
+    })
+  }
+}
 
 </script>

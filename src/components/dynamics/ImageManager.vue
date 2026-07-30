@@ -56,7 +56,7 @@
                       size="icon"
                       class="absolute -top-2 -right-2 h-6 w-6 text-destructive hover:text-destructive bg-background/90 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 max-md:opacity-100"
                       @mousedown.stop
-                      @click.stop="removeImage(element.id!)"
+                      @click.stop="removeImage(element)"
                   >
                     <TrashIcon class="h-3 w-3"/>
                   </Button>
@@ -111,7 +111,7 @@
                     size="icon"
                     class="h-8 w-8 text-destructive hover:text-destructive"
                     @mousedown.stop
-                    @click="removeImage(element.id!)"
+                    @click="removeImage(element)"
                 >
                   <TrashIcon class="h-4 w-4"/>
                 </Button>
@@ -171,7 +171,7 @@ const openImagePreview = (index: number) => {
   showPreviewModal.value = true
 }
 
-const emit = defineEmits(['update:modelValue', 'upload', 'saveImage']);
+const emit = defineEmits(['update:modelValue', 'upload', 'saveImage', 'removeImage']);
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const images = ref<ImageModel[]>(props.modelValue || [])
@@ -222,8 +222,9 @@ const handleFileUpload = async (event: Event,) => {
   }
 }
 
-const removeImage = (id: number) => {
-  imageManager.removeImage(id)
+const removeImage = (image: ImageModel) => {
+  emit('removeImage', image)
+  imageManager.removeImage(image.id!)
   images.value = imageManager.getAllImages()
 }
 

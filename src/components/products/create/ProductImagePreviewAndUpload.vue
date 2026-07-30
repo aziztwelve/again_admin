@@ -21,6 +21,7 @@
         }"
         :show-upload="false"
         @saveImage="saveImage"
+        @remove-image="deleteImageFromServer"
     />
   </div>
   <ShadcnProgress
@@ -41,6 +42,7 @@ import ShadcnProgress from "@/components/dynamics/ShadcnProgress.vue";
 import {toast} from "vue-sonner";
 import MediaLibraryPicker from "@/components/products/edit/MediaLibraryPicker.vue";
 import DraftMediaLibraryPicker from "@/components/products/create/DraftMediaLibraryPicker.vue";
+import axios from "axios";
 
 const {uploadImage, getImages, deleteImage} = useImageFunctions();
 
@@ -78,6 +80,21 @@ const saveImage = async () => {
   toast.success('Фото варианта сохронены')
 
 };
+
+const deleteImageFromServer = async (image: any) => {
+  if (!productId || !image?.id || image?.file instanceof File) return
+
+  try {
+    await axios.delete(`/products/${productId}/media-library/images/${image.id}`, {
+      params: {
+        variant_id: targetVariantId,
+      },
+    })
+    toast.success(targetVariantId ? 'Фото варианта удалено' : 'Фото товара удалено')
+  } catch (error: any) {
+    toast.error(error.response?.data?.message ?? 'Не удалось удалить фото')
+  }
+}
 
 onMounted(async () => {
   // await fetchImages();
