@@ -4,12 +4,12 @@
   </Button>
 
   <Dialog :open="open" @update:open="open = $event">
-    <DialogContent class="max-w-3xl">
+    <DialogScrollContent class="max-w-3xl max-md:my-0 max-md:min-h-[100dvh] max-md:w-full max-md:border-0 max-md:p-4 max-md:rounded-none">
       <DialogHeader>
         <DialogTitle>Медиатека товара</DialogTitle>
       </DialogHeader>
 
-      <div class="space-y-3">
+      <div class="flex min-h-0 flex-1 flex-col gap-3">
         <p class="text-sm text-muted-foreground">
           Показаны фото, уже добавленные в этой форме товара и его вариантов.
         </p>
@@ -32,40 +32,40 @@
           Добавьте фото здесь или в другом блоке этой карточки.
         </div>
 
-        <div v-else class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-5">
+        <div v-else class="grid grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-4 md:grid-cols-5 max-md:max-h-[calc(100dvh-290px)]">
           <button
               v-for="file in files"
               :key="file.key"
               type="button"
-              class="relative overflow-hidden rounded-md border bg-background text-left transition"
+              class="relative overflow-hidden rounded-md border bg-background text-left transition max-md:min-h-[150px]"
               :class="selectedKeys.includes(file.key) ? 'ring-2 ring-primary' : 'hover:border-primary/60'"
               @click="toggle(file.key)"
           >
-            <img :src="imageUrl(file.image)" class="h-24 w-full object-cover" alt="image"/>
-            <span class="block truncate px-2 py-1 text-xs text-muted-foreground">
+            <img :src="imageUrl(file.image)" class="h-24 w-full object-cover max-md:h-28" alt="image"/>
+            <span class="block truncate px-2 py-1 text-xs text-muted-foreground max-md:whitespace-normal max-md:break-words">
               {{ file.label }}
             </span>
           </button>
         </div>
 
-        <div class="flex justify-end gap-2">
-          <Button type="button" variant="outline" @click="open = false">
+        <div class="sticky bottom-0 -mx-4 mt-auto flex justify-end gap-2 border-t bg-background p-4 sm:static sm:mx-0 sm:border-0 sm:p-0">
+          <Button type="button" variant="outline" class="max-md:flex-1" @click="open = false">
             Отмена
           </Button>
-          <Button type="button" :disabled="!selectedKeys.length || attaching" @click="attach">
+          <Button type="button" class="max-md:flex-1" :disabled="!selectedKeys.length || attaching" @click="attach">
             <Loader2 v-if="attaching" class="mr-2 h-4 w-4 animate-spin"/>
             {{ attaching ? 'Добавление...' : 'Добавить' }}
           </Button>
         </div>
       </div>
-    </DialogContent>
+    </DialogScrollContent>
   </Dialog>
 </template>
 
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {Button} from '@/components/ui/button'
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog'
+import {Dialog, DialogHeader, DialogScrollContent, DialogTitle} from '@/components/ui/dialog'
 import {ImageModel} from '@/models/ImageModel'
 import {Product} from '@/models/Product'
 import {useImageFunctions} from '@/composables/useImageFunctions'
