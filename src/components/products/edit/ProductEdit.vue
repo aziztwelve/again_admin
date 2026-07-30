@@ -28,6 +28,7 @@
                     <div class="mb-3">
                       <h3 class="font-medium">Фотографии товара</h3>
                       <p class="text-sm text-gray-500">Выберите несколько файлов. Первое фото будет главным на витрине; остальные попадут в галерею.</p>
+                      <MediaLibraryPicker :product-id="product.id" @attached="product.media_files = $event" />
                     </div>
                     <ImageManager
                         v-model="product.images"
@@ -142,6 +143,7 @@ import {useColorsFunctions} from "@/composables/useColorFunctions";
 import {useProductFunctions} from "@/composables/useProductFunctions";
 import {useMoySkladFunctions} from "@/composables/useMoySkladFunctions";
 import ProductEditMarketplaceLinks from "@/components/products/edit/ProductEditMarketplaceLinks.vue";
+import MediaLibraryPicker from "@/components/products/edit/MediaLibraryPicker.vue";
 import axios from "axios";
 import {toast} from "vue-sonner";
 
