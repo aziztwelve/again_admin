@@ -25,6 +25,10 @@
                 <AccordionContent>
 
                   <div class="p-2">
+                    <div class="mb-3">
+                      <h3 class="font-medium">Фотографии товара</h3>
+                      <p class="text-sm text-gray-500">Выберите несколько файлов. Первое фото будет главным на витрине; остальные попадут в галерею.</p>
+                    </div>
                     <ImageManager
                         v-model="product.images"
                         :show-button-save="false"
