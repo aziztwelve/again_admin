@@ -1,6 +1,6 @@
 <template>
-  <Button type="button" variant="outline" :disabled="!files.length" @click="open = true">
-    Выбрать из медиатеки
+  <Button type="button" variant="outline" @click="open = true">
+    Медиатека
   </Button>
 
   <Dialog :open="open" @update:open="open = $event">
@@ -14,8 +14,16 @@
           Показаны фото, уже добавленные в этой форме товара и его вариантов.
         </p>
 
+        <input
+            type="file"
+            multiple
+            accept="image/*"
+            class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary/90"
+            @change="upload"
+        />
+
         <div v-if="!files.length" class="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-          Добавьте фото товара или варианта, чтобы выбрать его здесь.
+          Добавьте фото здесь или в другом блоке этой карточки.
         </div>
 
         <div v-else class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-5">
@@ -122,6 +130,24 @@ const copyImage = (image: ImageModel, position: number) => {
     path: image.path ?? '',
     position,
   })
+}
+
+const upload = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const newImages = Array.from(input.files ?? []).map((file, index) => {
+    return new ImageModel({
+      id: Date.now() + Math.random(),
+      file,
+      path: '',
+      position: (props.modelValue ?? []).length + index,
+    })
+  })
+
+  if (newImages.length) {
+    emit('update:modelValue', [...(props.modelValue ?? []), ...newImages])
+  }
+
+  input.value = ''
 }
 
 const attach = () => {

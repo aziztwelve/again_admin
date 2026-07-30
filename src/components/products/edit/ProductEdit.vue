@@ -34,6 +34,7 @@
                         v-model="product.images"
                         :show-button-save="false"
                         :horizontal="true"
+                        :show-upload="false"
                     />
                   </div>
 

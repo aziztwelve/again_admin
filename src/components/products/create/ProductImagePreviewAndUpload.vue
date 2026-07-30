@@ -19,6 +19,7 @@
         :image-size="{
           value: 'md'
         }"
+        :show-upload="false"
         @saveImage="saveImage"
     />
   </div>

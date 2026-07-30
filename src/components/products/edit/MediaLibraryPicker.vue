@@ -14,6 +14,15 @@
           Показаны только фото этой карточки: общие фото товара и фото всех его вариантов.
         </p>
 
+        <input
+            type="file"
+            multiple
+            accept="image/*"
+            class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary/90"
+            :disabled="uploading"
+            @change="upload"
+        />
+
         <div v-if="loading" class="text-sm text-muted-foreground">
           Загрузка...
         </div>
@@ -76,6 +85,7 @@ const {showImage} = useImageFunctions()
 const open = ref(false)
 const loading = ref(false)
 const attaching = ref(false)
+const uploading = ref(false)
 const files = ref<any[]>([])
 const selectedIds = ref<number[]>([])
 
@@ -107,6 +117,35 @@ const toggle = (id: number) => {
 
 const imageUrl = (file: any) => {
   return file.path ? showImage(ImageModel.fromJSON(file), 'md') : file.url
+}
+
+const upload = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const selectedFiles = Array.from(input.files ?? [])
+  if (!props.productId || !selectedFiles.length) return
+
+  uploading.value = true
+  try {
+    const formData = new FormData()
+    selectedFiles.forEach((file) => formData.append('files[]', file, file.name))
+    if (props.targetVariantId) {
+      formData.append('variant_id', String(props.targetVariantId))
+    }
+
+    const {data} = await axios.post(`/products/${props.productId}/media-library/attach`, formData, {
+      headers: {'Content-Type': 'multipart/form-data'},
+    })
+    const images = (data.data ?? []).map((image: any) => ImageModel.fromJSON(image))
+    emit('update:modelValue', images)
+    emit('attached', images)
+    toast.success('Фото загружены')
+    await load()
+  } catch (error: any) {
+    toast.error(error.response?.data?.message ?? 'Не удалось загрузить фото')
+  } finally {
+    uploading.value = false
+    input.value = ''
+  }
 }
 
 const attach = async () => {

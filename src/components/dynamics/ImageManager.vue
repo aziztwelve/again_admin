@@ -2,7 +2,7 @@
   <div class="space-y-4">
 
     <div class="grid flex-1 items-center gap-4">
-      <div class="flex flex-col space-y-1.5 p-2 cursor-pointer">
+      <div v-if="showUpload" class="flex flex-col space-y-1.5 p-2 cursor-pointer">
         <input
             class="block w-full text-sm text-gray-500
          file:mr-4 file:py-2 file:px-4
@@ -122,11 +122,14 @@
       </div>
 
       <div v-else
-           @click="triggerFileInput"
-           class="flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg cursor-pointer"
+           @click="showUpload ? triggerFileInput() : undefined"
+           class="flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg"
+           :class="{'cursor-pointer': showUpload}"
       >
         <UploadIcon class="h-10 w-10 text-muted-foreground mb-2"/>
-        <p class="text-sm text-muted-foreground">Изображения ещё не загружены</p>
+        <p class="text-sm text-muted-foreground">
+          {{ showUpload ? 'Изображения ещё не загружены' : 'Изображения ещё не выбраны' }}
+        </p>
       </div>
     </div>
 
@@ -150,11 +153,13 @@ const props = withDefaults(
       modelValue: ImageModel[],
       imageSize?: { value: string },
       showButtonSave?: boolean,
-      horizontal?: boolean
+      horizontal?: boolean,
+      showUpload?: boolean
     }>(),
     {
       showButtonSave: true,
-      horizontal: false
+      horizontal: false,
+      showUpload: true
     }
 )
 
