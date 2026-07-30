@@ -1,13 +1,20 @@
 <template>
   <Loader v-if="isLoading"/>
-  <ImageManager
-      v-else
-      v-model="images"
-      :image-size="{
-        value: 'md'
-      }"
-      @saveImage="saveImage"
-  />
+  <div v-else class="space-y-3">
+    <MediaLibraryPicker
+        v-if="productId"
+        v-model="images"
+        :product-id="productId"
+        :target-variant-id="targetVariantId"
+    />
+    <ImageManager
+        v-model="images"
+        :image-size="{
+          value: 'md'
+        }"
+        @saveImage="saveImage"
+    />
+  </div>
   <ShadcnProgress
       class="mt-2"
       v-if="isUploading"
@@ -17,13 +24,14 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, watch} from 'vue'
 import {ImageModel} from '@/models/ImageModel'
 import {Product} from "@/models/Product";
 import {useImageFunctions} from '@/composables/useImageFunctions';
 import ImageManager from "@/components/dynamics/ImageManager.vue";
 import ShadcnProgress from "@/components/dynamics/ShadcnProgress.vue";
 import {toast} from "vue-sonner";
+import MediaLibraryPicker from "@/components/products/edit/MediaLibraryPicker.vue";
 
 const {uploadImage, getImages, deleteImage} = useImageFunctions();
 
@@ -43,6 +51,12 @@ const props = defineProps({
 
 const images = ref<ImageModel[]>([]);
 
+const productId = props.item.product_id ?? props.item.id;
+const targetVariantId = props.item.product_id ? props.item.id : null;
+
+watch(images, (newImages) => {
+  props.item.images = newImages;
+}, {deep: true})
 
 const saveImage = async () => {
 

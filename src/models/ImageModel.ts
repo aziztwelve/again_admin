@@ -18,11 +18,11 @@ export class ImageModel {
         this.position = position;
     }
 
-    static fromJSON(json: { id: number, path: string, position?: number, file: File }): ImageModel {
+    static fromJSON(json: { id: number, path: string, position?: number, order?: number, file: File }): ImageModel {
         return new ImageModel({
             id: json.id,
             path: json.path,
-            position: json.position || 0,
+            position: json.position ?? json.order ?? 0,
             file: json.file
         });
     }

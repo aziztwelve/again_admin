@@ -28,7 +28,7 @@
                     <div class="mb-3">
                       <h3 class="font-medium">Фотографии товара</h3>
                       <p class="text-sm text-gray-500">Выберите несколько файлов. Первое фото будет главным на витрине; остальные попадут в галерею.</p>
-                      <MediaLibraryPicker :product-id="product.id" @attached="product.media_files = $event" />
+                      <MediaLibraryPicker v-model="product.images" :product-id="product.id" />
                     </div>
                     <ImageManager
                         v-model="product.images"

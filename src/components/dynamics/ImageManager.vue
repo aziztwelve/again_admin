@@ -137,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, watch, computed} from 'vue'
+import {ref, watch, computed, nextTick} from 'vue'
 import {Button} from '@/components/ui/button'
 import {Label} from '@/components/ui/label'
 import {TrashIcon, ArrowUpIcon, ArrowDownIcon, UploadIcon} from 'lucide-vue-next'
@@ -173,6 +173,7 @@ const images = ref<ImageModel[]>(props.modelValue || [])
 const imageManager = new ImageManager(images.value)
 const draggedItemIndex = ref<number | null>(null)
 const dragOverIndex = ref<number | null>(null)
+let syncingFromModel = false
 
 const triggerFileInput = () => {
   fileInput.value?.click()
@@ -180,7 +181,17 @@ const triggerFileInput = () => {
 
 // Watch for changes in images and emit updates
 watch(images, (newVal) => {
+  if (syncingFromModel) return
   emit('update:modelValue', newVal)
+}, {deep: true})
+
+watch(() => props.modelValue, (newVal) => {
+  syncingFromModel = true
+  imageManager.setImages(newVal || [])
+  images.value = imageManager.getAllImages()
+  nextTick(() => {
+    syncingFromModel = false
+  })
 }, {deep: true})
 
 const handleFileUpload = async (event: Event,) => {
