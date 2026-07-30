@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from 'vue';
+import {onMounted, ref, watch} from 'vue';
 import BackButton from "@/components/BackButton.vue";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion'
 import {Input} from '@/components/ui/input'
@@ -142,6 +142,8 @@ import {useColorsFunctions} from "@/composables/useColorFunctions";
 import {useProductFunctions} from "@/composables/useProductFunctions";
 import {useMoySkladFunctions} from "@/composables/useMoySkladFunctions";
 import ProductEditMarketplaceLinks from "@/components/products/edit/ProductEditMarketplaceLinks.vue";
+import axios from "axios";
+import {toast} from "vue-sonner";
 
 
 const colors = ref([]);
@@ -182,5 +184,25 @@ onMounted(async () => {
   // colors.value = await getColors();
   // console.log(colors.value)
 })
+
+let uploadingProductImages = false
+watch(() => product.value.images, async (images) => {
+  const files = (images ?? []).filter((image: any) => image?.file instanceof File)
+  if (!files.length || uploadingProductImages || !product.value.id) return
+
+  uploadingProductImages = true
+  const formData = new FormData()
+  files.forEach((image: any) => formData.append('images[]', image.file, image.file.name))
+
+  try {
+    const {data} = await axios.post(`/products/${product.value.id}/images`, formData)
+    product.value.images = [...(images ?? []).filter((image: any) => !(image?.file instanceof File)), ...data.images]
+    toast.success('Фотографии товара загружены')
+  } catch (error: any) {
+    toast.error(error.response?.data?.message ?? 'Не удалось загрузить фотографии')
+  } finally {
+    uploadingProductImages = false
+  }
+}, {deep: true})
 
 </script>
