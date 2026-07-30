@@ -196,10 +196,15 @@ const deleteProductImage = async (image: any) => {
     await axios.delete(`/products/${product.value.id}/media-library/images/${image.id}`)
     toast.success('Фото товара удалено')
   } catch (error: any) {
-    toast.error(error.response?.data?.message ?? 'Не удалось удалить фото')
-    await getProductsById(route.params.id, {admin: true}).then(res => {
-      product.value = Product.fromJSON(res)
-    })
+    if (error.response?.status !== 404) {
+      toast.error(error.response?.data?.message ?? 'Не удалось удалить фото')
+      await getProductsById(route.params.id, {admin: true}).then(res => {
+        product.value = Product.fromJSON(res)
+      })
+      return
+    }
+  } finally {
+    product.value.images = product.value.images.filter((item: any) => item.id !== image.id)
   }
 }
 

@@ -92,7 +92,13 @@ const deleteImageFromServer = async (image: any) => {
     })
     toast.success(targetVariantId ? 'Фото варианта удалено' : 'Фото товара удалено')
   } catch (error: any) {
-    toast.error(error.response?.data?.message ?? 'Не удалось удалить фото')
+    if (error.response?.status !== 404) {
+      toast.error(error.response?.data?.message ?? 'Не удалось удалить фото')
+      return
+    }
+  } finally {
+    images.value = images.value.filter((item: any) => item.id !== image.id)
+    props.item.images = images.value
   }
 }
 
