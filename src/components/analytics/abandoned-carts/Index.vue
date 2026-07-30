@@ -34,14 +34,15 @@
     </div>
 
     <!-- Графики -->
-    <div class="grid gap-4 lg:grid-cols-3 grid-cols-1">
-      <div class="lg:col-span-3">
+    <div class="grid gap-4 lg:grid-cols-2 grid-cols-1">
+      <div class="lg:col-span-2">
         <AbandonedCartDynamicsChart
             :key="`${analytics?.chart?.from ?? ''}-${analytics?.chart?.to ?? ''}-${analytics?.chart?.granularity ?? ''}`"
             :chart="analytics?.chart ?? emptyChart"
         />
       </div>
       <AbandonedCartConversionChart :conversion="analytics?.conversion ?? emptyConversion"/>
+      <AbandonedCartEmailConversionChart :conversion="analytics?.email_conversion ?? emptyEmailConversion"/>
     </div>
 
     <!-- Таблица корзин -->
@@ -73,6 +74,7 @@ import StatCard from '@/components/ui/StatCard.vue'
 import AbandonedCartFilters from '@/components/analytics/abandoned-carts/AbandonedCartFilters.vue'
 import AbandonedCartDynamicsChart from '@/components/analytics/abandoned-carts/AbandonedCartDynamicsChart.vue'
 import AbandonedCartConversionChart from '@/components/analytics/abandoned-carts/AbandonedCartConversionChart.vue'
+import AbandonedCartEmailConversionChart from '@/components/analytics/abandoned-carts/AbandonedCartEmailConversionChart.vue'
 import AbandonedCartTable from '@/components/analytics/abandoned-carts/AbandonedCartTable.vue'
 import {useAbandonedCartFunctions} from '@/composables/useAbandonedCartFunctions'
 import type {
@@ -80,6 +82,7 @@ import type {
   AbandonedCartAnalyticsFilters,
   AbandonedCartChart,
   AbandonedCartConversion,
+  AbandonedCartEmailConversion,
   AbandonedCartListFilters,
   AbandonedCartRow,
   CartStatus,
@@ -113,6 +116,11 @@ const emptyChart: AbandonedCartChart = {
 
 const emptyConversion: AbandonedCartConversion = {
   ordered: 0, abandoned: 0, total: 0, rate: 0,
+}
+
+const emptyEmailConversion: AbandonedCartEmailConversion = {
+  labels: ['Письмо 1', 'Письмо 2', 'Письмо 3'],
+  sent: [], ordered: [], rates: [],
 }
 
 const periodLabel = computed(() => {

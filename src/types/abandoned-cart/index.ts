@@ -13,6 +13,13 @@ export interface AbandonedCartConversion {
     rate: number // %
 }
 
+export interface AbandonedCartEmailConversion {
+    labels: string[]
+    sent: number[]
+    ordered: number[]
+    rates: number[]
+}
+
 export interface AbandonedCartChart {
     labels: string[]
     abandoned: number[]
@@ -37,6 +44,9 @@ export interface AbandonedCartAnalytics {
 
     // Круговая «Конверсия в заказ»
     conversion: AbandonedCartConversion
+
+    // Конверсия отправленных писем по шагам цепочки.
+    email_conversion: AbandonedCartEmailConversion
 
     // Динамика по дням/месяцам
     chart: AbandonedCartChart
