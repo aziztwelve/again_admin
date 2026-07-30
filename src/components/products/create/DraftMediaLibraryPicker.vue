@@ -19,8 +19,14 @@
             multiple
             accept="image/*"
             class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary/90"
+            :disabled="uploading"
             @change="upload"
         />
+
+        <div v-if="uploading" class="flex items-center gap-2 rounded-md border p-3 text-sm text-muted-foreground">
+          <Loader2 class="h-4 w-4 animate-spin"/>
+          Фото добавляются...
+        </div>
 
         <div v-if="!files.length" class="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
           Добавьте фото здесь или в другом блоке этой карточки.
@@ -46,8 +52,9 @@
           <Button type="button" variant="outline" @click="open = false">
             Отмена
           </Button>
-          <Button type="button" :disabled="!selectedKeys.length" @click="attach">
-            Добавить
+          <Button type="button" :disabled="!selectedKeys.length || attaching" @click="attach">
+            <Loader2 v-if="attaching" class="mr-2 h-4 w-4 animate-spin"/>
+            {{ attaching ? 'Добавление...' : 'Добавить' }}
           </Button>
         </div>
       </div>
@@ -62,6 +69,7 @@ import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/
 import {ImageModel} from '@/models/ImageModel'
 import {Product} from '@/models/Product'
 import {useImageFunctions} from '@/composables/useImageFunctions'
+import {Loader2} from 'lucide-vue-next'
 
 const props = defineProps<{
   modelValue: ImageModel[]
@@ -84,6 +92,8 @@ const {showImage} = useImageFunctions()
 
 const open = ref(false)
 const selectedKeys = ref<string[]>([])
+const uploading = ref(false)
+const attaching = ref(false)
 
 const files = computed<DraftFile[]>(() => {
   const result: DraftFile[] = []
@@ -134,6 +144,9 @@ const copyImage = (image: ImageModel, position: number) => {
 
 const upload = (event: Event) => {
   const input = event.target as HTMLInputElement
+  if (!input.files?.length) return
+
+  uploading.value = true
   const newImages = Array.from(input.files ?? []).map((file, index) => {
     return new ImageModel({
       id: Date.now() + Math.random(),
@@ -148,15 +161,22 @@ const upload = (event: Event) => {
   }
 
   input.value = ''
+  requestAnimationFrame(() => {
+    uploading.value = false
+  })
 }
 
 const attach = () => {
+  attaching.value = true
   const selectedImages = files.value
       .filter((file) => selectedKeys.value.includes(file.key))
       .map((file, index) => copyImage(file.image, (props.modelValue ?? []).length + index))
 
   emit('update:modelValue', [...(props.modelValue ?? []), ...selectedImages])
   selectedKeys.value = []
-  open.value = false
+  requestAnimationFrame(() => {
+    attaching.value = false
+    open.value = false
+  })
 }
 </script>

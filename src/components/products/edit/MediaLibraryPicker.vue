@@ -23,6 +23,11 @@
             @change="upload"
         />
 
+        <div v-if="uploading" class="flex items-center gap-2 rounded-md border p-3 text-sm text-muted-foreground">
+          <Loader2 class="h-4 w-4 animate-spin"/>
+          Фото добавляются...
+        </div>
+
         <div v-if="loading" class="text-sm text-muted-foreground">
           Загрузка...
         </div>
@@ -52,7 +57,8 @@
             Отмена
           </Button>
           <Button type="button" :disabled="!selectedIds.length || attaching" @click="attach">
-            Добавить
+            <Loader2 v-if="attaching" class="mr-2 h-4 w-4 animate-spin"/>
+            {{ attaching ? 'Добавление...' : 'Добавить' }}
           </Button>
         </div>
       </div>
@@ -68,6 +74,7 @@ import {Button} from '@/components/ui/button'
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog'
 import {ImageModel} from '@/models/ImageModel'
 import {useImageFunctions} from '@/composables/useImageFunctions'
+import {Loader2} from 'lucide-vue-next'
 
 const props = defineProps<{
   productId: number | null
