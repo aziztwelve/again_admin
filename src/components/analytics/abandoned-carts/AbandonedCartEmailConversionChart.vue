@@ -2,8 +2,17 @@
   <div class="bg-white rounded-xl p-5 shadow-md border border-gray-100">
     <h3 class="text-base font-semibold text-gray-800 mb-3">Конверсия писем</h3>
 
-    <div v-if="hasData" class="relative h-[300px]">
-      <BarChart :chartData="chartData" :options="options" :styles="chartStyles"/>
+    <div v-if="hasData" class="grid grid-cols-3 gap-3 h-[300px]">
+      <div v-for="item in emails" :key="item.label" class="flex min-w-0 flex-col items-center justify-center">
+        <p class="mb-2 text-sm font-medium text-gray-600">{{ item.label }}</p>
+        <div class="relative h-28 w-28">
+          <DoughnutChart :chartData="item.chartData" :options="options" :styles="chartStyles"/>
+          <span class="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-800">
+            {{ item.rate }}%
+          </span>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">{{ item.ordered }} из {{ item.sent }}</p>
+      </div>
     </div>
     <div v-else class="h-[300px] flex items-center justify-center text-sm text-gray-400">
       Нет отправленных писем за выбранный период
@@ -12,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import {BarChart} from 'vue-chart-3'
+import {DoughnutChart} from 'vue-chart-3'
 import {Chart, registerables} from 'chart.js'
 import {computed} from 'vue'
 import type {AbandonedCartEmailConversion} from '@/types/abandoned-cart'
@@ -26,17 +35,26 @@ const props = defineProps<{
 const hasData = computed(() => (props.conversion?.sent ?? []).some(value => value > 0))
 const chartStyles = {height: '100%', width: '100%', position: 'relative' as const}
 
-const chartData = computed(() => ({
-  labels: props.conversion?.labels ?? [],
-  datasets: [
-    {
-      label: 'Конверсия',
-      data: props.conversion?.rates ?? [],
-      backgroundColor: '#3B82F6',
-      borderRadius: 4,
-      maxBarThickness: 56,
+const emails = computed(() => (props.conversion?.labels ?? []).map((label, index) => {
+  const sent = props.conversion?.sent?.[index] ?? 0
+  const ordered = props.conversion?.ordered?.[index] ?? 0
+  const rate = props.conversion?.rates?.[index] ?? 0
+
+  return {
+    label,
+    sent,
+    ordered,
+    rate,
+    chartData: {
+      labels: ['Заказы', 'Без заказа'],
+      datasets: [{
+        data: [ordered, Math.max(sent - ordered, 0)],
+        backgroundColor: ['#10B981', '#EF4444'],
+        borderColor: '#ffffff',
+        borderWidth: 2,
+      }],
     },
-  ],
+  }
 }))
 
 const options = {
@@ -47,26 +65,8 @@ const options = {
     tooltip: {
       callbacks: {
         label: (context: any) => {
-          const index = context.dataIndex
-          const sent = props.conversion?.sent?.[index] ?? 0
-          const ordered = props.conversion?.ordered?.[index] ?? 0
-          return ` Конверсия: ${context.parsed.y}% (${ordered} из ${sent})`
+          return ` ${context.label}: ${context.parsed} корзин`
         },
-      },
-    },
-  },
-  scales: {
-    x: {
-      grid: {display: false},
-      ticks: {color: '#6B7280', font: {family: 'Inter, sans-serif'}},
-    },
-    y: {
-      beginAtZero: true,
-      max: 100,
-      grid: {color: '#F3F4F6'},
-      ticks: {
-        color: '#6B7280',
-        callback: (value: string | number) => `${value}%`,
       },
     },
   },
