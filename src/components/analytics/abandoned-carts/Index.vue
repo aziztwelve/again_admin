@@ -35,7 +35,7 @@
 
     <!-- Графики -->
     <div class="grid gap-4 lg:grid-cols-3 grid-cols-1">
-      <div class="lg:col-span-2">
+      <div class="lg:col-span-3">
         <AbandonedCartDynamicsChart
             :key="`${analytics?.chart?.from ?? ''}-${analytics?.chart?.to ?? ''}-${analytics?.chart?.granularity ?? ''}`"
             :chart="analytics?.chart ?? emptyChart"
