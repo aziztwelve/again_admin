@@ -152,7 +152,7 @@ async function getColumns() {
 
     {
       accessorKey: 'cost_price',
-      header: 'Цена закупкы',
+      header: 'Цена закупки',
       cell: ({row}: any) => {
         return h(Input, {
           modelValue: row.original.cost_price,
@@ -161,7 +161,7 @@ async function getColumns() {
           },
           class: 'w-24 text-center whitespace-nowrap',
           type: 'number',
-          placeholder: "Цена закупкы",
+          placeholder: "Цена закупки",
           min: 0,
         })
       },

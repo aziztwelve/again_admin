@@ -50,7 +50,7 @@
 <!--        </NumberField>-->
 <!--      </div>-->
       <div class="w-full">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Цена закупкы</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Цена закупки</label>
         <NumberField
             class="gap-2"
             :min="0"
