@@ -73,6 +73,7 @@ async function getColumns() {
       header: "Фото",
       cell: (cell: any) => h(ProductImage, {
         item: cell.row.original ?? {},
+        product: props.product,
         onUploaded: (event: ImageModel) => {
           // emits('updatedVariantImage', event);
           // cell.row.original?.images.push(event)

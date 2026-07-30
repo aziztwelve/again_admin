@@ -16,6 +16,7 @@
       <template v-slot:content>
         <ProductImagePreviewAndUpload
             :item="item"
+            :product="product"
             @saveImage="dialogOpen = false"
         />
       </template>
@@ -41,6 +42,10 @@ defineProps({
   item: {
     type: Product,
     default: {}
+  },
+  product: {
+    type: Product,
+    default: null
   },
 });
 

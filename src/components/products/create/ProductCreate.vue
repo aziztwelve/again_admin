@@ -22,6 +22,13 @@
                 <AccordionContent>
 
                   <div class="p-2">
+                    <div class="mb-3">
+                      <DraftMediaLibraryPicker
+                          v-model="product.images"
+                          :product="product"
+                          target-type="product"
+                      />
+                    </div>
                     <ImageManager
                         v-model="product.images"
                         :show-button-save="false"
@@ -131,6 +138,7 @@ import MultiSelect from "@/components/dynamics/Dropdown/MultiSelect.vue";
 import {useColorsFunctions} from "@/composables/useColorFunctions";
 import {useMoySkladFunctions} from "@/composables/useMoySkladFunctions";
 import ModalSelectColor from "@/components/products/create/partials/ModalSelectColor.vue";
+import DraftMediaLibraryPicker from "@/components/products/create/DraftMediaLibraryPicker.vue";
 
 
 const {getRandomInt} = useRandom()

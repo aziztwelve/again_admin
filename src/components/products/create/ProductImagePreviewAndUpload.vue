@@ -7,6 +7,13 @@
         :product-id="productId"
         :target-variant-id="targetVariantId"
     />
+    <DraftMediaLibraryPicker
+        v-else-if="product"
+        v-model="images"
+        :product="product"
+        :target-uuid="item.uuid"
+        target-type="variant"
+    />
     <ImageManager
         v-model="images"
         :image-size="{
@@ -32,6 +39,7 @@ import ImageManager from "@/components/dynamics/ImageManager.vue";
 import ShadcnProgress from "@/components/dynamics/ShadcnProgress.vue";
 import {toast} from "vue-sonner";
 import MediaLibraryPicker from "@/components/products/edit/MediaLibraryPicker.vue";
+import DraftMediaLibraryPicker from "@/components/products/create/DraftMediaLibraryPicker.vue";
 
 const {uploadImage, getImages, deleteImage} = useImageFunctions();
 
@@ -46,6 +54,10 @@ const props = defineProps({
   item: {
     type: Product,
     required: true
+  },
+  product: {
+    type: Product,
+    default: null
   },
 })
 
