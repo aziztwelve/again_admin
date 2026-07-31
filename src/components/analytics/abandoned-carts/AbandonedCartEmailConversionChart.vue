@@ -14,11 +14,20 @@
     </div>
 
     <div v-if="hasData" class="grid h-[272px] grid-cols-3 gap-3">
-      <div v-for="item in emails" :key="item.label" class="flex min-w-0 flex-col items-center justify-center">
+      <div
+          v-for="item in emails"
+          :key="item.label"
+          class="flex min-w-0 flex-col items-center justify-center"
+          @mouseenter="hoveredLabel = item.label"
+          @mouseleave="hoveredLabel = null"
+      >
         <p class="mb-2 text-sm font-medium text-gray-600">{{ item.label }}</p>
         <div class="relative h-28 w-28">
           <DoughnutChart :chartData="item.chartData" :options="options" :styles="chartStyles"/>
-          <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-800">
+          <span
+              v-if="hoveredLabel !== item.label"
+              class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-800"
+          >
             {{ item.rate }}%
           </span>
         </div>
@@ -34,7 +43,7 @@
 <script setup lang="ts">
 import {DoughnutChart} from 'vue-chart-3'
 import {Chart, registerables} from 'chart.js'
-import {computed} from 'vue'
+import {computed, ref} from 'vue'
 import type {AbandonedCartEmailConversion} from '@/types/abandoned-cart'
 
 Chart.register(...registerables)
@@ -44,6 +53,7 @@ const props = defineProps<{
 }>()
 
 const hasData = computed(() => (props.conversion?.sent ?? []).some(value => value > 0))
+const hoveredLabel = ref<string | null>(null)
 const chartStyles = {height: '100%', width: '100%', position: 'relative' as const}
 
 const emails = computed(() => (props.conversion?.labels ?? []).map((label, index) => {
