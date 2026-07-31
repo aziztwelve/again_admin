@@ -129,7 +129,7 @@
         </div>
 
         <div
-            class="flex flex-col items-start justify-end h-full pb-1"
+            class="w-full min-w-0 pb-1"
             v-else-if="field.component == 'enyComponentSlot'">
           <slot name="enyComponentSlot"></slot>
         </div>
