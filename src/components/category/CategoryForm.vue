@@ -10,8 +10,6 @@
   >
     <template #enyComponentSlot>
       <div class="space-y-2 w-full">
-        <label class="text-sm font-medium">Товары</label>
-
         <div class="flex items-center justify-between gap-2">
           <CategoryProductSelectModal
               :selected-ids="selectedProductIds"
@@ -29,7 +27,7 @@
           Товары не выбраны
         </div>
 
-        <div v-else class="mt-2 max-h-72 space-y-2 overflow-y-auto pr-1">
+        <div v-else class="mt-2 max-h-52 space-y-2 overflow-y-auto pr-1">
           <div
               v-for="(product, index) in selectedProducts"
               :key="product.id"
