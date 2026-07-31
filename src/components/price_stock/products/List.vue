@@ -63,7 +63,7 @@ const props = defineProps({
   }
 })
 
-const data = ref([]);
+const data = ref<Product[]>([]);
 const totalItems = ref(0);
 const currentPage = ref(1);
 const itemsPerPage = ref(15);
@@ -93,7 +93,8 @@ async function fetchData() {
   })
       .then(res => {
         totalItems.value = res.meta.total;
-        return res.data.map((item: any) => Product.fromJSON(item));
+        const products = res.data.map((item: any) => Product.fromJSON(item));
+        return products.flatMap(normalizePriceStockRows);
       })
 
   isLoading.value = false
@@ -103,5 +104,29 @@ async function fetchData() {
 const handleSearch = async () => {
   currentPage.value = 1;
   await fetchData()
+}
+
+const filled = (value: any) => value !== null && value !== undefined && value !== '';
+
+function normalizePriceStockRows(product: Product): Product[] {
+  if (!product.variants?.length) {
+    return [product];
+  }
+
+  return product.variants.map((variant: Product) => {
+    const row = Product.fromJSON({...variant, variants: []});
+
+    row.product_id = product.id;
+    row.name = [product.name, variant.name].filter(filled).join(' / ');
+    row.cost_price = filled(variant.cost_price) ? variant.cost_price : product.cost_price;
+    row.stock_quantity = filled(variant.stock_quantity) ? variant.stock_quantity : 0;
+    row.price = filled(variant.price) ? variant.price : product.price;
+    row.discount_percentage = filled(variant.discount_percentage) ? variant.discount_percentage : product.discount_percentage;
+    row.old_price = filled(variant.old_price) ? variant.old_price : product.old_price;
+    row.barcode = filled(variant.barcode) ? variant.barcode : product.barcode;
+    row.variants = [];
+
+    return row;
+  });
 }
 </script>
