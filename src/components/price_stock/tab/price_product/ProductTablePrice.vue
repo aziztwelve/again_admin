@@ -20,6 +20,7 @@ import {h, PropType} from "vue";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import {Product} from "@/models/Product";
 import {Input} from "@/components/ui/input";
+import {Monitor} from "lucide-vue-next";
 
 
 const props = defineProps({
@@ -43,6 +44,12 @@ const moneyInput = (row: any, field: string) => h(Input, {
   readonly: true,
 })
 
+const groupHeader = (icon: any, label: string) => h('div', {
+  class: 'flex items-center justify-center gap-2 text-xs font-semibold whitespace-nowrap'
+}, [
+  h(icon, {class: 'h-4 w-4'}),
+  h('span', label),
+])
 
 const columns = [
   {
@@ -51,23 +58,44 @@ const columns = [
   },
 
   {
-    accessorKey: 'price',
-    header: 'Цена продажи',
-    cell: ({row}: any) => {
-      return moneyInput(row, 'price');
+    id: 'online-store',
+    header: () => groupHeader(Monitor, 'Мой интернет-магазин'),
+    meta: {
+      headerClass: 'text-center bg-gray-100 border-l',
     },
-  },
+    columns: [
+      {
+        accessorKey: 'price',
+        header: 'Цена продажи',
+        meta: {
+          headerClass: 'bg-gray-100 border-l',
+          cellClass: 'bg-gray-100 border-l',
+        },
+        cell: ({row}: any) => {
+          return moneyInput(row, 'price');
+        },
+      },
 
-  {
-    accessorKey: 'discount_percentage',
-    header: 'Скидка',
-    cell: ({row}: any) => h('span', {class: 'font-medium whitespace-nowrap'}, `${Number(row.original.discount_percentage ?? 0)} %`),
-  },
+      {
+        accessorKey: 'discount_percentage',
+        header: 'Скидка',
+        meta: {
+          headerClass: 'bg-gray-100',
+          cellClass: 'bg-gray-100',
+        },
+        cell: ({row}: any) => h('span', {class: 'font-medium whitespace-nowrap'}, `${Number(row.original.discount_percentage ?? 0)} %`),
+      },
 
-  {
-    accessorKey: 'old_price',
-    header: 'Цена до скидки',
-    cell: ({row}: any) => moneyInput(row, 'old_price'),
+      {
+        accessorKey: 'old_price',
+        header: 'Цена до скидки',
+        meta: {
+          headerClass: 'bg-gray-100',
+          cellClass: 'bg-gray-100',
+        },
+        cell: ({row}: any) => moneyInput(row, 'old_price'),
+      },
+    ],
   },
 
   {

@@ -5,10 +5,15 @@
       <Table>
         <TableHeader class="text-xs bg-gray-100">
           <TableRow
-              v-for="headerGroup in table.getHeaderGroups()"
+              v-for="(headerGroup, headerGroupIndex) in table.getHeaderGroups()"
               :key="headerGroup.id"
           >
-            <TableHead v-for="header in headerGroup.headers" :key="header.id">
+            <TableHead
+                v-for="header in headerGroup.headers"
+                :key="header.id"
+                :colspan="header.colSpan"
+                :class="header.column.columnDef.meta?.headerClass"
+            >
               <FlexRender
                   v-if="!header.isPlaceholder"
                   :render="header.column.columnDef.header"
@@ -16,7 +21,11 @@
               />
             </TableHead>
 
-            <TableHead class="w-2 no-print">
+            <TableHead
+                v-if="headerGroupIndex === 0"
+                class="w-2 no-print"
+                :rowspan="table.getHeaderGroups().length"
+            >
               <div class="w-full flex justify-end">
                 <div>
                   <PrinterIcon
@@ -49,7 +58,11 @@
             <template v-for="row in table.getRowModel().rows" :key="row.id">
 
               <TableRow v-if="row.depth === 0" :data-state="row.getIsSelected() && 'selected'">
-                <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
+                <TableCell
+                    v-for="cell in row.getVisibleCells()"
+                    :key="cell.id"
+                    :class="cell.column.columnDef.meta?.cellClass"
+                >
                   <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()"/>
                 </TableCell>
                 <TableCell>
@@ -111,7 +124,11 @@
                   v-else-if="row.depth > 0"
                   class="bg-gray-50"
               >
-                <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
+                <TableCell
+                    v-for="cell in row.getVisibleCells()"
+                    :key="cell.id"
+                    :class="cell.column.columnDef.meta?.cellClass"
+                >
                   <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()"/>
                 </TableCell>
                 <!-- теперь — тот же слот actions -->

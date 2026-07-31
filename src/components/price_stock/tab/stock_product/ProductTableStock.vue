@@ -20,6 +20,7 @@ import {h, PropType} from "vue";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import {Product} from "@/models/Product";
 import {Input} from "@/components/ui/input";
+import {Warehouse} from "lucide-vue-next";
 
 
 const props = defineProps({
@@ -46,6 +47,12 @@ const stockInput = (row: any) => h('div', {class: 'flex items-center gap-1'}, [
   h('span', {class: 'text-xs text-gray-400'}, 'шт'),
 ])
 
+const groupHeader = (icon: any, label: string) => h('div', {
+  class: 'flex items-center justify-center gap-2 text-xs font-semibold whitespace-nowrap'
+}, [
+  h(icon, {class: 'h-4 w-4'}),
+  h('span', label),
+])
 
 const columns = [
   {
@@ -54,11 +61,24 @@ const columns = [
   },
 
   {
-    accessorKey: 'stock_quantity',
-    header: 'МойСклад',
-    cell: ({row}: any) => {
-      return stockInput(row);
+    id: 'warehouse',
+    header: () => groupHeader(Warehouse, 'Мои склады'),
+    meta: {
+      headerClass: 'text-center bg-gray-50 border-l',
     },
+    columns: [
+      {
+        accessorKey: 'stock_quantity',
+        header: 'МойСклад',
+        meta: {
+          headerClass: 'bg-gray-50 border-l',
+          cellClass: 'bg-gray-50 border-l',
+        },
+        cell: ({row}: any) => {
+          return stockInput(row);
+        },
+      },
+    ],
   },
 
   {
