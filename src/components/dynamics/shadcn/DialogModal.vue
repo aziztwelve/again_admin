@@ -7,20 +7,20 @@
     </button>
     <DialogContent
       :class="dynamicStyle"
-      class="w-full max-h-[95vh] overflow-y-auto flex flex-col items-start"
+      class="flex w-full max-h-[calc(100svh-2rem)] flex-col items-start overflow-hidden"
     >
-      <DialogHeader>
+      <DialogHeader class="shrink-0">
         <DialogTitle>{{ title }}</DialogTitle>
         <DialogDescription>
           {{ description || " " }}
         </DialogDescription>
       </DialogHeader>
 
-      <div class="w-full">
+      <div class="w-full min-h-0 overflow-y-auto overscroll-contain pr-1">
         <slot name="content" />
       </div>
 
-      <DialogFooter>
+      <DialogFooter class="shrink-0">
         <slot name="footer" />
       </DialogFooter>
     </DialogContent>

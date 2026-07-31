@@ -1,7 +1,7 @@
 <template>
   <DialogModal
       ref="modalRef"
-      dynamic-style="w-[calc(100vw-2rem)] max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain"
+      dynamic-style="w-[calc(100vw-2rem)] max-w-2xl"
   >
     <template #button>
       <Button variant="outline" class="max-md:w-full">Добавить</Button>
