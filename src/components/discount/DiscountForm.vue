@@ -101,6 +101,7 @@ const buildFormFields = () => {
         name: 'isActive',
         component: 'checkbox',
         label: 'Активна',
+        description: 'Если выключить скидку вручную, она не включится автоматически по дате начала.',
       },
       {
         name: 'is_unlimited',
