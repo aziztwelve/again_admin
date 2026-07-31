@@ -32,6 +32,35 @@ const props = defineProps({
 
 const emits = defineEmits(["deleted", "updated"]);
 
+const formatMoney = (value: number | string | null | undefined) => {
+  return `${Number(value ?? 0).toLocaleString('ru-RU')} ₽`
+}
+
+const moneyInput = (row: any, field: string, width = 'w-24') => h(Input, {
+  modelValue: row.original[field],
+  'onUpdate:modelValue': (value) => {
+    row.original[field] = Number(value)
+  },
+  class: `${width} text-center border-gray-300 text-sm h-8 px-2 whitespace-nowrap`,
+  type: 'number',
+  min: 0,
+  readonly: true,
+})
+
+const stockInput = (row: any) => h('div', {class: 'flex items-center gap-1'}, [
+  h(Input, {
+    modelValue: row.original.stock_quantity,
+    'onUpdate:modelValue': (value) => {
+      row.original.stock_quantity = Number(value)
+    },
+    class: 'w-20 text-center border-gray-300 text-sm h-8 px-2',
+    type: 'number',
+    min: 0,
+    readonly: true,
+  }),
+  h('span', {class: 'text-xs text-gray-400'}, 'шт'),
+])
+
 
 const columns = [
   {
@@ -40,40 +69,18 @@ const columns = [
   },
 
   {
-    accessorKey: 'barcode',
-    header: 'Штрих-код',
+    accessorKey: 'cost_price',
+    header: 'Себестоимость',
+    cell: ({row}: any) => {
+      return h('span', {class: 'text-blue-600 whitespace-nowrap'}, formatMoney(row.original.cost_price));
+    },
   },
 
   {
-    accessorKey: 'cost_price',
-    header: 'Цена закупки',
-    cell: ({row}: any) => {
-      return h(Input, {
-        modelValue: row.original.cost_price,
-        'onUpdate:modelValue': (value) => {
-          row.original.cost_price = Number(value)
-        },
-        class: 'w-24 text-center border-gray-300 text-sm h-8 px-2 whitespace-nowrap',
-        type: 'number',
-        min: 0,
-        readonly: true,
-      });
-    },
-  },
-  {
     accessorKey: 'stock_quantity',
-    header: 'Остаток',
+    header: 'МойСклад',
     cell: ({row}: any) => {
-      return h(Input, {
-        modelValue: row.original.stock_quantity,
-        'onUpdate:modelValue': (value) => {
-          row.original.stock_quantity = Number(value)
-        },
-        class: 'w-20 text-center border-gray-300 text-sm h-8 px-2',
-        type: 'number',
-        min: 0,
-        readonly: true,
-      });
+      return stockInput(row);
     },
   },
 
@@ -81,25 +88,25 @@ const columns = [
     accessorKey: 'price',
     header: 'Цена продажи',
     cell: ({row}: any) => {
-      if (row.original.price && row.original.price <= 0) {
-        row.original.changeDiscount = Number(row.original.price);
-      }
-      return h(Input, {
-        modelValue: row.original.price,
-        'onUpdate:modelValue': (value) => {
-          row.original.price = Number(value)
-        },
-        class: 'w-24 text-center border-gray-300 text-sm h-8 px-2 whitespace-nowrap',
-        type: 'number',
-        min: 0,
-        readonly: true,
-      });
+      return moneyInput(row, 'price');
     },
   },
 
   {
-    accessorKey: 'discount_price',
+    accessorKey: 'discount_percentage',
     header: 'Скидка',
+    cell: ({row}: any) => h('span', {class: 'font-medium whitespace-nowrap'}, `${Number(row.original.discount_percentage ?? 0)} %`),
+  },
+
+  {
+    accessorKey: 'old_price',
+    header: 'Цена до скидки',
+    cell: ({row}: any) => moneyInput(row, 'old_price'),
+  },
+
+  {
+    accessorKey: 'barcode',
+    header: 'Штрихкод',
   },
 
 ]

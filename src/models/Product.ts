@@ -49,6 +49,7 @@ export class Product {
     is_featured: boolean | null;
     is_new?: boolean;
     discount_price: number | null;
+    discount_percentage: number | null;
     old_price: number | string;
     weight: string;
     length: string;
@@ -90,6 +91,7 @@ export class Product {
         this.is_featured = false;
         this.is_new = undefined;
         this.discount_price = null;
+        this.discount_percentage = null;
         this.old_price = '';
         this.weight = "";
         this.length = "";
@@ -132,6 +134,7 @@ export class Product {
         product.is_featured = json.is_featured ?? false;
         product.is_new = json.is_new;
         product.discount_price = json.discount_price ?? null;
+        product.discount_percentage = json.discount_percentage ?? null;
         product.old_price = json.old_price ?? '';
         product.weight = json.weight ?? "";
         product.length = json.length ?? "";
@@ -305,6 +308,7 @@ export class Product {
         cloned.is_featured = this.is_featured;
         cloned.is_new = this.is_new;
         cloned.discount_price = this.discount_price;
+        cloned.discount_percentage = this.discount_percentage;
         cloned.old_price = this.old_price;
         cloned.weight = this.weight;
         cloned.length = this.length;

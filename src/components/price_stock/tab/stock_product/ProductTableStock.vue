@@ -32,6 +32,20 @@ const props = defineProps({
 
 const emits = defineEmits(["deleted", "updated"]);
 
+const stockInput = (row: any) => h('div', {class: 'flex items-center gap-1'}, [
+  h(Input, {
+    modelValue: row.original.stock_quantity,
+    'onUpdate:modelValue': (value) => {
+      row.original.stock_quantity = Number(value)
+    },
+    class: 'w-20 text-center border-gray-300 text-sm h-8 px-2',
+    type: 'number',
+    min: 0,
+    readonly: true,
+  }),
+  h('span', {class: 'text-xs text-gray-400'}, 'шт'),
+])
+
 
 const columns = [
   {
@@ -40,13 +54,16 @@ const columns = [
   },
 
   {
-    accessorKey: 'barcode',
-    header: 'Штрих-код',
+    accessorKey: 'stock_quantity',
+    header: 'МойСклад',
+    cell: ({row}: any) => {
+      return stockInput(row);
+    },
   },
 
   {
-    accessorKey: 'stock_quantity',
-    header: 'Остаток',
+    accessorKey: 'barcode',
+    header: 'Штрихкод',
   },
 
 ]

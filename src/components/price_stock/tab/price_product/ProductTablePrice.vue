@@ -32,6 +32,17 @@ const props = defineProps({
 
 const emits = defineEmits(["deleted", "updated"]);
 
+const moneyInput = (row: any, field: string) => h(Input, {
+  modelValue: row.original[field],
+  'onUpdate:modelValue': (value) => {
+    row.original[field] = Number(value)
+  },
+  class: 'w-24 text-center border-gray-300 text-sm h-8 px-2 whitespace-nowrap',
+  type: 'number',
+  min: 0,
+  readonly: true,
+})
+
 
 const columns = [
   {
@@ -40,31 +51,28 @@ const columns = [
   },
 
   {
-    accessorKey: 'barcode',
-    header: 'Штрих-код',
-  },
-
-
-  {
     accessorKey: 'price',
     header: 'Цена продажи',
     cell: ({row}: any) => {
-      return h(Input, {
-        modelValue: row.original.price,
-        'onUpdate:modelValue': (value) => {
-          row.original.price = Number(value)
-        },
-        class: 'w-24 text-center border-gray-300 text-sm h-8 px-2 whitespace-nowrap',
-        type: 'number',
-        min: 0,
-        readonly: true,
-      });
+      return moneyInput(row, 'price');
     },
   },
 
   {
-    accessorKey: 'discount_price',
+    accessorKey: 'discount_percentage',
     header: 'Скидка',
+    cell: ({row}: any) => h('span', {class: 'font-medium whitespace-nowrap'}, `${Number(row.original.discount_percentage ?? 0)} %`),
+  },
+
+  {
+    accessorKey: 'old_price',
+    header: 'Цена до скидки',
+    cell: ({row}: any) => moneyInput(row, 'old_price'),
+  },
+
+  {
+    accessorKey: 'barcode',
+    header: 'Штрихкод',
   },
 
 ]
