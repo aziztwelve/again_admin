@@ -7,7 +7,7 @@ export function getProductStockQuantity(product: ProductStockLike): number {
   const value = product.stock_quantity ?? product.inventory_balance ?? 0;
   const quantity = Number(value);
 
-  return Number.isFinite(quantity) ? quantity : 0;
+  return Number.isFinite(quantity) ? Math.max(0, quantity) : 0;
 }
 
 export function isProductOutOfStock(product: ProductStockLike): boolean {

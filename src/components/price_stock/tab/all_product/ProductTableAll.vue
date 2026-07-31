@@ -21,6 +21,7 @@ import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import {Product} from "@/models/Product";
 import {Input} from "@/components/ui/input";
 import {Monitor, Warehouse} from "lucide-vue-next";
+import {getProductStockQuantity} from "@/utils/productStock";
 
 
 const props = defineProps({
@@ -50,7 +51,7 @@ const moneyInput = (row: any, field: string, width = 'w-24') => h(Input, {
 
 const stockInput = (row: any) => h('div', {class: 'flex items-center gap-1'}, [
   h(Input, {
-    modelValue: row.original.stock_quantity,
+    modelValue: getProductStockQuantity(row.original),
     'onUpdate:modelValue': (value) => {
       row.original.stock_quantity = Number(value)
     },
