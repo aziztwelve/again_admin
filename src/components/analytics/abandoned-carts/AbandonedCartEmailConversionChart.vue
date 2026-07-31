@@ -2,12 +2,23 @@
   <div class="bg-white rounded-xl p-5 shadow-md border border-gray-100">
     <h3 class="text-base font-semibold text-gray-800 mb-3">Конверсия писем</h3>
 
-    <div v-if="hasData" class="grid grid-cols-3 gap-3 h-[300px]">
+    <div v-if="hasData" class="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+      <span class="flex items-center gap-1.5">
+        <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+        Заказы
+      </span>
+      <span class="flex items-center gap-1.5">
+        <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span>
+        Без заказа
+      </span>
+    </div>
+
+    <div v-if="hasData" class="grid h-[272px] grid-cols-3 gap-3">
       <div v-for="item in emails" :key="item.label" class="flex min-w-0 flex-col items-center justify-center">
         <p class="mb-2 text-sm font-medium text-gray-600">{{ item.label }}</p>
         <div class="relative h-28 w-28">
           <DoughnutChart :chartData="item.chartData" :options="options" :styles="chartStyles"/>
-          <span class="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-800">
+          <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-800">
             {{ item.rate }}%
           </span>
         </div>
@@ -65,7 +76,9 @@ const options = {
     tooltip: {
       callbacks: {
         label: (context: any) => {
-          return ` ${context.label}: ${context.parsed} корзин`
+          const total = context.dataset.data.reduce((sum: number, value: number) => sum + value, 0)
+          const rate = total ? ((context.parsed / total) * 100).toFixed(1) : 0
+          return ` ${context.label}: ${context.parsed} корзин (${rate}%)`
         },
       },
     },
