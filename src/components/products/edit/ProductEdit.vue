@@ -163,6 +163,13 @@ const {getProductsById} = useProductFunctions()
 const {updateImagesWithProduct, sending, progress} = useProductImageUploader()
 const {productsSync} = useMoySkladFunctions()
 
+const getReturnRoute = () => {
+  const returnTo = route.query.returnTo
+
+  return typeof returnTo === 'string' && returnTo.startsWith('/products/')
+      ? returnTo
+      : '/products/list'
+}
 
 const handleCreate = async () => {
 
@@ -171,7 +178,7 @@ const handleCreate = async () => {
   // await productsSync({})
 
   if (result) {
-    await router.push("/products");
+    await router.push(getReturnRoute());
   }
 
 }

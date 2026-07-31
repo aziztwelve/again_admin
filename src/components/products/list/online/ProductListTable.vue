@@ -70,7 +70,10 @@ const {deleteProduct, bulkActivateProducts, bulkDeactivateProducts} = useProduct
 const {bulkUpdateAttributes} = useProductAttributeFunctions()
 
 const editProduct = (product: Product) => {
-  router.push(`/product/update/${product.id}`)
+  router.push({
+    path: `/product/update/${product.id}`,
+    query: {returnTo: router.currentRoute.value.fullPath},
+  })
 };
 
 const deleteProductHandle = async (product: Product) => {

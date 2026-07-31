@@ -74,7 +74,10 @@ const router = useRouter();
 const {deleteProduct, bulkActivateProducts, bulkDeactivateProducts} = useProductFunctions()
 
 const editProduct = (product: Product) => {
-  router.push(`/product/update/${product.id}`)
+  router.push({
+    path: `/product/update/${product.id}`,
+    query: {returnTo: router.currentRoute.value.fullPath},
+  })
 };
 const deleteProductHandle = async (product: Product) => {
   await deleteProduct(product.id, {})
