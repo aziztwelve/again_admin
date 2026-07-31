@@ -166,8 +166,23 @@ const handleChangeConv = async (c: Conversation) => {
   showChat.value = true; //for mobile
 
   isLoadingGetMessage.value = true;
-  selectedConversation.value = await getConversationByIdWithMessages(Number(c.id))
-  isLoadingGetMessage.value = false;
+  try {
+    const conversation = await getConversationByIdWithMessages(Number(c.id))
+    selectedConversation.value = conversation
+
+    // API сбрасывает непрочитанные только для открытого диалога. Сразу
+    // отражаем это в списке и в общем индикаторе, не трогая другие чаты.
+    const listIndex = conversations.value.findIndex(item => item.id === conversation.id)
+    if (listIndex !== -1) {
+      conversations.value[listIndex] = {
+        ...conversations.value[listIndex],
+        unread_messages_count: conversation.unread_messages_count,
+      }
+    }
+    await store.dispatch('notifications/checkForUpdates')
+  } finally {
+    isLoadingGetMessage.value = false;
+  }
 
 }
 
@@ -218,7 +233,6 @@ const handleSearch = () => {
 onMounted(async () => {
   checkScreenSize();
   window.addEventListener('resize', checkScreenSize);
-  await store.dispatch('notifications/markConversationsChecked');
   await fetchData()
 });
 
