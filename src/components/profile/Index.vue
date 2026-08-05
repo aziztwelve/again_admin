@@ -240,6 +240,21 @@ function handlingUpdate(updatedUser: User) {
 }
 
 async function changePassword() {
+  if (!passwordForm.current_password) {
+    toast.error('Введите текущий пароль.')
+    return
+  }
+
+  if (!passwordForm.password) {
+    toast.error('Введите новый пароль.')
+    return
+  }
+
+  if (passwordForm.password.length < 8) {
+    toast.error('Новый пароль должен содержать не менее 8 символов.')
+    return
+  }
+
   if (passwordForm.password !== passwordForm.password_confirmation) {
     toast.error('Пароли не совпадают.')
     return
@@ -248,17 +263,25 @@ async function changePassword() {
   isPasswordSaving.value = true
 
   try {
-    const {data} = await axios.put('/password', passwordForm)
-    toast.success(data.message || 'Пароль успешно изменён.')
+    await axios.put('/password', passwordForm)
+    toast.success('Пароль успешно изменён.')
     passwordForm.current_password = ''
     passwordForm.password = ''
     passwordForm.password_confirmation = ''
   } catch (error: any) {
     const errors = error.response?.data?.errors
-    const message = errors
-      ? Object.values(errors).flat().join(' ')
-      : error.response?.data?.message || 'Не удалось изменить пароль.'
-    toast.error(message)
+
+    if (errors?.current_password) {
+      toast.error('Текущий пароль указан неверно.')
+    } else if (errors?.password?.some((message: string) => message.includes('confirmation'))) {
+      toast.error('Подтверждение нового пароля не совпадает.')
+    } else if (errors?.password) {
+      toast.error('Новый пароль не соответствует требованиям. Используйте не менее 8 символов.')
+    } else if (error.response?.status === 401) {
+      toast.error('Сессия истекла. Войдите в админку заново.')
+    } else {
+      toast.error('Не удалось изменить пароль. Попробуйте ещё раз.')
+    }
   } finally {
     isPasswordSaving.value = false
   }
