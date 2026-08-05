@@ -1,7 +1,7 @@
 <template>
   <form class="grid gap-3" v-show="changePass" @submit.prevent="updatePassword">
-    <!-- Поле для ввода текущего пароля -->
-    <Input type="password" placeholder="Старый пароль" v-model="item.old_password" />
+    <!-- Нужен только при смене собственного пароля. -->
+    <Input type="password" placeholder="Текущий пароль (для своего аккаунта)" v-model="item.old_password" />
 
     <!-- Поле для ввода нового пароля -->
     <Input type="password" placeholder="Новый пароль" v-model="item.password" />
