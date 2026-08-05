@@ -133,6 +133,33 @@
             </div>
           </div>
 
+          <form class="max-w-md rounded-lg border border-gray-200 bg-white p-4" @submit.prevent="changePassword">
+            <h2 class="mb-3 text-lg font-semibold text-gray-800">Сменить пароль</h2>
+            <div class="grid gap-3">
+              <Input
+                  v-model="passwordForm.current_password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="Текущий пароль"
+              />
+              <Input
+                  v-model="passwordForm.password"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Новый пароль (минимум 8 символов)"
+              />
+              <Input
+                  v-model="passwordForm.password_confirmation"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Повторите новый пароль"
+              />
+              <Button type="submit" :disabled="isPasswordSaving">
+                {{ isPasswordSaving ? 'Сохраняю…' : 'Изменить пароль' }}
+              </Button>
+            </div>
+          </form>
+
           <!-- Кнопки действий (мобильные) -->
 
           <div class="md:hidden flex gap-3 mt-6">
@@ -154,11 +181,15 @@
 </template>
 
 <script setup lang="ts">
-import {computed} from 'vue'
+import {computed, reactive, ref} from 'vue'
 import {Mail, Pencil, Loader2, BadgeCheck} from 'lucide-vue-next'
+import axios from 'axios'
+import {toast} from 'vue-sonner'
 import {Badge} from '@/components/ui/badge'
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar'
 import {Label} from '@/components/ui/label'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
 import {useStore} from 'vuex'
 import {User} from '@/models/user/User'
 import BackButton from "@/components/BackButton.vue";
@@ -166,6 +197,12 @@ import ProfileEdit from "@/components/profile/Edit/Index.vue"
 import EditAvatarModal from "@/components/profile/Edit/EditAvatarModal.vue";
 
 const store = useStore()
+const isPasswordSaving = ref(false)
+const passwordForm = reactive({
+  current_password: '',
+  password: '',
+  password_confirmation: '',
+})
 
 const user = computed(() => {
   const userData = store.state.auth.user
@@ -200,6 +237,31 @@ const registrationDate = computed(() => {
 function handlingUpdate(updatedUser: User) {
 
   store.commit('auth/set_user', updatedUser)
+}
+
+async function changePassword() {
+  if (passwordForm.password !== passwordForm.password_confirmation) {
+    toast.error('Пароли не совпадают.')
+    return
+  }
+
+  isPasswordSaving.value = true
+
+  try {
+    const {data} = await axios.put('/password', passwordForm)
+    toast.success(data.message || 'Пароль успешно изменён.')
+    passwordForm.current_password = ''
+    passwordForm.password = ''
+    passwordForm.password_confirmation = ''
+  } catch (error: any) {
+    const errors = error.response?.data?.errors
+    const message = errors
+      ? Object.values(errors).flat().join(' ')
+      : error.response?.data?.message || 'Не удалось изменить пароль.'
+    toast.error(message)
+  } finally {
+    isPasswordSaving.value = false
+  }
 }
 
 </script>
