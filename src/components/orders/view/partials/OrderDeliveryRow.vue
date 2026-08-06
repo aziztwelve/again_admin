@@ -213,6 +213,18 @@ const formatAddress = () => {
 };
 
 const formatInterval = () => {
+  const interval = props.order?.delivery_data?.delivery_interval;
+  if (interval?.from && interval?.to) {
+    const from = new Date(interval.from);
+    const to = new Date(interval.to);
+    if (!Number.isNaN(from.getTime()) && !Number.isNaN(to.getTime())) {
+      const pad = (n) => String(n).padStart(2, "0");
+      const date = `${pad(from.getDate())}.${pad(from.getMonth() + 1)}.${from.getFullYear()}`;
+      const time = (value) => `${pad(value.getHours())}:${pad(value.getMinutes())}`;
+      return `${date} ${time(from)}–${time(to)}`;
+    }
+  }
+
   const date =
     props.order?.delivery_date || props.order?.delivery_address?.delivery_date;
   if (!date) return "—";
