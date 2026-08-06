@@ -97,9 +97,15 @@
         <Button variant="outline" size="sm" :disabled="yandexLoading" @click="createOrSyncYandex">
           {{ yandexOrder?.claim_id ? 'Обновить статус' : 'Создать заявку' }}
         </Button>
-        <Button v-if="yandexOrder?.claim_id" variant="destructive" size="sm" :disabled="yandexLoading" @click="cancelYandex">
+        <Button v-if="canCancelYandex" variant="destructive" size="sm" :disabled="yandexLoading" @click="cancelYandex">
           Отменить доставку
         </Button>
+        <span v-else-if="isYandexCancellationRequested" class="inline-flex items-center rounded-md border border-yellow-300 bg-yellow-100 px-3 py-2 text-xs font-medium text-yellow-900">
+          Отмена запрошена в Яндексе
+        </span>
+        <span v-else-if="isYandexCancellationFinal" class="inline-flex items-center rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700">
+          Доставка отменена
+        </span>
       </div>
       <button type="button" class="mt-3 text-xs text-yellow-800 underline" @click="exportYandex">
         Скачать экспорт доставок CSV
@@ -250,6 +256,12 @@ const yandexTerminalStages = [
 ];
 
 const currentYandexStatus = computed(() => yandexOrder.value?.internal_status || null);
+const isYandexCancellationFinal = computed(() => ['cancelled', 'cancelled_paid'].includes(currentYandexStatus.value));
+const isYandexCancellationRequested = computed(() => yandexOrder.value?.cancel_state === 'requested'
+  && !isYandexCancellationFinal.value);
+const canCancelYandex = computed(() => Boolean(yandexOrder.value?.claim_id)
+  && !isYandexCancellationRequested.value
+  && !isYandexCancellationFinal.value);
 const currentYandexStageIndex = computed(() => yandexDeliveryStages.findIndex(
   (stage) => stage.code === currentYandexStatus.value,
 ));
