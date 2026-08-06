@@ -37,6 +37,42 @@
       <div class="mt-1 text-yellow-800">
         {{ yandexOrder?.internal_status ? yandexStatusLabel(yandexOrder.internal_status) : 'Заявка ещё не создана' }}
       </div>
+      <div v-if="yandexOrder?.claim_id" class="mt-3 rounded border border-yellow-200 bg-white/70 p-3">
+        <div class="text-xs font-semibold uppercase tracking-wide text-yellow-900">Этапы доставки</div>
+        <ol class="mt-3 space-y-3">
+          <li v-for="(stage, index) in yandexDeliveryStages" :key="stage.code" class="relative flex gap-3">
+            <span
+              class="relative z-10 mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 text-[10px] font-bold"
+              :class="yandexStageClass(stage.code, index)"
+            >
+              <span v-if="yandexStageState(stage.code, index) === 'done'">✓</span>
+              <span v-else-if="yandexStageState(stage.code, index) === 'active'" class="h-1.5 w-1.5 rounded-full bg-current" />
+            </span>
+            <span v-if="index < yandexDeliveryStages.length - 1" class="absolute left-[9px] top-5 h-4 w-px bg-yellow-200" />
+            <span class="leading-5" :class="yandexStageState(stage.code, index) === 'active' ? 'font-semibold text-yellow-950' : 'text-yellow-800'">
+              {{ stage.label }}
+            </span>
+          </li>
+        </ol>
+
+        <div class="mt-3 border-t border-yellow-200 pt-3">
+          <div class="text-xs text-yellow-800">Другие финальные статусы</div>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <span
+              v-for="stage in yandexTerminalStages"
+              :key="stage.code"
+              class="inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs"
+              :class="isCurrentYandexStatus(stage.code) ? 'border-yellow-500 bg-yellow-100 font-semibold text-yellow-950' : 'border-yellow-200 bg-white text-yellow-800'"
+            >
+              <span class="h-1.5 w-1.5 rounded-full" :class="isCurrentYandexStatus(stage.code) ? 'bg-yellow-600' : 'bg-yellow-300'" />
+              {{ stage.label }}
+            </span>
+          </div>
+        </div>
+        <div v-if="yandexOrder?.status" class="mt-3 text-xs text-yellow-700">
+          Статус Яндекса: {{ yandexOrder.status }}
+        </div>
+      </div>
       <div v-if="yandexOrder?.claim_id" class="mt-1 break-all text-xs text-yellow-700">
         Трек-номер: {{ yandexOrder.claim_id }}
       </div>
@@ -148,8 +184,42 @@ const yandexLoading = ref(false);
 
 const yandexStatusLabel = (status) => ({
   created: 'Заявка создана', courier_assigned: 'Курьер назначен', picked_up: 'Заказ передан в доставку',
-  delivered: 'Заказ доставлен', returning: 'Оформляется возврат', cancelled: 'Доставка отменена', failed: 'Ошибка доставки',
+  delivered: 'Заказ доставлен', returning: 'Оформляется возврат', cancelled: 'Доставка отменена',
+  cancelled_paid: 'Доставка отменена (платно)', failed: 'Ошибка доставки',
 }[status] || status);
+
+const yandexDeliveryStages = [
+  { code: 'created', label: 'Заявка создана' },
+  { code: 'courier_assigned', label: 'Курьер назначен' },
+  { code: 'picked_up', label: 'Заказ забран у отправителя' },
+  { code: 'delivered', label: 'Заказ доставлен' },
+];
+
+const yandexTerminalStages = [
+  { code: 'returning', label: 'Возврат' },
+  { code: 'cancelled', label: 'Отменена' },
+  { code: 'cancelled_paid', label: 'Отменена платно' },
+  { code: 'failed', label: 'Ошибка доставки' },
+];
+
+const currentYandexStatus = computed(() => yandexOrder.value?.internal_status || null);
+const currentYandexStageIndex = computed(() => yandexDeliveryStages.findIndex(
+  (stage) => stage.code === currentYandexStatus.value,
+));
+
+const isCurrentYandexStatus = (status) => currentYandexStatus.value === status;
+
+const yandexStageState = (status, index) => {
+  if (isCurrentYandexStatus(status)) return 'active';
+  if (currentYandexStageIndex.value > index) return 'done';
+  return 'pending';
+};
+
+const yandexStageClass = (status, index) => ({
+  done: 'border-yellow-600 bg-yellow-600 text-white',
+  active: 'border-yellow-600 bg-yellow-100 text-yellow-700',
+  pending: 'border-yellow-200 bg-white text-transparent',
+}[yandexStageState(status, index)]);
 
 const createOrSyncYandex = async () => {
   yandexLoading.value = true;
