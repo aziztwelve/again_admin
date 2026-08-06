@@ -38,7 +38,24 @@
         {{ yandexOrder?.internal_status ? yandexStatusLabel(yandexOrder.internal_status) : 'Заявка ещё не создана' }}
       </div>
       <div v-if="yandexOrder?.claim_id" class="mt-3 rounded border border-yellow-200 bg-white/70 p-3">
-        <div class="text-xs font-semibold uppercase tracking-wide text-yellow-900">Этапы доставки</div>
+        <dl class="space-y-2 text-xs">
+          <div>
+            <dt class="font-semibold uppercase tracking-wide text-yellow-900">Точный статус Яндекса</dt>
+            <dd class="mt-0.5 text-yellow-950">
+              {{ yandexProviderStatusLabel(yandexOrder.status) }}
+              <code v-if="yandexOrder.status" class="ml-1 break-all text-[11px] text-yellow-700">{{ yandexOrder.status }}</code>
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold uppercase tracking-wide text-yellow-900">Внутренний этап</dt>
+            <dd class="mt-0.5 text-yellow-950">
+              {{ yandexStatusLabel(yandexOrder.internal_status) }}
+              <code v-if="yandexOrder.internal_status" class="ml-1 text-[11px] text-yellow-700">{{ yandexOrder.internal_status }}</code>
+            </dd>
+          </div>
+        </dl>
+
+        <div class="mt-4 text-xs font-semibold uppercase tracking-wide text-yellow-900">Внутренняя цепочка</div>
         <ol class="mt-3 space-y-3">
           <li v-for="(stage, index) in yandexDeliveryStages" :key="stage.code" class="relative flex gap-3">
             <span
@@ -68,9 +85,6 @@
               {{ stage.label }}
             </span>
           </div>
-        </div>
-        <div v-if="yandexOrder?.status" class="mt-3 text-xs text-yellow-700">
-          Статус Яндекса: {{ yandexOrder.status }}
         </div>
       </div>
       <div v-if="yandexOrder?.claim_id" class="mt-1 break-all text-xs text-yellow-700">
@@ -187,6 +201,39 @@ const yandexStatusLabel = (status) => ({
   delivered: 'Заказ доставлен', returning: 'Оформляется возврат', cancelled: 'Доставка отменена',
   cancelled_paid: 'Доставка отменена (платно)', failed: 'Ошибка доставки',
 }[status] || status);
+
+const yandexProviderStatusLabel = (status) => ({
+  DRAFT: 'Заказ создан',
+  VALIDATING: 'Заявка проверяется',
+  VALIDATING_ERROR: 'Заявка не подтверждена сортировочным центром',
+  CREATED: 'Заказ создан и подтверждён',
+  DELIVERY_PROCESSING_STARTED: 'Заказ создаётся в сортировочном центре',
+  DELIVERY_TRACK_RECIEVED: 'Заказ создан в системе службы доставки',
+  SORTING_CENTER_PROCESSING_STARTED: 'Заказ начал обрабатываться в сортировочном центре',
+  SORTING_CENTER_TRACK_RECEIVED: 'Заказ обработан в сортировочном центре',
+  SORTING_CENTER_TRACK_LOADED: 'Заказ создан в сортировочном центре',
+  DELIVERY_LOADED: 'Заказ добавлен в текущую отгрузку',
+  SORTING_CENTER_LOADED: 'Заказ подтверждён сортировочным центром',
+  SORTING_CENTER_AT_START: 'Заказ поступил в сортировочный центр',
+  SORTING_CENTER_PREPARED: 'Заказ готов к отправке в службу доставки',
+  SORTING_CENTER_TRANSMITTED: 'Заказ передан на последнюю милю',
+  DELIVERY_AT_START: 'Заказ в городе получателя и готовится к отправке курьером',
+  DELIVERY_AT_START_SORT: 'Заказ в городе получателя и готовится к отправке курьером',
+  DELIVERY_TRANSPORTATION_RECIPIENT: 'Заказ едет к получателю',
+  DELIVERY_DELIVERED: 'Заказ доставлен получателю',
+  CANCELLED: 'Заказ отменён',
+  SORTING_CENTER_RETURN_PREPARING: 'Заказ готовится к возврату',
+  SORTING_CENTER_RETURN_PREPARING_SENDER: 'Заказ готов к отправке отправителю',
+  SORTING_CENTER_RETURN_ARRIVED: 'Заказ доставлен в пункт отправителя',
+  SORTING_CENTER_RETURN_RETURNED: 'Заказ возвращён отправителю',
+  RETURN_PREPARING: 'Возврат обрабатывается на складе сортировочного центра',
+  RETURN_TRANSPORTATION_STARTED: 'Возврат едет в точку выдачи',
+  RETURN_ARRIVED_DELIVERY: 'Возврат доставлен на склад',
+  RETURN_TRANSMITTED_FULFILMENT: 'Возврат передан на единый склад',
+  RETURN_READY_FOR_PICKUP: 'Возврат готов для передачи магазину',
+  RETURN_RETURNED: 'Возврат передан в магазин',
+  DELIVERY_TIME_INTERVALS_UPDATED: 'Интервал доставки изменён',
+}[String(status || '').toUpperCase()] || status || '—');
 
 const yandexDeliveryStages = [
   { code: 'created', label: 'Заявка создана' },
