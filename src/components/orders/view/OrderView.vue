@@ -167,6 +167,7 @@
           :order="order"
           :saving="isSavingDelivery"
           @save="onDeliverySave"
+          @refresh="fetchOrder(order.id)"
         />
         <SideClient
           :client="order.client"
