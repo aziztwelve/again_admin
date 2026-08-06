@@ -26,6 +26,10 @@
         <dt class="text-xs uppercase text-gray-500">Адрес</dt>
         <dd class="text-gray-900">{{ address }}</dd>
       </div>
+      <div>
+        <dt class="text-xs uppercase text-gray-500">Дата и время доставки</dt>
+        <dd class="text-gray-900">{{ deliverySchedule || "—" }}</dd>
+      </div>
     </dl>
 
     <div v-if="isYandexDelivery" class="mt-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm">
@@ -194,6 +198,20 @@ const recipientName = computed(() => {
 });
 
 const recipientPhone = computed(() => addressObj.value?.recipient_phone || null);
+
+const deliverySchedule = computed(() => {
+  const date = props.order?.delivery_date
+    || addressObj.value?.delivery_date
+    || props.order?.delivery_data?.scheduled_time;
+  if (!date) return null;
+
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return parsed.toLocaleString('ru-RU', {
+    day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+});
 
 const address = computed(() => {
   const a = addressObj.value;
