@@ -200,6 +200,23 @@ const recipientName = computed(() => {
 const recipientPhone = computed(() => addressObj.value?.recipient_phone || null);
 
 const deliverySchedule = computed(() => {
+  const interval = props.order?.delivery_data?.delivery_interval;
+  const intervalStart = interval?.from;
+  const intervalEnd = interval?.to;
+  if (intervalStart && intervalEnd) {
+    const start = new Date(intervalStart);
+    const end = new Date(intervalEnd);
+    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+      const date = start.toLocaleDateString('ru-RU', {
+        day: '2-digit', month: 'long', year: 'numeric',
+      });
+      const time = (value) => value.toLocaleTimeString('ru-RU', {
+        hour: '2-digit', minute: '2-digit',
+      });
+      return `${date}, ${time(start)}–${time(end)}`;
+    }
+  }
+
   const date = props.order?.delivery_date
     || addressObj.value?.delivery_date
     || props.order?.delivery_data?.scheduled_time;
