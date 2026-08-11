@@ -79,9 +79,14 @@ export function useUserFunctions() {
             loader = true;
             if (user.changePass) {
                 // Обработка смены пароля
+                if (!user.password || user.password.length < 8) {
+                    toast.error("Пароль должен быть не менее 8 символов!");
+                    return false;
+                }
+
                 if (user.password !== user.confirm_password) {
                     toast.error("Пароли не совпадают!");
-                    return;
+                    return false;
                 }
 
                 await axios.put(`/users/${user.id}/update-password`, {
@@ -90,6 +95,7 @@ export function useUserFunctions() {
                     password_confirmation: user.confirm_password,
                 });
                 toast.success("Пароль успешно изменен");
+                return true;
             } else {
                 // Подготовка данных для обновления пользовател
 
@@ -116,6 +122,7 @@ export function useUserFunctions() {
                 toast.error("Ошибка сети");
             }
             console.error("Error updating user:", e);
+            return false;
         } finally {
             loader = false;
         }

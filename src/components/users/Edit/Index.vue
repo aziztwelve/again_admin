@@ -1,5 +1,16 @@
 <template>
-  <form class="grid gap-3" v-show="!item.changePass">
+  <div class="grid gap-3">
+    <div class="flex justify-end">
+      <Button
+          type="button"
+          variant="outline"
+          @click="togglePasswordMode"
+      >
+        {{ item.changePass ? 'Редактировать данные' : 'Изменить пароль' }}
+      </Button>
+    </div>
+
+    <form class="grid gap-3" v-show="!item.changePass">
     <div class="flex gap-2">
       <Input type="text" placeholder="Имя" v-model="item.profile.first_name"/>
       <Input type="text" placeholder="Фамилия" v-model="item.profile.last_name"/>
@@ -34,7 +45,13 @@
           placeholder="Выберите разрешения"
       />
     </div>
-  </form>
+    </form>
+
+    <ChangePassword
+        :change-pass="item.changePass"
+        :item="item"
+    />
+  </div>
 
 </template>
 
@@ -46,6 +63,8 @@ import {onMounted, ref, watch} from "vue"
 import MultiSelect from "@/components/dynamics/Dropdown/MultiSelect.vue"
 import DropdownSelect from "@/components/dynamics/Dropdown/Select.vue"
 import {Label} from "@/components/ui/label"
+import {Button} from "@/components/ui/button"
+import ChangePassword from "@/components/users/Edit/ChangePassword.vue"
 import {PermissionsData} from "@/constants/PermissionsData";
 import usePermission from "@/composables/usePermission";
 
@@ -86,6 +105,13 @@ if (!props.item.roles) {
 }
 if (!props.item.permissions) {
   props.item.permissions = []
+}
+
+const togglePasswordMode = () => {
+  props.item.changePass = !props.item.changePass
+  props.item.old_password = ''
+  props.item.password = ''
+  props.item.confirm_password = ''
 }
 
 onMounted(async () => {

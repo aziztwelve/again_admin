@@ -1,5 +1,5 @@
 <template>
-  <form class="grid gap-3" v-show="changePass" @submit.prevent="updatePassword">
+  <div class="grid gap-3" v-show="changePass">
     <!-- Нужен только при смене собственного пароля. -->
     <Input type="password" placeholder="Текущий пароль (для своего аккаунта)" v-model="item.old_password" />
 
@@ -9,15 +9,11 @@
     <!-- Поле для подтверждения нового пароля -->
     <Input type="password" placeholder="Подтвердить пароль" v-model="item.confirm_password" />
 
-  </form>
+  </div>
 </template>
 
 <script setup>
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-
-
-
 const props = defineProps({
   changePass: Boolean,
   item: Object,
