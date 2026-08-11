@@ -42,7 +42,7 @@
             <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Артикул</th>
             <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Наименование</th>
             <th class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Цена</th>
-            <th class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Вес</th>
+            <th class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Вес, г</th>
             <th class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Кол-во</th>
             <th class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Резерв</th>
             <th class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Остаток</th>
@@ -111,7 +111,7 @@
               <span v-else>{{ formatPrice(getUnitPrice(item)) }}</span>
             </td>
             <td class="px-3 py-2 text-right text-sm text-gray-700">
-              {{ item.product?.weight ?? "—" }}
+              {{ formatWeightInGrams(item.product?.weight) }}
             </td>
             <td class="px-3 py-2 text-right text-sm text-gray-900">
               <Input
@@ -225,6 +225,19 @@ const formatPrice = (value) => {
     currency: "RUB",
     minimumFractionDigits: 2,
   }).format(amount);
+};
+
+const formatWeightInGrams = (weightInGrams) => {
+  if (weightInGrams === null || weightInGrams === undefined || weightInGrams === "") {
+    return "—";
+  }
+
+  const grams = Number(weightInGrams);
+  if (!Number.isFinite(grams)) return "—";
+
+  return new Intl.NumberFormat("ru-RU", {
+    maximumFractionDigits: 2,
+  }).format(grams);
 };
 
 function getUnitPrice(item) {

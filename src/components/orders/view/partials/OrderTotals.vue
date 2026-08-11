@@ -57,7 +57,7 @@
       <!-- Вес -->
       <div class="flex items-center justify-between pt-1">
         <span class="text-xs uppercase text-gray-400">Вес</span>
-        <span class="text-xs text-gray-500">{{ totalWeight }} кг</span>
+        <span class="text-xs text-gray-500">{{ totalWeight }} г</span>
       </div>
     </div>
   </section>
@@ -117,6 +117,8 @@ const totalWeight = computed(() => {
     const q = Number(item?.quantity || 0);
     return acc + w * q;
   }, 0);
-  return Number.isFinite(sum) ? sum.toFixed(2) : "—";
+  return Number.isFinite(sum)
+    ? new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(sum)
+    : "—";
 });
 </script>
