@@ -33,12 +33,7 @@
     </dl>
 
     <div v-if="isYandexDelivery" class="mt-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm">
-      <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <div class="font-medium text-yellow-900">Яндекс.Доставка</div>
-        <div v-if="yandexTrackingNumber" class="break-all text-xs text-yellow-700">
-          Трек-номер ЯД: {{ yandexTrackingNumber }}
-        </div>
-      </div>
+      <div class="font-medium text-yellow-900">Яндекс.Доставка</div>
       <div class="mt-1 text-yellow-800">
         {{ yandexOrder?.internal_status ? yandexStatusLabel(yandexOrder.internal_status) : 'Заявка ещё не создана' }}
       </div>
@@ -91,6 +86,9 @@
             </span>
           </div>
         </div>
+      </div>
+      <div v-if="yandexOrder?.claim_id" class="mt-1 break-all text-xs text-yellow-700">
+        Трек-номер: {{ yandexOrder.claim_id }}
       </div>
       <a v-if="yandexOrder?.tracking_url" :href="yandexOrder.tracking_url" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block text-xs font-medium underline">
         Открыть отслеживание
@@ -202,10 +200,6 @@ const deliveryMethodOptions = ref([]);
 const addressObj = computed(() => props.order?.delivery_address || null);
 const isYandexDelivery = computed(() => String(props.order?.delivery_method?.code || props.order?.deliveryMethod?.code || '').startsWith('yandex_'));
 const yandexOrder = computed(() => props.order?.yandex_order || props.order?.yandexOrder || null);
-const yandexTrackingNumber = computed(() => yandexOrder.value?.tracking_number
-  || props.order?.tracking_number
-  || yandexOrder.value?.claim_id
-  || null);
 const yandexLoading = ref(false);
 
 const yandexStatusLabel = (status) => ({
