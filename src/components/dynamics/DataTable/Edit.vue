@@ -80,6 +80,16 @@ const closeDialog = () => {
 };
 
 const saveChanges = () => {
+  if (props.edit?.waitForSave) {
+    emits('save_changes', editItem.value, (success = true) => {
+      if (success) {
+        closeDialog();
+        renderContent.value++;
+      }
+    });
+    return;
+  }
+
   emits('save_changes', editItem.value);
   closeDialog();
   renderContent.value++;

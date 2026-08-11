@@ -42,6 +42,7 @@ const edit = ref({
   description: "Измените данные пользователя",
   component: UsersEdit,
   loader: false,
+  waitForSave: true,
 });
 
 
@@ -83,9 +84,14 @@ const columns = [
 
 const {hasPermission} = usePermission()
 
-async function handlingUpdateUser(user: any) {
-  await useUserFunctions().changeUser(user)
-  emits('updated')
+async function handlingUpdateUser(user: any, complete?: (success: boolean) => void) {
+  edit.value.loader = true
+  const success = await useUserFunctions().changeUser(user)
+  edit.value.loader = false
+  complete?.(success === true)
+  if (success === true) {
+    emits('updated')
+  }
 }
 
 </script>

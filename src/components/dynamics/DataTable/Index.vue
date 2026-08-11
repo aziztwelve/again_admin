@@ -97,7 +97,7 @@
                             v-if="editPermission"
                             :item="row.original"
                             :edit="edit"
-                            @save_changes="emits('save_changes', $event)"
+                            @save_changes="(...args) => emits('save_changes', ...args)"
                         />
 
                         <AlertDialog
