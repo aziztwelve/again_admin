@@ -181,7 +181,7 @@
           :tasks="tasks"
           @refresh="fetchOrder(order.id)"
         />
-        <SideCdek :order="order" />
+        <SideCdek :order="order" @refresh="fetchOrder(order.id)" />
         <SideSource :source="source" />
         <SideViewedProducts :products="viewedProducts" />
         <SidePaymentWidgets :payments="payments" />
