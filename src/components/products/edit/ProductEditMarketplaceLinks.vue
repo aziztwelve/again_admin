@@ -46,6 +46,14 @@ const formFields = ref<any[]>([
       label: 'Золотое яблоко',
       required: false,
       placeholder: 'https://goldapple.ru/product/...'
+    },
+    {
+      name: 'foreign_card',
+      component: 'text',
+      type: 'text',
+      label: 'Оплата иностранной картой',
+      required: false,
+      placeholder: 'https://...'
     }
   ]
 ])

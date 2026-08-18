@@ -2,11 +2,13 @@ export class MarketplaceLinks {
     wb: string | undefined;
     ozon: string | undefined;
     zy: string | undefined;
+    foreign_card: string | undefined;
 
     constructor() {
         this.wb = ''
         this.ozon = ''
         this.zy = ''
+        this.foreign_card = ''
     }
 
     static fromJSON(json: any): MarketplaceLinks {
@@ -16,6 +18,7 @@ export class MarketplaceLinks {
         MPL.wb = json.wb
         MPL.ozon = json.ozon
         MPL.zy = json.zy
+        MPL.foreign_card = json.foreign_card
 
         return MPL
     }
@@ -210,6 +213,7 @@ export class Product {
                 wb: this.marketplace_links.wb || null,
                 ozon: this.marketplace_links.ozon || null,
                 zy: this.marketplace_links.zy || null,
+                foreign_card: this.marketplace_links.foreign_card || null,
             } : null,
         };
     }
@@ -237,6 +241,7 @@ export class Product {
                 wb: this.marketplace_links.wb || null,
                 ozon: this.marketplace_links.ozon || null,
                 zy: this.marketplace_links.zy || null,
+                foreign_card: this.marketplace_links.foreign_card || null,
             } : null,
 
             // images: this.images,
