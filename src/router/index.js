@@ -392,6 +392,18 @@ const routes = [
                         path: '/settings/home-slider',
                         name: 'settings-home-slider',
                         component: () => import('../components/settings/home_slider/list/SliderList.vue'),
+                    },
+
+                    // Бесплатная доставка: гибкие правила
+                    // (см. lara_admin/docs/tasks/free-shipping.md)
+                    {
+                        path: '/settings/free-shipping',
+                        name: 'settings-free-shipping',
+                        component: () => import('@/features/free-shipping/components/list/index.vue'),
+                        meta: {
+                            title: 'Бесплатная доставка',
+                            requiresAuth: true,
+                        }
                     }
                 ]
             },

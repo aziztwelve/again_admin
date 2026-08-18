@@ -48,6 +48,7 @@ interface MenuItem {
 const menuItems = ref<MenuItem[]>([
   {path: '/settings/home-slider', title: 'Слайдер на главной'},
   {path: '/settings/oto', title: 'OTO Баннеры'},
+  {path: '/settings/free-shipping', title: 'Бесплатная доставка'},
 ])
 </script>
 
