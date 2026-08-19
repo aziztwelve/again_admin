@@ -57,7 +57,7 @@
                 type="checkbox"
                 class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
               />
-              <span>{{ draftValue ? "Да" : "Нет" }}</span>
+              <span>{{ formatCheckboxValue(field, draftValue) }}</span>
             </label>
 
             <Select
@@ -139,11 +139,19 @@ const saveField = (field) => {
 };
 
 const formatValue = (field) => {
-  if (field.type === "checkbox") return field.value ? "Да" : "Нет";
+  if (field.type === "checkbox") return formatCheckboxValue(field, field.value);
   if (field.type === "select") {
     const opt = (field.options || []).find((o) => o.value === field.value);
     return opt?.label || field.value || "—";
   }
   return field.value || field.value === 0 ? String(field.value) : "—";
+};
+
+const formatCheckboxValue = (field, value) => {
+  if (field.key === "no_receipt") {
+    return value ? "Не пробивать" : "Пробивать";
+  }
+
+  return value ? "Да" : "Нет";
 };
 </script>
