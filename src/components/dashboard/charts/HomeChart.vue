@@ -82,10 +82,10 @@ const STATUS_META: Record<string, { label: string; color: string }> = {
   new:            { label: 'Новые',              color: '#EF4444' },
   processing:     { label: 'В обработке',        color: '#F59E0B' },
   shipped:        { label: 'Отгружен',           color: '#7391ec' },
-  shipped_export: { label: 'Отгружен на экспорт',color: '#9333ea' },
   delivered:      { label: 'Доставлен',          color: '#6fbaba' },
   cancelled:      { label: 'Отменён',            color: '#f88686' },
   product_return: { label: 'Возврат товара',     color: '#fb923c' },
+  return_payment: { label: 'Возврат оплаты',     color: '#9333ea' },
 };
 
 function hexToRgba(hex: string, alpha = 0.05): string {
