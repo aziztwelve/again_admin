@@ -13,7 +13,7 @@
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <!-- Основная колонка -->
       <div class="space-y-6 lg:col-span-2">
-        <OrderStatuses :order="order" @update="onStatusUpdate" />
+        <OrderStatuses :order="order" @update="onStatusUpdate" @refresh="fetchOrder(order.id)" />
         <OrderActions
           :order="order"
           @add-position="onAddPosition"

@@ -89,6 +89,19 @@
           ID транзакции: {{ order.payment_id }}
         </div>
       </div>
+
+      <!-- Возврат оплаты: клиент отказался от покупки после оплаты -->
+      <div v-if="canRefundPayment" class="col-span-2 flex items-end">
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          :disabled="refunding"
+          @click="onRefundPayment"
+        >
+          {{ refunding ? "Возврат оплаты..." : "Отменить оплату" }}
+        </Button>
+      </div>
     </div>
   </section>
 </template>
@@ -98,6 +111,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import axios from "axios";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import Select from "@/components/dynamics/Dropdown/Select.vue";
 import { useStatusFunctions } from "@/composables/useStatusFunctions";
 import { useOrderPaymentMethods } from "@/composables/orders/useOrderPaymentMethods";
@@ -106,7 +120,7 @@ const props = defineProps({
   order: { type: Object, required: true },
 });
 
-const emit = defineEmits(["update"]);
+const emit = defineEmits(["update", "refresh"]);
 
 const { getStatuses, getAllStatuses } = useStatusFunctions();
 const { paymentMethodOptions, fetchPaymentMethods } = useOrderPaymentMethods();
@@ -170,6 +184,41 @@ const paymentStatusOptions = [
   { value: "pending", label: "Ожидание" },
   { value: "paid", label: "Оплачено" },
 ];
+
+// === Возврат оплаты ===
+
+const refunding = ref(false);
+
+// Кнопка видна только для реально оплаченных заказов, которые ещё не в
+// одном из статусов "возврата". Показывать её для неоплаченных/уже
+// возвращённых заказов не имеет смысла — backend всё равно откажет.
+const canRefundPayment = computed(() => {
+  const paymentStatus = extractValue(props.order?.payment_status);
+  const orderStatus = extractValue(props.order?.status);
+  return paymentStatus === "paid" && orderStatus !== "return_payment";
+});
+
+const onRefundPayment = async () => {
+  if (
+    !window.confirm(
+      "Вернуть оплату по этому заказу? Действие необратимо и сразу инициирует возврат денег через платёжного провайдера.",
+    )
+  ) {
+    return;
+  }
+
+  refunding.value = true;
+  try {
+    await axios.post(`/orders/${props.order.id}/refund-payment`);
+    emit("refresh");
+  } catch (error) {
+    const message =
+      error?.response?.data?.message || "Не удалось вернуть оплату";
+    window.alert(message);
+  } finally {
+    refunding.value = false;
+  }
+};
 
 // === Менеджеры (пользователи с ролью «Менеджер» из раздела «Роли») ===
 
