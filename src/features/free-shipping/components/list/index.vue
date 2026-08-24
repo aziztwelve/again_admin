@@ -90,7 +90,7 @@
     </div>
 
     <Dialog v-model:open="modalOpen">
-      <DialogContent class="max-h-full overflow-y-auto md:min-w-[60%]">
+      <DialogContent class="max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-4xl overflow-y-auto md:w-full">
         <DialogHeader>
           <DialogTitle class="text-md text-gray-800">
             {{ form.id ? 'Изменить правило' : 'Новое правило бесплатной доставки' }}

@@ -1,8 +1,8 @@
 <template>
-  <div class="space-y-5">
+  <div class="space-y-6">
 
     <!-- Название и порог -->
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-5 md:grid-cols-2">
       <div class="space-y-1">
         <label class="text-sm font-medium text-gray-700">Название*</label>
         <Input v-model="form.name" placeholder="Доставка_СДЕК_ПВЗ"/>
@@ -17,7 +17,7 @@
     </div>
 
     <!-- Службы и виды доставки -->
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-5 md:grid-cols-2">
       <CheckboxGroup
           title="Служба доставки"
           hint="Ничего не выбрано — правило действует для всех служб"
@@ -83,7 +83,7 @@
     </div>
 
     <!-- География -->
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-5 md:grid-cols-2">
       <SearchableList
           title="Страны"
           hint="Пусто — все страны"
