@@ -23,7 +23,10 @@
               <CardTitle>СДЭК</CardTitle>
               <CardDescription>Интеграция с API СДЭК</CardDescription>
             </div>
-            <Switch v-model="deliveryEnabled.cdek"/>
+            <div class="flex items-center gap-3">
+              <Button as-child variant="outline" size="sm"><RouterLink to="/integrations/delivery/cdek">Настроить</RouterLink></Button>
+              <Switch v-model="deliveryEnabled.cdek"/>
+            </div>
           </div>
         </div>
       </CardHeader>

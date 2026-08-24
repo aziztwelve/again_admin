@@ -284,6 +284,11 @@ const routes = [
                         component: () => import('../components/integrations/delivery/index.vue'),
                     },
                     {
+                        path: '/integrations/delivery/cdek',
+                        name: 'integrations-delivery-cdek',
+                        component: () => import('../components/integrations/delivery/cdek/index.vue'),
+                    },
+                    {
                         path: '/integrations/messengers',
                         name: 'integrations-messengers',
                         component: () => import('../components/integrations/messengers/index.vue'),
