@@ -12,8 +12,8 @@
         </CardHeader>
         <CardContent>
           <p class="text-sm text-gray-300">Официальный сайт:</p>
-          <a href="https://again8.ru" target="_blank" class="text-lg font-medium hover:underline flex items-center mt-2">
-            again8.ru
+          <a :href="shopUrl" target="_blank" class="text-lg font-medium hover:underline flex items-center mt-2">
+            {{ shopHost }}
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
             </svg>
@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import {
   Card,
   CardContent,
@@ -34,4 +35,22 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+
+// Домен витрины не зашиваем: берём VUE_APP_SHOP_URL, иначе тот же origin,
+// что и API (витрина, дашборд и API живут на одном домене).
+const shopUrl = computed(() => {
+  const raw = process.env.VUE_APP_SHOP_URL
+    || process.env.VUE_APP_API_BASE_URL
+    || window.location.origin
+
+  return String(raw).replace(/\/+$/, '')
+})
+
+const shopHost = computed(() => {
+  try {
+    return new URL(shopUrl.value).host
+  } catch {
+    return shopUrl.value
+  }
+})
 </script>
