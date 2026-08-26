@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-2">
-    <div class="flex items-baseline justify-between">
-      <span class="text-sm font-medium text-gray-700">{{ title }}</span>
-      <span v-if="hint" class="text-xs text-gray-500">{{ hint }}</span>
+    <div class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-2">
+      <span class="whitespace-nowrap text-sm font-medium text-gray-700">{{ title }}</span>
+      <span v-if="hint" class="text-right text-xs leading-4 text-gray-500">{{ hint }}</span>
     </div>
 
     <Input v-model="search" :placeholder="placeholder"/>
