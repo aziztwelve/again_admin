@@ -92,7 +92,7 @@
 
       <!-- Возврат оплаты: клиент отказался от покупки после оплаты -->
       <div v-if="canRefundPayment" class="col-span-2">
-        <Label class="text-xs uppercase text-gray-500">
+        <Label class="block text-xs uppercase text-gray-500">
           Возврат оплаты
         </Label>
         <Button
