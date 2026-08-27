@@ -91,11 +91,14 @@
       </div>
 
       <!-- Возврат оплаты: клиент отказался от покупки после оплаты -->
-      <div v-if="canRefundPayment" class="col-span-2 flex items-end">
+      <div v-if="canRefundPayment" class="col-span-2">
+        <Label class="text-xs uppercase text-gray-500">
+          Возврат оплаты
+        </Label>
         <Button
           type="button"
           variant="destructive"
-          size="sm"
+          class="mt-1"
           :disabled="refunding"
           @click="onRefundPayment"
         >
