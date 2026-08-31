@@ -26,7 +26,7 @@
           <label class="field field--wide"><span>Тарифы:</span><select v-model="form.tariff_codes" class="tariffs" multiple size="10"><option v-for="tariff in tariffs" :key="tariff.code" :value="tariff.code">{{ tariff.name }}</option></select></label>
           <Button type="button" class="green-button tariff-settings" :disabled="loadingTariffs" @click="openTariffSettings">{{ loadingTariffs ? 'Обновляем…' : 'Настроить отображение тарифов' }}</Button>
         </div>
-        <p class="help">Для выбора нескольких тарифов удерживайте клавишу Ctrl / ⌘. В постамат можно заложить заказ, состоящий из одного грузоместа.</p>
+        <p class="help">Выбранные тарифы доступны в checkout бесплатно (0 ₽). Для выбора нескольких удерживайте Ctrl / ⌘. В постамат можно заложить заказ из одного грузоместа.</p>
         <div class="settings-grid">
           <label class="check"><input v-model="form.enabled" type="checkbox"><span>Интеграция СДЭК включена</span></label>
           <label class="field"><span>Увеличить время доставки на, дней:</span><Input v-model.number="form.delivery_days_offset" type="number" min="0" /></label>
