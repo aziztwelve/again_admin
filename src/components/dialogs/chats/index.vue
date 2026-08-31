@@ -82,6 +82,7 @@
 
             <ChatClientInfoPanelMobileDrawer
                 :conversation="selectedConversation"
+                @client-updated="handleClientUpdate"
             />
 
           </div>
@@ -199,8 +200,18 @@ const handleTagsUpdated = async () => {
 
 
 const handleClientUpdate = (c: Client) => {
-  if (selectedConversation.value?.client) {
+  if (selectedConversation.value) {
     selectedConversation.value.client = c
+    selectedConversation.value.client_id = c.id
+  }
+
+  const listIndex = conversations.value.findIndex(item => item.id === selectedConversation.value?.id)
+  if (listIndex !== -1) {
+    conversations.value[listIndex] = {
+      ...conversations.value[listIndex],
+      client: c,
+      client_id: c.id,
+    }
   }
 }
 

@@ -23,6 +23,12 @@
             :client="client"
         />
 
+        <ConversationClientCreateModal
+            v-else-if="conversation"
+            :conversation="conversation"
+            @created="emit('clientUpdated', $event)"
+        />
+
         <ClientEditModal
             v-if="client"
             :client="client"
@@ -67,6 +73,7 @@ import ClientInfo from "@/components/dialogs/chats/Client/ClientInfo.vue";
 import ChatClientSegmentManager from "@/components/dialogs/chats/Client/Segment/ChatClientSegmentManager.vue";
 import ChatClientActions from "@/components/dialogs/chats/Client/ChatClientActions.vue";
 import {Conversation} from "@/types/conversation";
+import ConversationClientCreateModal from "@/components/dialogs/chats/Client/ConversationClientCreateModal.vue";
 
 interface Props {
   client: Client | null

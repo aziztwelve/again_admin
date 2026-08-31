@@ -51,7 +51,7 @@
               </div>
               <div class="flex justify-between items-center mt-0.5">
                 <p class="text-[11px] text-gray-500 truncate">
-                  {{ item.last_message?.content || 'Без сообщений' }}
+                  {{ item.client ? (item.last_message?.content || 'Без сообщений') : `Номер чата: ${item.external_id || `#${item.id}`}` }}
                 </p>
 
                 <div class="flex items-center space-x-2">
