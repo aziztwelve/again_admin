@@ -18,27 +18,42 @@
 
     <!-- Службы и виды доставки -->
     <div class="grid gap-5 md:grid-cols-2">
-      <CheckboxGroup
-          title="Служба доставки"
-          hint="Ничего не выбрано — правило действует для всех служб"
-          :options="options.services"
-          v-model="form.services"
-      />
-      <CheckboxGroup
-          title="Вид доставки"
-          hint="Ничего не выбрано — и ПВЗ, и курьер"
-          :options="options.delivery_types"
-          v-model="form.delivery_types"
-      />
+      <div class="space-y-1">
+        <label class="text-sm font-medium text-gray-700">Служба доставки</label>
+        <MultiSelect
+            :options="options.services"
+            option-label="label"
+            option-value="code"
+            placeholder="Ничего не выбрано — все службы"
+            v-model="form.services"
+        />
+        <p class="text-xs text-gray-500">Ничего не выбрано — правило действует для всех служб</p>
+      </div>
+      <div class="space-y-1">
+        <label class="text-sm font-medium text-gray-700">Вид доставки</label>
+        <MultiSelect
+            :options="options.delivery_types"
+            option-label="label"
+            option-value="code"
+            placeholder="Ничего не выбрано — ПВЗ и курьер"
+            v-model="form.delivery_types"
+        />
+        <p class="text-xs text-gray-500">Ничего не выбрано — и ПВЗ, и курьер</p>
+      </div>
     </div>
 
     <!-- Способы оплаты -->
-    <CheckboxGroup
-        title="Способы оплаты"
-        hint="Ничего не выбрано — любая оплата"
-        :options="options.payment_methods"
-        v-model="form.payment_methods"
-    />
+    <div class="space-y-1">
+      <label class="text-sm font-medium text-gray-700">Способы оплаты</label>
+      <MultiSelect
+          :options="options.payment_methods"
+          option-label="label"
+          option-value="code"
+          placeholder="Ничего не выбрано — любая оплата"
+          v-model="form.payment_methods"
+      />
+      <p class="text-xs text-gray-500">Ничего не выбрано — любая оплата</p>
+    </div>
 
     <!-- Товары -->
     <div class="space-y-2">
@@ -135,7 +150,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import CheckboxGroup from './CheckboxGroup.vue'
+import MultiSelect from '@/components/dynamics/Dropdown/MultiSelect.vue'
 import SearchableList from './SearchableList.vue'
 import { useFreeShippingRules } from '../../composables/useFreeShippingRules'
 import type {
