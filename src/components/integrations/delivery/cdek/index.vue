@@ -2,6 +2,14 @@
   <main class="cdek-page">
     <div class="cdek-content">
       <section class="cdek-card">
+        <section class="integration-account">
+          <h2>Аккаунт интеграции</h2>
+          <div class="field-grid">
+            <label class="field"><span>Аккаунт:</span><Input v-model="form.account" placeholder="Укажите аккаунт…" autocomplete="off" /></label>
+            <label class="field"><span>Пароль:</span><Input v-model="form.secure_password" type="password" placeholder="Оставьте пустым, чтобы не менять" autocomplete="new-password" /></label>
+          </div>
+          <p class="help">Используйте идентификатор и secure password, созданные в разделе «Интеграция» личного кабинета СДЭК.</p>
+        </section>
         <h1>Параметры отправки</h1>
         <label class="field field--wide"><span>Город отправки:</span><Input v-model="form.sender.city_name" placeholder="Начните вводить город…" /></label>
         <div class="field-grid">
@@ -26,7 +34,6 @@
           <label class="field"><span>Ширина, см:</span><Input v-model.number="form.default_package.width" type="number" min="0.1" /></label>
           <label class="field"><span>Высота, см:</span><Input v-model.number="form.default_package.height" type="number" min="0.1" /></label>
         </div>
-        <details class="advanced"><summary>Дополнительные настройки</summary><div class="field-grid advanced-fields"><label class="field"><span>Аккаунт интеграции:</span><Input v-model="form.account" autocomplete="off" /></label><label class="field"><span>Пароль:</span><Input v-model="form.secure_password" type="password" placeholder="Оставьте пустым, чтобы не менять" autocomplete="new-password" /></label></div></details>
         <section class="restored-section"><h2>Дополнительные услуги</h2><label class="check"><input checked disabled type="checkbox"><span>Страхование</span></label><p class="help">Страхование подключено автоматически для всех заказов.</p><div class="field-grid"><label class="field"><span>Объявленная стоимость, %:</span><Input v-model.number="form.declared.percent" type="number" min="0" /></label><label class="field"><span>Фиксированная объявленная стоимость, ₽:</span><Input v-model.number="form.declared.value" type="number" min="0" /></label></div><div class="checks"><label class="check"><input v-model="form.services.fitting" type="checkbox"><span>ПРИМЕРКА НА ДОМУ</span></label><label class="check"><input v-model="form.services.partial_delivery" type="checkbox"><span>ЧАСТИЧНАЯ ДОСТАВКА</span></label><label class="check"><input v-model="form.services.no_inspection" type="checkbox"><span>ЗАПРЕТ ОСМОТРА ВЛОЖЕНИЯ</span></label><label class="check"><input v-model="form.cod_pickup_only" type="checkbox"><span>Ограничить места самовывоза, поддерживающие наложенный платёж</span></label></div></section>
         <section class="restored-section"><h2>Импортировать статусы заказов</h2><label class="check"><input v-model="form.use_import" type="checkbox"><span>Обновлять заказы в системе при изменении трекинга СДЭК</span></label><div v-if="form.use_import" class="status-table"><div v-for="status in shopStatuses" :key="status.code" class="status-row"><label>{{ status.label }}</label><select v-model="form.status_mapping[status.code]"><option value="0">нет</option><option v-for="option in cdekStatuses" :key="option.code" :value="String(option.code)">{{ option.label }}</option></select></div></div></section>
         <section class="restored-section"><h2>Модификация стоимости доставки</h2><div class="field-grid"><label class="field"><span>Бесплатная доставка при сумме заказа:</span><Input v-model.number="form.price_rules.threshold" type="number" min="0" /></label><label class="field"><span>Увеличить стоимость доставки на:</span><Input v-model.number="form.price_rules.add_cost" type="number" min="0" /></label><label class="field"><span>Увеличить стоимость заказа (РКО) на:</span><Input v-model.number="form.price_rules.add_rko" type="number" min="0" /></label><label class="field"><span>Доп. стоимость доставки, ₽:</span><Input v-model.number="form.price_rules.add_drc" type="number" min="0" /></label><label class="field"><span>Порог суммы заказа:</span><Input v-model.number="form.price_rules.add_drc_adv" type="number" min="0" /></label><label class="field"><span>Округлять полученные значения:</span><select v-model="form.price_rules.rounded"><option value="0">нет</option><option value="1">в большую сторону</option><option value="2">в меньшую сторону</option></select></label></div></section>
