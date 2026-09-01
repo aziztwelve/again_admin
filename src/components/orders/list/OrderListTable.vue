@@ -115,7 +115,7 @@ const columns = computed(() => [
     header: headerWithFilter('Номер заказа', {
       type: 'text',
       field: 'order_number',
-      placeholder: 'Номер или ID заказа',
+      placeholder: 'Номер заказа',
     }),
     cell: ({row}: any) => {
       const id = row.original.id
