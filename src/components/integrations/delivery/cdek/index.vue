@@ -23,7 +23,7 @@
         </div>
         <label class="field field--wide"><span>Выберите режимы тарифов:</span><select v-model="form.tariff_mode"><option value="any">Все тарифы</option><option value="dver">Тарифы от двери</option><option value="sklad">Тарифы от склада</option></select></label>
         <div class="tariffs-heading">
-          <label class="field field--wide"><span>Тарифы:</span><select v-model="form.tariff_codes" class="tariffs" multiple size="10"><option v-for="tariff in tariffs" :key="tariff.code" :value="tariff.code">{{ tariff.name }}</option></select></label>
+          <label class="field field--wide"><span>Тарифы для бесплатной доставки:</span><select v-model="form.tariff_codes" class="tariffs" multiple size="10"><option v-for="tariff in tariffs" :key="tariff.code" :value="tariff.code">{{ tariff.name }}</option></select></label>
           <Button type="button" class="green-button tariff-settings" :disabled="loadingTariffs" @click="openTariffSettings">{{ loadingTariffs ? 'Обновляем…' : 'Настроить отображение тарифов' }}</Button>
         </div>
         <p class="help">Тарифы из списка показываются в checkout с расчётной ценой СДЭК. Порог бесплатной доставки настраивается отдельно в поле «Бесплатная доставка при сумме заказа». Для выбора нескольких удерживайте Ctrl / ⌘.</p>
