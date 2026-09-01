@@ -3,7 +3,7 @@
     <div>
       <p class="font-medium">Клиент не сохранён</p>
       <p class="text-xs text-muted-foreground">
-        Номер чата: {{ conversation.external_id || `#${conversation.id}` }}
+        № чата {{ conversation.id }}
       </p>
     </div>
 

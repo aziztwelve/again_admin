@@ -19,7 +19,7 @@
               conversation.client?.profile?.full_name || "Неизвестный"
             }}</CardTitle>
             <CardDescription class="flex items-center gap-1 text-xs">
-              <span>{{ conversation.client?.profile?.phone || (!conversation.client ? `Номер чата: ${conversation.external_id || `#${conversation.id}`}` : '') }}</span>
+              <span>{{ conversation.client?.profile?.phone || (!conversation.client ? `№ чата ${conversation.id}` : '') }}</span>
               <Badge
                 variant="outline"
                 class="h-4 px-1 text-[0.6rem] capitalize"
