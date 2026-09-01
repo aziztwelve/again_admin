@@ -15,9 +15,13 @@
         <span class="">
           Использован:
         </span>
-          <span class="font-medium text-blue-500">
-          {{ Math.max(0, Number(promo.timesUsed) || 0) }}
-        </span>
+          <router-link
+              :to="{ path: '/orders/list', query: { promo_code_id: promo.id, promo_code: promo.code } }"
+              class="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+              title="Показать заказы, в которых применён этот промокод"
+          >
+            {{ Math.max(0, Number(promo.timesUsed) || 0) }}
+          </router-link>
         </div>
       </div>
 

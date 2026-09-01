@@ -18,6 +18,21 @@
     </div>
 
     <div class="flex justify-end gap-2">
+      <div
+          v-if="promoFilter.id"
+          class="flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 h-10 text-sm text-blue-700"
+          title="Заказы, в которых применён этот промокод"
+      >
+        <span>Промокод: <span class="font-medium">{{ promoFilter.code || `#${promoFilter.id}` }}</span></span>
+        <button
+            class="text-blue-400 hover:text-blue-700"
+            title="Убрать фильтр по промокоду"
+            @click="removePromoFilter"
+        >
+          <X class="w-4 h-4"/>
+        </button>
+      </div>
+
       <Button
           v-if="hasActiveFilters"
           variant="outline"
@@ -54,7 +69,7 @@
 <script setup lang="ts">
 import {ref, onMounted, computed, watch} from 'vue';
 import axios from 'axios';
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import Order from "@/models/order/Order"
 import OrderListTable from "@/components/orders/list/OrderListTable.vue";
 import {useOrderFunctions} from "@/composables/useOrderFunctions";
@@ -68,6 +83,15 @@ import {PaginationMeta} from "@/types/Types";
 
 const store = useStore();
 const route = useRoute()
+const router = useRouter()
+
+// Фильтр по промокоду, пришедший извне ссылкой (например, из статистики
+// промокода: /orders/list?promo_code_id=N&promo_code=code). id — точный
+// фильтр на бэке (orders.promo_code_id), code — только для отображения.
+const promoFilter = ref<{ id: number | null; code: string }>({
+  id: route.query.promo_code_id ? Number(route.query.promo_code_id) : null,
+  code: route.query.promo_code ? String(route.query.promo_code) : '',
+})
 
 
 // Общий объект состояния всех фильтров: используется и верхней панелью
@@ -120,6 +144,7 @@ const hasActiveFilters = computed(() => {
       || !!s.assigned_user_id
       || s.min_amount !== '' && s.min_amount !== null
       || s.max_amount !== '' && s.max_amount !== null
+      || !!promoFilter.value.id
 })
 
 onMounted(async () => {
@@ -147,6 +172,7 @@ async function fetchData() {
     recipient_search: searchParams.value.recipient_search,
     email: searchParams.value.email || null,
     order_number: searchParams.value.order_number || null,
+    promo_code_id: promoFilter.value.id ?? null,
     date_from: searchParams.value.datePicker.start,
     date_to: searchParams.value.datePicker.end,
     payment_status: searchParams.value.payment_status,
@@ -220,6 +246,22 @@ function resetFilters() {
   }
 
   pagination.value.page = 1
+  clearPromoFilter()
+  fetchData()
+}
+
+
+function clearPromoFilter() {
+  promoFilter.value = {id: null, code: ''}
+  // Убираем query-параметры, чтобы фильтр не вернулся при перезагрузке
+  if (route.query.promo_code_id || route.query.promo_code) {
+    router.replace({query: {...route.query, promo_code_id: undefined, promo_code: undefined}})
+  }
+}
+
+function removePromoFilter() {
+  clearPromoFilter()
+  pagination.value.page = 1
   fetchData()
 }
 
@@ -240,6 +282,17 @@ const debouncedSearch = useDebounceFn(() => {
 
 watch(() => searchParams.value.search, () => {
   debouncedSearch()
+})
+
+// Повторный переход по ссылке /orders/list?promo_code_id=N, когда список
+// заказов уже открыт: компонент переиспользуется и onMounted не сработает.
+watch(() => route.query.promo_code_id, (val) => {
+  promoFilter.value = {
+    id: val ? Number(val) : null,
+    code: route.query.promo_code ? String(route.query.promo_code) : '',
+  }
+  pagination.value.page = 1
+  fetchData()
 })
 
 </script>

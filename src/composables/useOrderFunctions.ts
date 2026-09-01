@@ -19,6 +19,7 @@ export function useOrderFunctions() {
         recipient_search?: string,
         email?: string | null,
         order_number?: string | null,
+        promo_code_id?: number | string | null,
         date_from?: string,
         date_to?: string,
         payment_status?: string,
