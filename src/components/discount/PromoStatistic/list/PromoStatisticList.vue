@@ -10,17 +10,19 @@
           {{ promo.code ?? '' }}
         </span>
         </div>
-        <div>
+        <div class="flex items-center gap-2">
 
         <span class="">
           Использован:
         </span>
-          <router-link
-              :to="{ path: '/orders/list', query: { promo_code_id: promo.id, promo_code: promo.code } }"
-              class="font-medium text-blue-600 hover:text-blue-800 hover:underline"
-              title="Показать заказы, в которых применён этот промокод"
-          >
-            {{ Math.max(0, Number(promo.timesUsed) || 0) }}
+          <span class="font-medium">
+          {{ Math.max(0, Number(promo.timesUsed) || 0) }} раз
+        </span>
+          <router-link :to="{ path: '/orders/list', query: { promo_code_id: promo.id, promo_code: promo.code } }">
+            <Button variant="outline" size="sm" class="gap-1.5">
+              <List class="h-4 w-4"/>
+              Открыть заказы с этим промокодом
+            </Button>
           </router-link>
         </div>
       </div>
@@ -51,6 +53,8 @@ import {ref, onMounted} from 'vue';
 import Loader from "@/components/common/Loader.vue";
 import DynamicTitle from "@/components/dynamics/DynamicTitle.vue";
 import {useStore} from "vuex";
+import Button from "@/components/ui/button/Button.vue";
+import {List} from "lucide-vue-next";
 import PromoStatisticTable from "@/components/discount/PromoStatistic/list/PromoStatisticTable.vue";
 import {usePromoCodeUsage} from "@/composables/usePromoCodeUsage";
 import {PromoCode} from "@/models/PromoCode";
