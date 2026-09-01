@@ -11,7 +11,7 @@
       <Input v-model.trim="form.last_name" placeholder="Фамилия" required />
       <Input v-model.trim="form.first_name" placeholder="Имя" required />
       <Input v-model.trim="form.middle_name" placeholder="Отчество" />
-      <Input v-model.trim="form.phone" type="tel" placeholder="Контакт" />
+      <Input v-model.trim="form.phone" type="tel" placeholder="Контакт" required />
       <Input v-model.trim="form.email" type="email" placeholder="Email" required />
       <Button class="w-full" size="sm" type="submit" :disabled="saving">
         <Loader2 v-if="saving" class="mr-1 h-4 w-4 animate-spin" />
@@ -53,14 +53,10 @@ const saving = ref(false)
 const saveClient = async () => {
   saving.value = true
   try {
-    const {data: created} = await axios.post('/clients', form)
-    const client = created.client as Client
-    const {data: attached} = await axios.post(`/conversations/${props.conversation.id}/client`, {
-      client_id: client.id,
-    })
+    const {data: attached} = await axios.post(`/conversations/${props.conversation.id}/client/create`, form)
 
     emit('created', attached.client as Client)
-    toast.success('Клиент сохранён и привязан к диалогу')
+    toast.success(attached.message || 'Данные клиента сохранены')
   } catch (error) {
     const message = axios.isAxiosError(error)
       ? error.response?.data?.message || 'Не удалось сохранить клиента'
