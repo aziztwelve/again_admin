@@ -163,6 +163,19 @@ const columns = [
   {
     accessorKey: "timesUsed",
     header: "Использовано",
+    cell: ({row}: any) => {
+      const timesUsed = Math.max(0, Number(row.original.timesUsed) || 0)
+
+      return h(
+          "button",
+          {
+            onClick: () => handleCodeClick(row.original),
+            class: "text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium transition-colors",
+            title: "Открыть историю использований промокода",
+          },
+          String(timesUsed),
+      );
+    },
   },
   {
     accessorKey: "description",

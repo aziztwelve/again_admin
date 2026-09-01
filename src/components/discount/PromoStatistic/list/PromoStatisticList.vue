@@ -16,7 +16,7 @@
           Использован:
         </span>
           <span class="font-medium text-blue-500">
-          {{ promo.timesUsed ?? 0 }}
+          {{ Math.max(0, Number(promo.timesUsed) || 0) }}
         </span>
         </div>
       </div>
