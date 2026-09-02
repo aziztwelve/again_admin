@@ -37,6 +37,7 @@
 
 <script setup lang="ts">
 import {h, computed} from "vue";
+import {Check, X} from "lucide-vue-next";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import {RouterLink, useRouter} from "vue-router";
 import IconButtons from "@/components/dynamics/IconButtons.vue";
@@ -141,25 +142,7 @@ const columns = computed(() => [
       // вложенный popover-триггер скрывал кнопку «Применить».
       inline: true,
     }),
-    // В этом столбце дополнительно показываем назначенного менеджера —
-    // чтобы видеть «когда + кто ведёт заказ» в одной колонке без скролла.
-    // Полноценный столбец «Менеджер» (с фильтром) остаётся ниже.
-    cell: ({row}: any) => {
-      const date = formatDateToRussian(row.original.created_at)
-      const u = row.original?.assigned_user
-      let manager = ''
-      if (u) {
-        const p = u.profile || {}
-        manager = [p.first_name, p.last_name].filter(Boolean).join(' ').trim()
-            || u.full_name
-            || u.email
-            || `#${u.id}`
-      }
-      return h('div', {class: 'flex flex-col leading-tight'}, [
-        h('span', {}, date),
-        h('span', {class: 'text-xs text-muted-foreground min-h-[1em]'}, manager || '\u00A0'),
-      ])
-    }
+    cell: ({row}: any) => formatDateToRussian(row.original.created_at),
   },
   {
     accessorKey: "total_amount",
@@ -209,7 +192,7 @@ const columns = computed(() => [
   },
   {
     accessorKey: "assigned_user",
-    header: headerWithFilter('Менеджер', {
+    header: headerWithFilter('Ответственный', {
       type: 'select',
       field: 'assigned_user_id',
       placeholder: 'Выберите менеджера',
@@ -223,6 +206,24 @@ const columns = computed(() => [
       const p = u.profile || {}
       const fullName = [p.first_name, p.last_name].filter(Boolean).join(' ').trim()
       return fullName || u.full_name || u.email || `#${u.id}`
+    },
+  },
+  {
+    accessorKey: "moysklad_order_uuid",
+    header: "Выгрузка в МойСклад",
+    cell: ({row}: any) => {
+      const exported = Boolean(row.original?.moysklad_order_uuid)
+      const syncedAt = row.original?.moysklad_synced_at
+
+      return h('span', {
+        class: exported
+            ? 'inline-flex items-center gap-1 text-green-700 whitespace-nowrap'
+            : 'inline-flex items-center gap-1 text-gray-500 whitespace-nowrap',
+        title: exported && syncedAt ? `Выгружен: ${formatDateToRussian(syncedAt)}` : 'Заказ ещё не выгружен в МойСклад',
+      }, [
+        h(exported ? Check : X, {class: 'h-4 w-4'}),
+        exported ? 'Выгружен' : 'Не выгружен',
+      ])
     },
   },
   {

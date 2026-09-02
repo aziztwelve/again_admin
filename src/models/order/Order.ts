@@ -32,6 +32,8 @@ export default class Order {
     // Менеджер, прикреплённый к заказу (User + profile). Используется
     // в столбце «Менеджер» в списке заказов.
     assigned_user: Record<string, any> | null | undefined;
+    moysklad_order_uuid: string | null | undefined;
+    moysklad_synced_at: string | null | undefined;
     delivery_target: any;
     delivery_target_id: number | undefined;
     discount_amount: string | undefined;
@@ -62,6 +64,8 @@ export default class Order {
         this.delivery_address = null;
         this.address = null;
         this.assigned_user = null;
+        this.moysklad_order_uuid = null;
+        this.moysklad_synced_at = null;
         this.delivery_target = undefined;
         this.delivery_target_id = undefined;
         this.discount_amount = undefined;
@@ -97,6 +101,8 @@ export default class Order {
         // набором полей (без recipient_*), поэтому хранить дублируем.
         order.address = json.address ?? null;
         order.assigned_user = json.assigned_user ?? null;
+        order.moysklad_order_uuid = json.moysklad_order_uuid ?? null;
+        order.moysklad_synced_at = json.moysklad_synced_at ?? null;
         order.delivery_target = json.delivery_target ?? null;
         order.delivery_target_id = json.delivery_target_id ?? json.delivery_target?.id;
         order.discount_amount = json.discount_amount || 0;
