@@ -13,10 +13,6 @@
         <PromotionList />
       </template>
 
-      <template #promoStatistic>
-        <PromoStatistic />
-      </template>
-
       <template #referalka>
         <Referalka />
       </template>
@@ -35,7 +31,6 @@ import DynamicTabs from "@/components/dynamics/shadcn/DynamicTabs.vue";
 import DiscountList from "@/components/discount/DiscountList.vue";
 import PromoList from "@/components/discount/Promo/PromoList.vue";
 import PromotionList from "@/components/discount/Promotion/PromotionList.vue";
-import PromoStatistic from "@/components/discount/PromoStatistic/PromoStatistic.vue";
 // import Referalka from '@/components/discount/Referalka.vue';
 // import Sertifik from '@/components/discount/Sertifik.vue';
 
@@ -54,7 +49,6 @@ onMounted(() => {
     { title: "Скидки", tab: "discount" },
     { title: "Промокоды", tab: "promo" },
     { title: "Акции", tab: "promotion" },
-    { title: "Статистика", tab: "promoStatistic", disabled: true },
     { title: "Рефералка", tab: "referalka", disabled: true },
     { title: "Сертификаты", tab: "sertifik", disabled: true },
   ];

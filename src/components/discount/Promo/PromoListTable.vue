@@ -19,14 +19,14 @@
 </template>
 
 <script setup lang="ts">
-import {h, PropType, ref, onBeforeUnmount} from "vue";
+import {h, PropType, ref} from "vue";
+import {useRouter} from "vue-router";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import {Check, X, Copy} from 'lucide-vue-next';
 import {PromoCode} from "@/models/PromoCode";
 import {usePromoCodeFunctions} from "@/composables/usePromoCodeFunctions";
 import {useDateFormat} from "@/composables/useDateFormat";
 import PromoEdit from "@/components/discount/Promo/PromoEdit.vue";
-import {useStore} from "vuex";
 import {getCustomerTypeLabel, getDiscountTargetLabel} from "@/constants/DiscountType";
 
 const props = defineProps({
@@ -51,21 +51,16 @@ const {deletePromoCode, updatePromoCode} = usePromoCodeFunctions();
 const {duplicatePromoCode} = usePromoCodeFunctions();
 const {formatDateToRussian} = useDateFormat();
 
-const store = useStore();
+const router = useRouter();
 
-
-// Обработчик клика на код промокода
-const handleCodeClick = (promoCode: PromoCode) => {
-
-  store.commit("tabs/set_activeTab", 'promoStatistic');
-
-  store.commit("tabs/enable_tab", 'promoStatistic');
-
-  store.commit("tabs/set_dynamic_data", {
-    tabName: 'promoStatistic',
-    data: promoCode,
-  })
-
+const openPromoOrders = (promoCode: PromoCode) => {
+  router.push({
+    path: '/orders/list',
+    query: {
+      promo_code_id: promoCode.id,
+      promo_code: promoCode.code,
+    },
+  });
 };
 
 const deletePromoCodeHandle = async (promo: PromoCode) => {
@@ -104,17 +99,6 @@ const columns = [
   {
     accessorKey: "code",
     header: "Код",
-    cell: ({row}: any) => {
-      return h(
-          "button",
-          {
-            onClick: () => handleCodeClick(row.original),
-            class: "text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium transition-colors",
-            title: "Нажмите для просмотра статистики",
-          },
-          row.original.code
-      );
-    }
   },
 
   {
@@ -162,18 +146,18 @@ const columns = [
   },
   {
     accessorKey: "timesUsed",
-    header: "Использовано",
+    header: "Использован",
     cell: ({row}: any) => {
       const timesUsed = Math.max(0, Number(row.original.timesUsed) || 0)
 
       return h(
           "button",
           {
-            onClick: () => handleCodeClick(row.original),
+            onClick: () => openPromoOrders(row.original),
             class: "text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium transition-colors",
-            title: "Открыть историю использований промокода",
+            title: "Открыть заказы с этим промокодом",
           },
-          String(timesUsed),
+          `Использован ${timesUsed} раз(а)`,
       );
     },
   },
