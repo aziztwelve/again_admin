@@ -145,6 +145,13 @@ const columns = computed(() => [
     cell: ({row}: any) => formatDateToRussian(row.original.created_at),
   },
   {
+    accessorKey: "delivery_date",
+    header: "Доставить",
+    cell: ({row}: any) => row.original?.delivery_date
+      ? formatDateToRussian(row.original.delivery_date)
+      : '—',
+  },
+  {
     accessorKey: "total_amount",
     header: headerWithFilter('Сумма', {
       type: 'number_range',
@@ -176,54 +183,6 @@ const columns = computed(() => [
       const fromAddress = [a.recipient_last_name, a.recipient_first_name, a.recipient_middle_name]
         .filter(Boolean).join(' ').trim()
       return fromAddress || '—'
-    },
-  },
-  {
-    accessorKey: "client.email",
-    header: headerWithFilter('Email', {
-      type: 'text',
-      field: 'email',
-      placeholder: 'Email клиента',
-    }),
-    cell: ({row}: any) => {
-      const email = row.original?.client?.email || row.original?.email || '—'
-      return h('span', {class: 'text-sm text-gray-700 break-all'}, email)
-    },
-  },
-  {
-    accessorKey: "assigned_user",
-    header: headerWithFilter('Ответственный', {
-      type: 'select',
-      field: 'assigned_user_id',
-      placeholder: 'Выберите менеджера',
-      options: managerFilterOptions.value,
-      optionValue: 'value',
-      optionLabel: 'label',
-    }),
-    cell: ({row}: any) => {
-      const u = row.original?.assigned_user
-      if (!u) return '—'
-      const p = u.profile || {}
-      const fullName = [p.first_name, p.last_name].filter(Boolean).join(' ').trim()
-      return fullName || u.full_name || u.email || `#${u.id}`
-    },
-  },
-  {
-    accessorKey: "moysklad_order_uuid",
-    header: "Выгрузка в МойСклад",
-    cell: ({row}: any) => {
-      const exported = Boolean(row.original?.moysklad_order_uuid)
-      const syncedAt = row.original?.moysklad_synced_at
-
-      return h('span', {
-        class: exported
-            ? 'inline-flex items-center gap-1 text-green-700 whitespace-nowrap'
-            : 'inline-flex items-center gap-1 text-gray-500 whitespace-nowrap',
-        title: exported && syncedAt ? `Выгружен: ${formatDateToRussian(syncedAt)}` : 'Заказ ещё не выгружен в МойСклад',
-      }, [
-        h(exported ? Check : X, {class: 'h-4 w-4'}),
-        exported ? 'Выгружен' : 'Не выгружен',
-      ])
     },
   },
   {
@@ -287,6 +246,42 @@ const columns = computed(() => [
       optionValue: 'value',
       optionLabel: 'label',
     }),
+  },
+  {
+    accessorKey: "assigned_user",
+    header: headerWithFilter('Ответственный', {
+      type: 'select',
+      field: 'assigned_user_id',
+      placeholder: 'Выберите менеджера',
+      options: managerFilterOptions.value,
+      optionValue: 'value',
+      optionLabel: 'label',
+    }),
+    cell: ({row}: any) => {
+      const u = row.original?.assigned_user
+      if (!u) return '—'
+      const p = u.profile || {}
+      const fullName = [p.first_name, p.last_name].filter(Boolean).join(' ').trim()
+      return fullName || u.full_name || u.email || `#${u.id}`
+    },
+  },
+  {
+    accessorKey: "moysklad_order_uuid",
+    header: "Выгрузка в МойСклад",
+    cell: ({row}: any) => {
+      const exported = Boolean(row.original?.moysklad_order_uuid)
+      const syncedAt = row.original?.moysklad_synced_at
+
+      return h('span', {
+        class: exported
+            ? 'inline-flex items-center gap-1 text-green-700 whitespace-nowrap'
+            : 'inline-flex items-center gap-1 text-gray-500 whitespace-nowrap',
+        title: exported && syncedAt ? `Выгружен: ${formatDateToRussian(syncedAt)}` : 'Заказ ещё не выгружен в МойСклад',
+      }, [
+        h(exported ? Check : X, {class: 'h-4 w-4'}),
+        exported ? 'Выгружен' : 'Не выгружен',
+      ])
+    },
   },
 
 ]);
