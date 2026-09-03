@@ -80,6 +80,7 @@ const titleSuffix = computed(() => {
 // Метаданные по всем статусам заказов (синхронизировано с App\Enums\OrderStatus)
 const STATUS_META: Record<string, { label: string; color: string }> = {
   new:            { label: 'Новые',              color: '#EF4444' },
+  approved:       { label: 'Согласован',          color: '#60A5FA' },
   processing:     { label: 'В обработке',        color: '#F59E0B' },
   shipped:        { label: 'Отгружен',           color: '#7391ec' },
   delivered:      { label: 'Доставлен',          color: '#6fbaba' },
