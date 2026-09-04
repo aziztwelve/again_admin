@@ -91,20 +91,15 @@
       </div>
 
       <!-- Возврат оплаты: клиент отказался от покупки после оплаты -->
-      <div v-if="canRefundPayment" class="col-span-2">
-        <Label class="block text-xs uppercase text-gray-500">
-          Возврат оплаты
-        </Label>
-        <div class="mt-1">
-          <Button
-            type="button"
-            variant="destructive"
-            :disabled="refunding"
-            @click="onRefundPayment"
-          >
-            {{ refunding ? "Возврат оплаты..." : "Отменить оплату" }}
-          </Button>
-        </div>
+      <div v-if="canRefundPayment" class="col-span-2 pt-4">
+        <Button
+          type="button"
+          variant="destructive"
+          :disabled="refunding"
+          @click="onRefundPayment"
+        >
+          {{ refunding ? "Возврат оплаты..." : "Отменить оплату" }}
+        </Button>
       </div>
     </div>
   </section>
