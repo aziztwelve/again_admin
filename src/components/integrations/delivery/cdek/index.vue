@@ -14,7 +14,7 @@
         <div class="field field--wide city-field">
           <span>Город отправки:</span>
           <div class="city-autocomplete">
-            <Input v-model="cityQuery" placeholder="Начните вводить город или адрес склада…" autocomplete="off" @focus="openCities" @input="onCityInput" @blur="cityOpen = false" @keydown.down.prevent="moveCity(1)" @keydown.up.prevent="moveCity(-1)" @keydown.enter.prevent="pickActiveCity" @keydown.esc="cityOpen = false" />
+            <Input v-model="cityQuery" placeholder="Начните вводить город или адрес склада…" autocomplete="off" @focus="openCities" @click="openCities" @input="onCityInput" @blur="cityOpen = false" @keydown.down.prevent="moveCity(1)" @keydown.up.prevent="moveCity(-1)" @keydown.enter.prevent="pickActiveCity" @keydown.esc="cityOpen = false" />
             <div v-if="cityOpen" class="city-list" @mousedown.prevent>
               <p v-if="cityLoading" class="tariff-empty">Загружаем склады СДЭК…</p>
               <template v-else>
@@ -103,16 +103,19 @@ const defaultForm = () => ({ enabled: false, account: '', secure_password: '', s
 const form = ref(defaultForm()); const saving = ref(false); const loadingTariffs = ref(false); const tariffDialogOpen = ref(false); const tariffs = ref<Tariff[]>([]); const api = 'third-party-integrations/cdek'
 const cityQuery = ref(''); const cityOpen = ref(false); const cityIndex = ref(-1); const cityLoading = ref(false); const cities = ref<Warehouse[]>([]); const cityLimit = 100
 let cityTimer: ReturnType<typeof setTimeout> | null = null
+let lastCityQuery: string | null = null
 const loadCities = async () => {
   cityLoading.value = true
+  const query = cityQuery.value.trim()
+  lastCityQuery = query
   try {
-    const { data } = await axios.get(`${api}/warehouses`, { params: { query: cityQuery.value.trim(), limit: cityLimit } })
+    const { data } = await axios.get(`${api}/warehouses`, { params: { query, limit: cityLimit } })
     cities.value = data.warehouses ?? []
     cityIndex.value = cities.value.length ? 0 : -1
   } finally { cityLoading.value = false }
 }
 const onCityInput = () => { if (cityTimer) clearTimeout(cityTimer); cityTimer = setTimeout(loadCities, 300) }
-const openCities = () => { cityOpen.value = true; if (!cities.value.length && !cityLoading.value) loadCities() }
+const openCities = () => { cityOpen.value = true; if (lastCityQuery !== cityQuery.value.trim()) loadCities() }
 const selectCity = (warehouse: Warehouse) => {
   form.value.sender.city_name = warehouse.city
   form.value.sender.city_code = warehouse.city_code
