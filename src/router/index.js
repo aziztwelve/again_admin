@@ -77,6 +77,11 @@ const routes = [
                         component: () => import('../components/orders/view/OrderView.vue'),
                     },
                     {
+                        path: '/order/:id/cdek',
+                        name: 'orders-cdek',
+                        component: () => import('../components/orders/cdek/OrderCdekCard.vue'),
+                    },
+                    {
                         path: '/orders/tasks',
                         name: 'orders-tasks',
                         component: () => import('../components/orders/tasks'),
