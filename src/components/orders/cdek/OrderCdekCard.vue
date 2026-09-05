@@ -148,9 +148,9 @@
               <Route class="info-line__ico" :size="18" />
               <span>{{ tariffLine }}</span>
             </p>
-            <p v-if="delivery.period" class="info-line">
+            <p v-if="periodLine" class="info-line">
               <CalendarClock class="info-line__ico" :size="18" />
-              <span>Срок: {{ delivery.period }}</span>
+              <span>Срок: {{ periodLine }}</span>
             </p>
             <p v-if="deliveryLabel" class="info-line">
               <Truck class="info-line__ico" :size="18" />
@@ -285,8 +285,17 @@ const tariffLine = computed(() => {
 });
 const deliveryLabel = computed(() => {
   const type = cdekOrder.value?.delivery_type || delivery.value?.delivery_type;
-  const mode = cdekOrder.value?.delivery_mode || delivery.value?.delivery_mode;
-  return [type, mode].filter(Boolean).join(" / ") || null;
+  const label = { courier: "Курьер", pickup: "Пункт выдачи", postamat: "Постамат" }[type] || type;
+  return label || null;
+});
+const periodLine = computed(() => {
+  const period = delivery.value?.period;
+  if (!period) return null;
+  if (typeof period === "string") return period;
+  const min = Number(period.min);
+  const max = Number(period.max);
+  if (min && max) return min === max ? `${min} дн.` : `${min}–${max} дн.`;
+  return null;
 });
 const creationStateClass = computed(() => String(cdekOrder.value?.creation_state || "none").toLowerCase());
 
