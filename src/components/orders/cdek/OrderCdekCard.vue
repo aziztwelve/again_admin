@@ -60,45 +60,79 @@
 
         <h4>Товары в заказе</h4>
 
-        <div class="cdek-items">
-          <div class="cdek-items__row cdek-items__row--head">
-            <div class="cdek-items__main">
-              <small>Артикул</small>
-              Наименование товара
-              <small>Вес товара</small>
-            </div>
-            <div class="cdek-items__nums">
-              <div class="cdek-items__grid">
-                <div class="greenka greenka--head">Количество<br>штук</div>
-                <div class="greenka greenka--head">Стоимость<br>товара</div>
-                <div class="greenka greenka--head">Объявленная<br>стоимость</div>
-              </div>
-              <small class="cdek-items__vat">В том числе НДС: ставка (сумма РУБ)</small>
-            </div>
-          </div>
-
-          <hr class="mid-line" />
-
-          <div v-for="(item, i) in orderItems" :key="item.id || i" class="cdek-items__row">
-            <div class="cdek-items__main">
-              <small>Артикул: {{ itemSku(item) }}</small>
-              <span class="cdek-items__name">{{ itemName(item) }}</span>
-              <small>Вес: {{ itemWeight(item) }} гр.</small>
-            </div>
-            <div class="cdek-items__nums">
-              <div class="cdek-items__grid">
-                <div class="greenka">{{ itemQty(item) }} шт.</div>
-                <div class="greenka">{{ formatRub(itemUnitPrice(item)) }}</div>
-                <div class="greenka">{{ formatRub(itemDeclaredCost(item)) }}</div>
-              </div>
-              <small class="cdek-items__vat">В том числе НДС: без НДС</small>
-            </div>
-          </div>
-
-          <p v-if="!orderItems.length" class="cdek-empty">Позиций нет.</p>
+        <div class="cdek-order__table-wrap">
+          <table class="cdek-table">
+            <thead>
+              <tr>
+                <th class="cdek-table__num">№</th>
+                <th>Фото</th>
+                <th>Артикул</th>
+                <th>Наименование</th>
+                <th class="cdek-table__right">Вес, г</th>
+                <th class="cdek-table__right">Кол-во</th>
+                <th class="cdek-table__right">Цена</th>
+                <th class="cdek-table__right">Сумма</th>
+                <th class="cdek-table__right">Объявл. стоимость</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, i) in orderItems" :key="item.id || i">
+                <td class="cdek-table__num">{{ i + 1 }}</td>
+                <td>
+                  <img
+                    v-if="itemImage(item)"
+                    :src="itemImage(item)"
+                    alt=""
+                    class="cdek-table__thumb"
+                  />
+                  <div v-else class="cdek-table__thumb cdek-table__thumb--empty"></div>
+                </td>
+                <td>{{ itemSku(item) }}</td>
+                <td>
+                  <div class="cdek-table__name">
+                    {{ itemName(item) }}
+                    <span v-if="item.is_gift" class="cdek-table__gift">Подарок</span>
+                  </div>
+                  <div v-if="variantLabel(item)" class="cdek-table__variant">
+                    <span
+                      v-if="variantColor(item)"
+                      class="cdek-table__dot"
+                      :style="{ background: variantColor(item) }"
+                    ></span>
+                    {{ variantLabel(item) }}
+                  </div>
+                </td>
+                <td class="cdek-table__right">{{ itemWeight(item) }}</td>
+                <td class="cdek-table__right">{{ itemQty(item) }}</td>
+                <td class="cdek-table__right">
+                  <span v-if="item.is_gift" class="cdek-table__free">Бесплатно</span>
+                  <template v-else>{{ formatRub(itemUnitPrice(item)) }}</template>
+                </td>
+                <td class="cdek-table__right cdek-table__strong">
+                  <span v-if="item.is_gift" class="cdek-table__free">Бесплатно</span>
+                  <template v-else>{{ formatRub(itemUnitPrice(item) * itemQty(item)) }}</template>
+                </td>
+                <td class="cdek-table__right">{{ formatRub(itemDeclaredCost(item) * itemQty(item)) }}</td>
+              </tr>
+              <tr v-if="!orderItems.length">
+                <td colspan="9" class="cdek-table__empty">Позиций нет.</td>
+              </tr>
+            </tbody>
+            <tfoot v-if="orderItems.length">
+              <tr>
+                <td colspan="4" class="cdek-table__strong">Итого</td>
+                <td class="cdek-table__right">{{ itemsTotalWeight }}</td>
+                <td class="cdek-table__right">{{ itemsTotalQty }}</td>
+                <td></td>
+                <td class="cdek-table__right cdek-table__strong">{{ formatRub(itemsTotalSum) }}</td>
+                <td class="cdek-table__right cdek-table__strong">{{ formatRub(itemsTotalDeclared) }}</td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
-
-        <hr class="mid-line" />
+        <p class="cdek-table__note">
+          Объявленная стоимость — по настройкам СДЭК: фиксированное значение, иначе процент, иначе цена позиции.
+        </p>
         <h4>Информация о доставке</h4>
 
         <div class="bot-flex">
@@ -345,6 +379,12 @@ const variantLabel = (item) => {
   return [color, size].filter(Boolean).join(" / ") || null;
 };
 
+const variantColor = (item) =>
+  item?.color?.code || item?.variant?.table_color?.code || item?.variant?.color?.code || null;
+
+const itemImage = (item) =>
+  item?.variant?.images?.[0]?.url || item?.product?.images?.[0]?.url || null;
+
 const itemName = (item) => {
   const name = item?.product?.name || item?.legacy_name || item?.name || "—";
   const variant = variantLabel(item);
@@ -379,6 +419,24 @@ const itemDeclaredCost = (item) => {
   if (percent > 0) return Math.round((price * percent) / 100 * 100) / 100;
   return price;
 };
+
+const itemsTotalQty = computed(() =>
+  orderItems.value.reduce((sum, item) => sum + itemQty(item), 0),
+);
+const itemsTotalSum = computed(() =>
+  orderItems.value.reduce((sum, item) => sum + itemUnitPrice(item) * itemQty(item), 0),
+);
+const itemsTotalDeclared = computed(() =>
+  orderItems.value.reduce((sum, item) => sum + itemDeclaredCost(item) * itemQty(item), 0),
+);
+const itemsTotalWeight = computed(() =>
+  new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(
+    orderItems.value.reduce(
+      (sum, item) => sum + Number(item?.variant?.weight || item?.product?.weight || 0) * itemQty(item),
+      0,
+    ),
+  ),
+);
 
 const formatRub = (value) => {
   const n = Number(value || 0);
@@ -623,65 +681,120 @@ watch(
   color: #0b6b25;
 }
 
-.cdek-items__row {
-  display: flex;
-  gap: 18px;
-  padding: 8px 0;
+.cdek-order__table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
 }
 
-.cdek-items__main {
-  flex: 1 1 54%;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-size: 15px;
-}
-
-.cdek-items__row--head .cdek-items__main {
-  gap: 6px;
-}
-
-.cdek-items__main small {
-  color: #8a8a8a;
-  font-size: 12px;
-}
-
-.cdek-items__name {
-  font-weight: 600;
-}
-
-.cdek-items__nums {
-  flex: 1 1 46%;
-}
-
-.cdek-items__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.greenka {
-  background: #eaf6ec;
-  color: #116027;
-  text-align: center;
-  padding: 8px 6px;
-  border-radius: 4px;
+.cdek-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 14px;
-  line-height: 1.3;
+  color: #374151;
+  min-width: 860px;
 }
 
-.greenka--head {
-  background: #008b16;
-  color: #fff;
+.cdek-table th {
+  padding: 9px 12px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.cdek-table td {
+  padding: 10px 12px;
+  border-top: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.cdek-table tfoot td {
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 10px 12px;
+}
+
+.cdek-table__right {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cdek-table__num {
+  width: 34px;
+  color: #9ca3af;
+}
+
+.cdek-table__strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+.cdek-table__thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  display: block;
+}
+
+.cdek-table__thumb--empty {
+  background: #f3f4f6;
+}
+
+.cdek-table__name {
+  color: #111827;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.cdek-table__variant {
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.cdek-table__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  flex-shrink: 0;
+}
+
+.cdek-table__gift {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #d1fae5;
+  color: #047857;
+  font-size: 11px;
   font-weight: 600;
 }
 
-.cdek-items__vat {
-  display: block;
-  margin-top: 6px;
-  color: #8a8a8a;
-  font-size: 11.5px;
+.cdek-table__free {
+  color: #059669;
+  font-weight: 600;
+}
+
+.cdek-table__empty {
+  padding: 22px 12px;
   text-align: center;
+  color: #9ca3af;
+}
+
+.cdek-table__note {
+  margin: 8px 0 0;
+  color: #9ca3af;
+  font-size: 12px;
 }
 
 .mid-line {
@@ -897,11 +1010,6 @@ watch(
 
   .cdek-order__body {
     padding: 16px 16px 20px;
-  }
-
-  .cdek-items__row {
-    flex-direction: column;
-    gap: 8px;
   }
 }
 </style>
