@@ -385,11 +385,8 @@ const variantColor = (item) =>
 const itemImage = (item) =>
   item?.variant?.images?.[0]?.url || item?.product?.images?.[0]?.url || null;
 
-const itemName = (item) => {
-  const name = item?.product?.name || item?.legacy_name || item?.name || "—";
-  const variant = variantLabel(item);
-  return variant ? `${name} (${variant})` : name;
-};
+const itemName = (item) =>
+  item?.product?.name || item?.legacy_name || item?.name || "—";
 
 const itemUnitPrice = (item) => {
   if (item?.is_gift) return 0;
@@ -404,12 +401,11 @@ const itemUnitPrice = (item) => {
 
 const itemQty = (item) => Number(item?.quantity || 0);
 
-const itemWeight = (item) => {
-  const weight = Number(
-    item?.variant?.weight || item?.product?.weight || defaultPackage.value?.weight || 500,
-  );
-  return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(weight || 0);
-};
+const itemWeight = (item) =>
+  new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(itemWeightValue(item));
+
+const itemWeightValue = (item) =>
+  Number(item?.variant?.weight || item?.product?.weight || defaultPackage.value?.weight || 500) || 0;
 
 const itemDeclaredCost = (item) => {
   const price = itemUnitPrice(item);
@@ -431,10 +427,7 @@ const itemsTotalDeclared = computed(() =>
 );
 const itemsTotalWeight = computed(() =>
   new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(
-    orderItems.value.reduce(
-      (sum, item) => sum + Number(item?.variant?.weight || item?.product?.weight || 0) * itemQty(item),
-      0,
-    ),
+    orderItems.value.reduce((sum, item) => sum + itemWeightValue(item) * itemQty(item), 0),
   ),
 );
 
