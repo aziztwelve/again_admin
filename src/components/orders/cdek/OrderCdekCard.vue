@@ -136,9 +136,9 @@
             <p class="info-line">
               <MapPin class="info-line__ico" :size="18" />
               <span>
-                {{ destinationLine }}
+                {{ destinationPlace || fullAddress || "—" }}
                 <template v-if="isPickup"><br><b>В пункт ПВЗ</b>: {{ pvzLine }}</template>
-                <template v-else-if="fullAddress"><br>{{ fullAddress }}</template>
+                <template v-else-if="destinationPlace && fullAddress"><br>{{ fullAddress }}</template>
               </span>
             </p>
           </div>
@@ -265,11 +265,11 @@ const orderNumber = computed(() => order.value?.order_number || order.value?.id)
 const isPickup = computed(() =>
   ["pickup", "postamat"].includes(delivery.value?.delivery_type || cdekOrder.value?.delivery_type),
 );
-const destinationLine = computed(() => {
+const destinationPlace = computed(() => {
   const d = delivery.value?.destination || {};
-  if (d.city) return ["Россия", `г. ${d.city}`].join(", ");
-  if (d.region) return ["Россия", d.region].join(", ");
-  return fullAddress.value || "—";
+  if (d.city) return `Россия, г. ${d.city}`;
+  if (d.region) return `Россия, ${d.region}`;
+  return null;
 });
 const pvzLine = computed(() => {
   const pvz = delivery.value?.pvz;
@@ -279,7 +279,8 @@ const pvzLine = computed(() => {
 });
 const tariffLine = computed(() => {
   if (delivery.value?.tariff_name) return delivery.value.tariff_name;
-  if (cdekOrder.value?.tariff_code) return `Код тарифа ${cdekOrder.value.tariff_code}`;
+  const code = cdekOrder.value?.tariff_code || delivery.value?.tariff_code;
+  if (code) return `Код тарифа ${code}`;
   return "—";
 });
 const deliveryLabel = computed(() => {
