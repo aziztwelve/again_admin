@@ -8,6 +8,7 @@
             <label class="field"><span>Аккаунт:</span><Input v-model="form.account" placeholder="Укажите аккаунт…" autocomplete="off" /></label>
             <label class="field"><span>Пароль:</span><Input v-model="form.secure_password" type="password" placeholder="Оставьте пустым, чтобы не менять" autocomplete="new-password" /></label>
           </div>
+          <p class="help">Пароль скрыт в целях безопасности: он не возвращается с сервера и показывается пустым. Поле заполняйте только при смене пароля — пустое поле при сохранении оставит текущий пароль без изменений.</p>
           <p class="help">Используйте идентификатор и secure password, созданные в разделе «Интеграция» личного кабинета СДЭК.</p>
         </section>
         <h1>Параметры отправки</h1>
