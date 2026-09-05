@@ -523,9 +523,7 @@ const createOrSync = async () => {
     else toast.success(message, { description: "Статус обновится после синхронизации с СДЭК." });
     await fetchOrder(order.value.id);
   } catch (e) {
-    toast.error("Не удалось обновить заявку СДЭК", {
-      description: e?.response?.data?.message || "",
-    });
+    toast.error(e?.response?.data?.message || "Не удалось обновить заявку СДЭК");
   } finally {
     loading.value = false;
   }

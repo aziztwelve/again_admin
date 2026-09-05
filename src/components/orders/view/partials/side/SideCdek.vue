@@ -28,6 +28,7 @@
 import { computed, ref } from 'vue';
 import axios from 'axios';
 import Button from '@/components/ui/button/Button.vue';
+import { toast } from 'vue-sonner';
 
 const props = defineProps({
   order: { type: Object, required: true },
@@ -44,6 +45,8 @@ const createOrSync = async () => {
   try {
     await axios.post(`/orders/${props.order.id}/cdek-delivery/create`);
     emit('refresh');
+  } catch (error) {
+    toast.error(error?.response?.data?.message || 'Не удалось создать заявку СДЭК');
   } finally {
     loading.value = false;
   }
