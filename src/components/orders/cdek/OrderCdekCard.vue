@@ -73,6 +73,7 @@
                 <th class="cdek-table__right">Цена</th>
                 <th class="cdek-table__right">Сумма</th>
                 <th class="cdek-table__right">Объявл. стоимость</th>
+                <th class="cdek-table__right">НДС</th>
               </tr>
             </thead>
             <tbody>
@@ -113,9 +114,13 @@
                   <template v-else>{{ formatRub(itemUnitPrice(item) * itemQty(item)) }}</template>
                 </td>
                 <td class="cdek-table__right">{{ formatRub(itemDeclaredCost(item) * itemQty(item)) }}</td>
+                <td class="cdek-table__right">
+                  <template v-if="vatRate">{{ vatRate }}% ({{ formatRub(itemVat(item)) }})</template>
+                  <span v-else class="cdek-table__muted">без НДС</span>
+                </td>
               </tr>
               <tr v-if="!orderItems.length">
-                <td colspan="9" class="cdek-table__empty">Позиций нет.</td>
+                <td colspan="10" class="cdek-table__empty">Позиций нет.</td>
               </tr>
             </tbody>
             <tfoot v-if="orderItems.length">
@@ -126,12 +131,17 @@
                 <td></td>
                 <td class="cdek-table__right cdek-table__strong">{{ formatRub(itemsTotalSum) }}</td>
                 <td class="cdek-table__right cdek-table__strong">{{ formatRub(itemsTotalDeclared) }}</td>
+                <td class="cdek-table__right cdek-table__strong">
+                  <template v-if="vatRate">{{ formatRub(itemsTotalVat) }}</template>
+                  <span v-else class="cdek-table__muted">—</span>
+                </td>
               </tr>
             </tfoot>
           </table>
         </div>
         <p class="cdek-table__note">
           Объявленная стоимость — по настройкам СДЭК: фиксированное значение, иначе процент, иначе цена позиции.
+          НДС — по ставке из настроек СДЭК, выделяется из цены (цена включает НДС).
         </p>
         <h4>Информация о доставке</h4>
 
@@ -416,6 +426,17 @@ const itemDeclaredCost = (item) => {
   return price;
 };
 
+const vatRate = computed(() => {
+  const rate = Number(cdekSettings.value?.delivery_vat || 0);
+  return [0, 5, 7, 10, 16, 22].includes(rate) ? rate : 0;
+});
+
+const itemVat = (item) => {
+  if (!vatRate.value || item?.is_gift) return null;
+  const total = itemUnitPrice(item) * itemQty(item);
+  return Math.round(((total * vatRate.value) / (100 + vatRate.value)) * 100) / 100;
+};
+
 const itemsTotalQty = computed(() =>
   orderItems.value.reduce((sum, item) => sum + itemQty(item), 0),
 );
@@ -425,6 +446,10 @@ const itemsTotalSum = computed(() =>
 const itemsTotalDeclared = computed(() =>
   orderItems.value.reduce((sum, item) => sum + itemDeclaredCost(item) * itemQty(item), 0),
 );
+const itemsTotalVat = computed(() =>
+  orderItems.value.reduce((sum, item) => sum + (itemVat(item) || 0), 0),
+);
+
 const itemsTotalWeight = computed(() =>
   new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(
     orderItems.value.reduce((sum, item) => sum + itemWeightValue(item) * itemQty(item), 0),
@@ -685,7 +710,7 @@ watch(
   border-collapse: collapse;
   font-size: 14px;
   color: #374151;
-  min-width: 860px;
+  min-width: 980px;
 }
 
 .cdek-table th {
@@ -781,6 +806,10 @@ watch(
 .cdek-table__empty {
   padding: 22px 12px;
   text-align: center;
+  color: #9ca3af;
+}
+
+.cdek-table__muted {
   color: #9ca3af;
 }
 
