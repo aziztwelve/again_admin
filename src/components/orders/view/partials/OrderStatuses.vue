@@ -91,7 +91,7 @@
       </div>
 
       <!-- Возврат оплаты: клиент отказался от покупки после оплаты -->
-      <div v-if="canRefundPayment" class="col-span-2 pt-8">
+      <div v-if="canRefundPayment" class="col-span-2 lg:col-start-1">
         <Button
           type="button"
           variant="destructive"
