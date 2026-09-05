@@ -90,8 +90,10 @@
         </div>
       </div>
 
-      <!-- Возврат оплаты: клиент отказался от покупки после оплаты -->
-      <div v-if="canRefundPayment" class="col-span-2 lg:col-start-1">
+      <!-- Возврат оплаты: клиент отказался от покупки после оплаты.
+           Клетка справа от «Дата оплаты»: pt-7 = label(24px) + mt-1(4px),
+           верх кнопки совпадает с верхом инпута даты. -->
+      <div v-if="canRefundPayment" class="col-span-2 pt-7">
         <Button
           type="button"
           variant="destructive"
