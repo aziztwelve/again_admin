@@ -210,38 +210,59 @@
           class="cdek-order__error"
         >{{ cdekOrder.last_error }}</p>
 
-        <div class="cdek-order__actions">
-          <button class="cdek-btn-main" type="button" :disabled="loading" @click="createOrSync">
-            {{ cdekOrder?.cdek_uuid ? "Обновить статус заявки" : "Отправить данные в СДЭК" }}
-          </button>
-          <Button
-            v-if="cdekOrder?.cdek_uuid && !isFinal"
-            size="sm"
-            variant="destructive"
-            :disabled="loading"
-            @click="cancel"
-          >Отменить доставку</Button>
-        </div>
+        <template v-if="!cdekOrder?.cdek_uuid">
+          <div class="cdek-order__actions">
+            <button class="cdek-btn-main" type="button" :disabled="loading" @click="createOrSync">
+              Отправить данные в СДЭК
+            </button>
+          </div>
+        </template>
 
-        <div class="cdek-order__history">
-          <h4>История статусов</h4>
-          <ol v-if="statusEvents.length" class="cdek-timeline">
-            <li v-for="(event, i) in statusEvents" :key="event.id || i" class="cdek-timeline__item">
-              <span class="cdek-timeline__dot" :class="{ 'cdek-timeline__dot--active': i === 0 }"></span>
-              <span v-if="i < statusEvents.length - 1" class="cdek-timeline__line"></span>
-              <div class="cdek-timeline__body">
-                <p class="cdek-timeline__title">{{ event.status_name || event.status_code }}</p>
-                <p class="cdek-timeline__meta">
-                  {{ formatDateTime(event.status_at) || "дата неизвестна" }}
-                  <span v-if="event.source" class="cdek-timeline__source">{{ event.source }}</span>
-                </p>
-              </div>
-            </li>
-          </ol>
-          <p v-else class="cdek-empty">
-            Событий пока нет — статус появится после создания заявки и первой синхронизации.
-          </p>
-        </div>
+        <template v-else>
+          <div class="cdek-order__history">
+            <h4>История статусов заказа</h4>
+            <div class="cdek-order__table-wrap">
+              <table class="cdek-table cdek-table--history">
+                <thead>
+                  <tr>
+                    <th class="cdek-history__date">Дата</th>
+                    <th>Статус заказа</th>
+                    <th>Город</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(event, i) in statusEvents" :key="event.id || i">
+                    <td>{{ formatDateTime(event.status_at) || "—" }}</td>
+                    <td>{{ event.status_name || event.status_code }}</td>
+                    <td>{{ event.city || "—" }}</td>
+                  </tr>
+                  <tr v-if="!statusEvents.length">
+                    <td colspan="3" class="cdek-table__empty">Событий пока нет.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="cdek-order__actions">
+            <button class="cdek-btn-main" type="button" :disabled="loading" @click="printWaybill">
+              Печать накладной
+            </button>
+            <button class="cdek-btn-main" type="button" :disabled="loading" @click="printBarcode">
+              Печать ШК
+            </button>
+            <Button
+              variant="outline"
+              :disabled="loading"
+              @click="createOrSync"
+            >Обновить историю статусов</Button>
+            <Button
+              variant="destructive"
+              :disabled="loading"
+              @click="removeClaim"
+            >Удалить</Button>
+          </div>
+        </template>
       </template>
 
       <section v-else class="cdek-empty cdek-order__notcdek">
@@ -297,9 +318,6 @@ const statusEvents = computed(
 );
 const isCdekDelivery = computed(() =>
   String(order.value?.delivery_method?.code || order.value?.deliveryMethod?.code || "").startsWith("cdek_"),
-);
-const isFinal = computed(() =>
-  ["DELIVERED", "NOT_DELIVERED", "RETURNED_TO_SENDER"].includes(cdekOrder.value?.status_code),
 );
 const trackingUrl = computed(
   () => cdekOrder.value?.tracking_url || delivery.value?.tracking_url || null,
@@ -513,15 +531,43 @@ const createOrSync = async () => {
   }
 };
 
-const cancel = async () => {
-  if (!window.confirm("Отменить заявку в СДЭК?")) return;
+const openPrintUrl = async (kind) => {
+  // Окно открываем синхронно до запроса, иначе блокировщик всплывающих окон
+  // съест window.open, вызванный после await.
+  const win = window.open("", "_blank");
+  loading.value = true;
+  try {
+    const { data } = await axios.get(`/orders/${order.value.id}/cdek-delivery/${kind}`);
+    const url = data?.url;
+    if (url) {
+      if (win) win.location.href = url;
+      else window.open(url, "_blank");
+    } else {
+      win?.close();
+      toast.error("СДЭК не вернул ссылку на документ");
+    }
+  } catch (e) {
+    win?.close();
+    toast.error("Не удалось получить документ СДЭК", {
+      description: e?.response?.data?.message || "",
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
+const printWaybill = () => openPrintUrl("waybill");
+const printBarcode = () => openPrintUrl("barcode");
+
+const removeClaim = async () => {
+  if (!window.confirm("Удалить заявку в СДЭК? После удаления её можно будет создать заново.")) return;
   loading.value = true;
   try {
     await axios.post(`/orders/${order.value.id}/cdek-delivery/cancel`);
-    toast.success("Заявка СДЭК отменена");
+    toast.success("Заявка СДЭК удалена");
     await fetchOrder(order.value.id);
   } catch (e) {
-    toast.error("Не удалось отменить заявку", {
+    toast.error("Не удалось удалить заявку", {
       description: e?.response?.data?.message || "",
     });
   } finally {
@@ -906,71 +952,13 @@ watch(
   margin-top: 26px;
 }
 
-.cdek-timeline {
-  list-style: none;
-  margin: 12px 0 0;
-  padding: 0;
+.cdek-table--history {
+  min-width: 0;
 }
 
-.cdek-timeline__item {
-  position: relative;
-  display: flex;
-  gap: 14px;
-  padding-bottom: 18px;
-}
-
-.cdek-timeline__item:last-child {
-  padding-bottom: 0;
-}
-
-.cdek-timeline__dot {
-  width: 10px;
-  height: 10px;
-  margin-top: 5px;
-  border-radius: 999px;
-  background: #cdcdcd;
-  flex-shrink: 0;
-}
-
-.cdek-timeline__dot--active {
-  background: #0c5ba0;
-}
-
-.cdek-timeline__line {
-  position: absolute;
-  left: 4.5px;
-  top: 17px;
-  bottom: 0;
-  width: 1px;
-  background: #e0e0e0;
-}
-
-.cdek-timeline__item:last-child .cdek-timeline__line {
-  display: none;
-}
-
-.cdek-timeline__title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #050505;
-}
-
-.cdek-timeline__meta {
-  margin: 2px 0 0;
-  font-size: 12.5px;
-  color: #8a8a8a;
-}
-
-.cdek-timeline__source {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 1px 7px;
-  border-radius: 4px;
-  background: #f0f0f0;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+.cdek-history__date {
+  width: 170px;
+  white-space: nowrap;
 }
 
 .cdek-empty {
