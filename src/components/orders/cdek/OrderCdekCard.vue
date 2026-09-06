@@ -547,25 +547,42 @@ const createOrSync = async () => {
   }
 };
 
+const readBlobErrorMessage = async (blob) => {
+  try {
+    return JSON.parse((await blob?.text?.()) || "{}")?.message || "";
+  } catch {
+    return "";
+  }
+};
+
 const openPrintUrl = async (kind) => {
   // Окно открываем синхронно до запроса, иначе блокировщик всплывающих окон
-  // съест window.open, вызванный после await.
+  // съест window.open, вызванный после await. PDF отдаётся прокси-ответом
+  // (ссылки СДЭК требуют OAuth), поэтому качаем blob и подставляем в окно.
   const win = window.open("", "_blank");
   loading.value = true;
   try {
-    const { data } = await axios.get(`/orders/${order.value.id}/cdek-delivery/${kind}`);
-    const url = data?.url;
-    if (url) {
-      if (win) win.location.href = url;
-      else window.open(url, "_blank");
+    const { data } = await axios.get(`/orders/${order.value.id}/cdek-delivery/${kind}`, {
+      responseType: "blob",
+    });
+    if (data && data.type === "application/pdf") {
+      const url = URL.createObjectURL(data);
+      if (win) {
+        win.location.href = url;
+        win.onbeforeunload = () => URL.revokeObjectURL(url);
+      } else {
+        window.open(url, "_blank");
+      }
     } else {
       win?.close();
-      toast.error("СДЭК не вернул ссылку на документ");
+      toast.error("Не удалось получить документ СДЭК", {
+        description: await readBlobErrorMessage(data),
+      });
     }
   } catch (e) {
     win?.close();
     toast.error("Не удалось получить документ СДЭК", {
-      description: e?.response?.data?.message || "",
+      description: await readBlobErrorMessage(e?.response?.data),
     });
   } finally {
     loading.value = false;
