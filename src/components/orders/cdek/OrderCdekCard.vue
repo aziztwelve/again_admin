@@ -524,6 +524,9 @@ const createOrSync = async () => {
     await fetchOrder(order.value.id);
   } catch (e) {
     toast.error(e?.response?.data?.message || "Не удалось обновить заявку СДЭК");
+    // Причина отказа сохраняется в заявке — перечитываем заказ, чтобы она
+    // осталась на странице после закрытия всплывающего сообщения.
+    await fetchOrder(order.value.id);
   } finally {
     loading.value = false;
   }
