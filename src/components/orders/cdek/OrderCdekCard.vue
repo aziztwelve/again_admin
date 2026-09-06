@@ -528,7 +528,14 @@ const createOrSync = async () => {
   try {
     const { data } = await axios.post(`/orders/${order.value.id}/cdek-delivery/create`);
     const message = data?.message || "Готово";
-    toast.success(message);
+    const returnedError = data?.cdek_order?.last_error;
+    if (returnedError) {
+      // Бэкенд ответил 200, но заявка не создана: причина сохранена в заявке
+      // (например, в заказе не выбран тариф СДЭК).
+      toast.error(message, { description: returnedError });
+    } else {
+      toast.success(message);
+    }
     await fetchOrder(order.value.id);
   } catch (e) {
     toast.error(e?.response?.data?.message || "Не удалось обновить заявку СДЭК");
