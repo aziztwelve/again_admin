@@ -44,7 +44,7 @@
             <span class="cdek-status__label">Создание</span>
             <span class="cdek-status__value">
               <span class="cdek-badge" :class="`cdek-badge--${creationStateClass}`">
-                {{ cdekOrder?.creation_state || "заявка ещё не создана" }}
+                {{ creationStateLabel }}
               </span>
             </span>
           </div>
@@ -212,8 +212,8 @@
 
         <template v-if="!cdekOrder?.cdek_uuid">
           <div class="cdek-order__actions">
-            <button class="cdek-btn-main" type="button" :disabled="loading" @click="createOrSync">
-              Отправить данные в СДЭК
+            <button class="cdek-btn-main" type="button" :disabled="loading || creationQueued" @click="createOrSync">
+              {{ creationQueued ? "Заявка отправлена в СДЭК" : "Отправить данные в СДЭК" }}
             </button>
           </div>
         </template>
@@ -360,6 +360,13 @@ const periodLine = computed(() => {
   return null;
 });
 const creationStateClass = computed(() => String(cdekOrder.value?.creation_state || "none").toLowerCase());
+const creationQueued = computed(() =>
+  ["QUEUED", "ACCEPTED"].includes(String(cdekOrder.value?.creation_state || "")),
+);
+const creationStateLabel = computed(() => {
+  const state = cdekOrder.value?.creation_state;
+  return state === "QUEUED" ? "В очереди на создание" : state || "заявка ещё не создана";
+});
 
 const recipientName = computed(() => {
   const o = order.value || {};
@@ -515,12 +522,13 @@ const fetchCdekSettings = async () => {
 };
 
 const createOrSync = async () => {
+  if (loading.value || creationQueued.value) return;
+
   loading.value = true;
   try {
     const { data } = await axios.post(`/orders/${order.value.id}/cdek-delivery/create`);
     const message = data?.message || "Готово";
-    if (cdekOrder.value?.cdek_uuid) toast.success(message);
-    else toast.success(message, { description: "Статус обновится после синхронизации с СДЭК." });
+    toast.success(message);
     await fetchOrder(order.value.id);
   } catch (e) {
     toast.error(e?.response?.data?.message || "Не удалось обновить заявку СДЭК");
