@@ -7,13 +7,13 @@ export interface PaymentMethodOption {
 }
 
 const getDefaultPaymentMethods = (): PaymentMethodOption[] => ([
-    { value: 'card_ru', label: 'Оплата картой РФ' },
+    { value: 'card_ru', label: 'Оплата картами РФ, TPay, СБП' },
     { value: 'cloudpayments_tpay', label: 'T-Pay' },
     { value: 'cloudpayments_sbp', label: 'СБП' },
     { value: 'cloudpayments_sberpay', label: 'SberPay' },
     { value: 'cloudpayments_mirpay', label: 'Mir Pay' },
     { value: 'sberpay', label: 'SberPay, рассрочка, иностранная карта' },
-    { value: 'yandex_pay', label: 'Яндекс Пэй' },
+    { value: 'yandex_pay', label: 'Яндекс Пэй и Сплит' },
     { value: 'yandex_pay_split', label: 'Яндекс Сплит' },
     { value: 'cash_on_delivery', label: 'Наличными или картой при получении' },
     { value: 'pickup_payment', label: 'Оплата в точке самовывоза' },

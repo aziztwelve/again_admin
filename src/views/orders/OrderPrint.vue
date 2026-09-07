@@ -107,9 +107,10 @@ const supplier = "ООО ЭГЕЙН";
 
 const PAYMENT_METHOD_LABELS = {
   // Актуальные коды (после нормализации)
-  card_ru: "Оплата картой РФ",
+  card_ru: "Оплата картами РФ, TPay, СБП",
   sberpay: "SberPay, рассрочка, иностранная карта",
-  yandex_pay_split: "Яндекс Пэй и Сплит",
+  yandex_pay: "Яндекс Пэй и Сплит",
+  yandex_pay_split: "Яндекс Сплит",
   cash_on_delivery: "Наличными или картой при получении",
   pickup_payment: "Оплата в точке самовывоза",
   podeli: "Подели",
@@ -119,7 +120,6 @@ const PAYMENT_METHOD_LABELS = {
   card: "Оплата картой РФ",
   yookassa: "Оплата картой РФ",
   online: "Оплата картой РФ",
-  yandex_pay: "Яндекс Пэй и Сплит",
   split: "Яндекс Пэй и Сплит",
   cash: "Наличными или картой при получении",
   cod: "Наличными или картой при получении",
