@@ -13,7 +13,7 @@
         </section>
         <h1>Параметры отправки</h1>
         <div class="field field--wide city-field">
-          <span>Город отправки:</span>
+          <span>Склад/офис отправки:</span>
           <div class="city-autocomplete">
             <Input v-model="cityQuery" placeholder="Начните вводить город или адрес склада…" autocomplete="off" @focus="openCities" @click="openCities" @input="onCityInput" @blur="cityOpen = false" @keydown.down.prevent="moveCity(1)" @keydown.up.prevent="moveCity(-1)" @keydown.enter.prevent="pickActiveCity" @keydown.esc="cityOpen = false" />
             <div v-if="cityOpen" class="city-list" @mousedown.prevent>
@@ -29,7 +29,7 @@
               </template>
             </div>
           </div>
-          <small>Выберите город из списка складов СДЭК — код города подставится автоматически</small>
+          <small>Выберите склад или офис СДЭК, принимающий отправления — код города подставится автоматически</small>
         </div>
         <div class="field-grid">
           <label class="field"><span>Название магазина:</span><Input v-model="form.sender.name" placeholder="AGAIN" /><small>Название магазина будет передано отправителем в СДЭК</small></label>
