@@ -35,13 +35,15 @@
 
             <!-- Вес (кг) -->
             <div class="grid w-full items-center gap-2 p-2">
-              <Label class="block text-sm font-medium text-gray-700" for="barcode">Вес кг</Label>
+              <Label class="block text-sm font-medium text-gray-700" for="weight">Вес, кг</Label>
               <Input
-                  id="barcode"
-                  type="text"
+                  id="weight"
+                  type="number"
+                  min="0"
+                  step="0.001"
                   required
-                  placeholder="Штрих-код"
-                  v-model="product.weight"
+                  placeholder="Например, 0.15"
+                  v-model="weightKg"
               />
 
             </div>
@@ -93,6 +95,7 @@
 </template>
 
 <script setup lang="ts">
+import {computed} from 'vue'
 import {Input} from "@/components/ui/input";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {Label} from "@/components/ui/label";
@@ -100,6 +103,21 @@ import {Product} from "@/models/Product";
 
 
 const product = defineModel<Product>('product')
+
+const weightKg = computed({
+  get: () => {
+    const grams = Number(product.value?.weight)
+    return Number.isFinite(grams) && grams > 0 ? grams / 1000 : ''
+  },
+  set: (value: string | number) => {
+    const kilograms = Number(String(value).replace(',', '.'))
+    if (!product.value) return
+
+    product.value.weight = Number.isFinite(kilograms) && kilograms >= 0
+      ? String(Math.round(kilograms * 1_000_000) / 1000)
+      : ''
+  },
+})
 
 </script>
 

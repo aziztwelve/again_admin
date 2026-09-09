@@ -220,7 +220,13 @@ const columns = [
   },
   {
     accessorKey: "weight",
-    header: "Вес(гр)",
+    header: "Вес",
+    cell: ({row}: any) => {
+      const grams = Number(row.original.weight)
+      if (!Number.isFinite(grams) || grams <= 0) return "—";
+
+      return `${new Intl.NumberFormat('ru-RU', {maximumFractionDigits: 3}).format(grams / 1000)} кг`;
+    },
   },
 
   {
