@@ -76,6 +76,25 @@
         </div>
       </CardHeader>
       <CardContent class="space-y-4" :class="{'opacity-50': !deliveryEnabled.boxberry}">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <Label for="yandex-delivery-token">API Token</Label>
+            <Input id="yandex-delivery-token" v-model="yandexDeliveryToken" type="password"
+                   :placeholder="yandexApiTokenConfigured ? 'Токен настроен — оставьте пустым, чтобы не менять' : 'Введите API токен'"
+                   :disabled="!deliveryEnabled.boxberry || loadingYandexSettings"/>
+          </div>
+          <div class="space-y-2">
+            <Label for="yandex-delivery-widget">Код виджета</Label>
+            <Input id="yandex-delivery-widget" v-model="yandexDeliveryWidgetCode" placeholder="Введите код виджета"
+                   :disabled="!deliveryEnabled.boxberry || loadingYandexSettings"/>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <Label for="yandex-delivery-url">URL API</Label>
+          <Input id="yandex-delivery-url" v-model="yandexDeliveryApiUrl" type="url"
+                 placeholder="По умолчанию используется URL для выбранного режима"
+                 :disabled="!deliveryEnabled.boxberry || loadingYandexSettings"/>
+        </div>
         <div class="space-y-2">
           <Label for="yandex-delivery-date-offset">Увеличить срок доставки, дней</Label>
           <Input id="yandex-delivery-date-offset" v-model.number="yandexDeliveryDateOffsetDays" type="number" min="0" max="30"
@@ -175,6 +194,10 @@ const deliveryData = ref({
 })
 
 const yandexDeliveryDateOffsetDays = ref(2)
+const yandexDeliveryToken = ref('')
+const yandexDeliveryWidgetCode = ref('')
+const yandexDeliveryApiUrl = ref('')
+const yandexApiTokenConfigured = ref(false)
 const loadingYandexSettings = ref(false)
 const savingYandexSettings = ref(false)
 
@@ -183,6 +206,10 @@ const loadYandexSettings = async () => {
   try {
     const { data } = await axios.get('/third-party-integrations/yandex-delivery/settings')
     yandexDeliveryDateOffsetDays.value = Number(data?.settings?.delivery_date_offset_days ?? 2)
+    yandexDeliveryToken.value = ''
+    yandexDeliveryWidgetCode.value = String(data?.settings?.widget_code ?? '')
+    yandexDeliveryApiUrl.value = String(data?.settings?.api_url ?? '')
+    yandexApiTokenConfigured.value = Boolean(data?.settings?.api_token_configured)
   } finally {
     loadingYandexSettings.value = false
   }
@@ -193,8 +220,15 @@ const saveYandexSettings = async () => {
   try {
     const { data } = await axios.put('/third-party-integrations/yandex-delivery/settings', {
       delivery_date_offset_days: yandexDeliveryDateOffsetDays.value,
+      token: yandexDeliveryToken.value || undefined,
+      widget_code: yandexDeliveryWidgetCode.value,
+      api_url: yandexDeliveryApiUrl.value,
     })
     yandexDeliveryDateOffsetDays.value = Number(data?.settings?.delivery_date_offset_days ?? 2)
+    yandexDeliveryToken.value = ''
+    yandexDeliveryWidgetCode.value = String(data?.settings?.widget_code ?? '')
+    yandexDeliveryApiUrl.value = String(data?.settings?.api_url ?? '')
+    yandexApiTokenConfigured.value = Boolean(data?.settings?.api_token_configured)
   } finally {
     savingYandexSettings.value = false
   }
