@@ -181,7 +181,7 @@ const savingYandexSettings = ref(false)
 const loadYandexSettings = async () => {
   loadingYandexSettings.value = true
   try {
-    const { data } = await axios.get('/yandex-delivery/settings')
+    const { data } = await axios.get('/third-party-integrations/yandex-delivery/settings')
     yandexDeliveryDateOffsetDays.value = Number(data?.settings?.delivery_date_offset_days ?? 2)
   } finally {
     loadingYandexSettings.value = false
@@ -191,7 +191,7 @@ const loadYandexSettings = async () => {
 const saveYandexSettings = async () => {
   savingYandexSettings.value = true
   try {
-    const { data } = await axios.put('/yandex-delivery/settings', {
+    const { data } = await axios.put('/third-party-integrations/yandex-delivery/settings', {
       delivery_date_offset_days: yandexDeliveryDateOffsetDays.value,
     })
     yandexDeliveryDateOffsetDays.value = Number(data?.settings?.delivery_date_offset_days ?? 2)
