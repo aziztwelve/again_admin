@@ -76,25 +76,16 @@
         </div>
       </CardHeader>
       <CardContent class="space-y-4" :class="{'opacity-50': !deliveryEnabled.boxberry}">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="space-y-2">
-            <Label for="boxberry-token">API Token</Label>
-            <Input id="boxberry-token" v-model="deliveryData.boxberry.token" type="password"
-                   placeholder="Введите API токен" :disabled="!deliveryEnabled.boxberry"/>
-          </div>
-          <div class="space-y-2">
-            <Label for="boxberry-widget">Код виджета</Label>
-            <Input id="boxberry-widget" v-model="deliveryData.boxberry.widgetCode" placeholder="Введите код виджета"
-                   :disabled="!deliveryEnabled.boxberry"/>
-          </div>
-        </div>
         <div class="space-y-2">
-          <Label for="boxberry-url">URL API</Label>
-          <Input id="boxberry-url" v-model="deliveryData.boxberry.apiUrl" placeholder="Введите url"
-                 :disabled="!deliveryEnabled.boxberry"/>
+          <Label for="yandex-delivery-date-offset">Увеличить срок доставки, дней</Label>
+          <Input id="yandex-delivery-date-offset" v-model.number="yandexDeliveryDateOffsetDays" type="number" min="0" max="30"
+                 :disabled="!deliveryEnabled.boxberry || loadingYandexSettings"/>
+          <p class="text-sm text-muted-foreground">Добавляется к дате доставки, которую возвращает Яндекс.Доставка.</p>
         </div>
 
-        <Button>Сохранить</Button>
+        <Button :disabled="!deliveryEnabled.boxberry || savingYandexSettings" @click="saveYandexSettings">
+          {{ savingYandexSettings ? 'Сохраняем...' : 'Сохранить' }}
+        </Button>
 
 
       </CardContent>
@@ -150,7 +141,8 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue'
+import axios from 'axios'
+import {onMounted, ref} from 'vue'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
@@ -181,4 +173,32 @@ const deliveryData = ref({
     token: ''
   }
 })
+
+const yandexDeliveryDateOffsetDays = ref(2)
+const loadingYandexSettings = ref(false)
+const savingYandexSettings = ref(false)
+
+const loadYandexSettings = async () => {
+  loadingYandexSettings.value = true
+  try {
+    const { data } = await axios.get('/yandex-delivery/settings')
+    yandexDeliveryDateOffsetDays.value = Number(data?.settings?.delivery_date_offset_days ?? 2)
+  } finally {
+    loadingYandexSettings.value = false
+  }
+}
+
+const saveYandexSettings = async () => {
+  savingYandexSettings.value = true
+  try {
+    const { data } = await axios.put('/yandex-delivery/settings', {
+      delivery_date_offset_days: yandexDeliveryDateOffsetDays.value,
+    })
+    yandexDeliveryDateOffsetDays.value = Number(data?.settings?.delivery_date_offset_days ?? 2)
+  } finally {
+    savingYandexSettings.value = false
+  }
+}
+
+onMounted(loadYandexSettings)
 </script>
