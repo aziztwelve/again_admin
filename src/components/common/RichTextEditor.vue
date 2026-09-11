@@ -3,6 +3,7 @@
       v-model="content"
       :init="editorOptions"
       :disabled="disabled"
+      license-key="gpl"
   />
 </template>
 
