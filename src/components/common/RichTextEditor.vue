@@ -11,7 +11,7 @@ import {computed} from 'vue'
 import axios from 'axios'
 import {toast} from 'vue-sonner'
 import Editor from '@tinymce/tinymce-vue'
-import 'tinymce/tinymce'
+import tinymce from 'tinymce/tinymce'
 import 'tinymce/icons/default'
 import 'tinymce/themes/silver'
 import 'tinymce/models/dom'
@@ -25,6 +25,10 @@ import 'tinymce/plugins/link'
 import 'tinymce/plugins/lists'
 import 'tinymce/plugins/media'
 import 'tinymce/plugins/table'
+
+// @tinymce/tinymce-vue reads the locally bundled editor from window.tinymce.
+// Without this assignment it falls back to the cloud script, which requires a key.
+;(window as any).tinymce = tinymce
 
 const props = withDefaults(defineProps<{
   modelValue?: string | null
