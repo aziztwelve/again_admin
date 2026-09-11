@@ -37,7 +37,7 @@
                     />
                   </div>
 
-                  <div class="grid md:grid-cols-2 w-full gap-2">
+                  <div class="grid w-full gap-2">
 
                     <div class="flex md:flex-col justify-between">
 
@@ -61,12 +61,11 @@
                       />
                     </div>
 
+                  </div>
 
-                    <div class="">
-                      <Label for="description">Описание</Label>
-                      <RichTextEditor v-model="product.description" />
-                    </div>
-
+                  <div class="mt-4 w-full">
+                    <Label for="description">Описание</Label>
+                    <RichTextEditor v-model="product.description" />
                   </div>
 
                 </AccordionContent>
