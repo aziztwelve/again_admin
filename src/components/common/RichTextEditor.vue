@@ -75,6 +75,10 @@ const editorOptions = computed(() => ({
   promotion: false,
   // TinyMCE 8 disables self-hosted editors until the open-source license is acknowledged.
   license_key: 'gpl',
+  // UI and content CSS are bundled above. Do not let TinyMCE request absent
+  // files under /admin/js/skins/ at runtime.
+  skin: false,
+  content_css: false,
   plugins: 'advlist autolink code image link lists media table',
   toolbar: [
     'undo redo | blocks | fontfamily fontsizeinput | bold italic | forecolor backcolor',
