@@ -64,13 +64,7 @@
 
                     <div class="">
                       <Label for="description">Описание</Label>
-                      <Textarea
-                          class="min-h-[100px]"
-                          id="description"
-                          type="text"
-                          placeholder="Укажите главные особенности, характеристики и ключевые слова, чтобы сгенерировать более качественное описание."
-                          v-model="product.description"
-                      />
+                      <RichTextEditor v-model="product.description" />
                     </div>
 
                   </div>
@@ -123,7 +117,7 @@ import BackButton from "@/components/BackButton.vue";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {Textarea} from '@/components/ui/textarea'
+import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import PriceStock from "@/components/products/create/partials/PriceStock.vue";
 import SkuSize from "@/components/products/create/partials/SkuSize.vue";
 import ProductVariant from "@/components/products/create/partials/ProductVariant.vue";

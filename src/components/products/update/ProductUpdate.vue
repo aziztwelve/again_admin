@@ -39,13 +39,7 @@
                   </div>
                   <div class="grid w-full items-center gap-2 p-2">
                     <Label for="description">Описание</Label>
-                    <Textarea
-                        class="min-h-[100px]"
-                        id="description"
-                        type="text"
-                        placeholder="Укажите главные особенности, характеристики и ключевые слова, чтобы сгенерировать более качественное описание."
-                        v-model="product.description"
-                    />
+                    <RichTextEditor v-model="product.description" />
                   </div>
 
                 </AccordionContent>
@@ -86,7 +80,7 @@ import BackButton from "@/components/BackButton.vue";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {Textarea} from '@/components/ui/textarea'
+import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import UploadImages from "@/components/products/update/partials/UploadImages.vue";
 import PriceStock from "@/components/products/update/partials/PriceStock.vue";
 import SkuSize from "@/components/products/update/partials/SkuSize.vue";
