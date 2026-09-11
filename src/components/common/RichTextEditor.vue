@@ -16,6 +16,7 @@ import 'tinymce/icons/default'
 import 'tinymce/themes/silver'
 import 'tinymce/models/dom'
 import 'tinymce/skins/ui/oxide/skin.css'
+import contentCss from 'tinymce/skins/content/default/content.css?inline'
 import 'tinymce/plugins/advlist'
 import 'tinymce/plugins/autolink'
 import 'tinymce/plugins/code'
@@ -68,7 +69,6 @@ const editorOptions = computed(() => ({
   menubar: 'edit insert format table tools',
   branding: false,
   promotion: false,
-  language: 'ru',
   plugins: 'advlist autolink code image link lists media table',
   toolbar: [
     'undo redo | blocks | fontfamily fontsizeinput | bold italic | forecolor backcolor',
@@ -77,7 +77,9 @@ const editorOptions = computed(() => ({
   ].join(' | '),
   font_family_formats: 'Arial=arial,helvetica,sans-serif; Georgia=georgia,palatino,serif; Verdana=verdana,geneva,sans-serif; Times New Roman=times new roman,times,serif; Courier New=courier new,courier,monospace',
   fontsize_formats: '8px 10px 12px 14px 16px 18px 24px 30px 36px 48px',
-  content_style: 'body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; }',
+  // The editor runs in an iframe. Keep its content styles there instead of
+  // importing them globally, otherwise TinyMCE overrides the dashboard body.
+  content_style: `${contentCss}\nbody { font-family: Arial, Helvetica, sans-serif; font-size: 14px; }`,
   image_title: true,
   automatic_uploads: true,
   images_upload_handler: uploadImage,
