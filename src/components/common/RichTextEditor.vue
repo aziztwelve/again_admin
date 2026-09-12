@@ -17,7 +17,6 @@ import 'tinymce/icons/default'
 import 'tinymce/themes/silver'
 import 'tinymce/models/dom'
 import 'tinymce/skins/ui/oxide/skin.css'
-import contentCss from 'tinymce/skins/content/default/content.css?inline'
 import 'tinymce/plugins/advlist'
 import 'tinymce/plugins/autolink'
 import 'tinymce/plugins/code'
@@ -88,9 +87,9 @@ const editorOptions = computed(() => ({
   ].join(' | '),
   font_family_formats: 'Manrope=Manrope,sans-serif; Arial=arial,helvetica,sans-serif; Georgia=georgia,palatino,serif; Verdana=verdana,geneva,sans-serif; Times New Roman=times new roman,times,serif; Courier New=courier new,courier,monospace',
   fontsize_formats: '8px 10px 12px 14px 16px 18px 24px 30px 36px 48px',
-  // The editor runs in an iframe. Keep its content styles there instead of
-  // importing them globally, otherwise TinyMCE overrides the dashboard body.
-  content_style: `${contentCss}\nbody { font-family: Manrope, Arial, Helvetica, sans-serif; font-size: 14px; }`,
+  // The editor runs in an iframe. Its content styles must not be imported into
+  // the dashboard bundle, otherwise TinyMCE overrides the dashboard body.
+  content_style: 'body { font-family: Manrope, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.4; margin: 1rem; } table { border-collapse: collapse; } th, td { padding: .4rem; border: 1px solid #ccc; } figure { margin: 1rem auto; } img, video, iframe { max-width: 100%; }',
   image_title: true,
   automatic_uploads: true,
   images_upload_handler: uploadImage,
