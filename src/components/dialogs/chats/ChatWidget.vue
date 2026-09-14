@@ -50,6 +50,7 @@
 
       <Loader v-if="isLoadingGetMessage" />
       <div
+        ref="messagesScrollRef"
         class="flex-1 overflow-y-auto space-y-1 max-md:max-h-[66vh] max-md:min-h-[66vh]"
         v-else
       >
@@ -226,6 +227,7 @@ const clientAvatar = computed(() => {
 
 const newMessage = ref("");
 const messagesEndRef = ref<HTMLDivElement | null>(null);
+const messagesScrollRef = ref<HTMLDivElement | null>(null);
 const isSending = ref(false); // ← ДОБАВИЛИ
 
 const pendingFiles = ref<PendingFile[]>([]);
@@ -258,6 +260,12 @@ const sourceName = computed(() => {
 
 function scrollToBottom(behavior: ScrollBehavior = "smooth") {
   nextTick(() => {
+    const container = messagesScrollRef.value;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior });
+      return;
+    }
+
     messagesEndRef.value?.scrollIntoView({ behavior });
   });
 }
@@ -373,6 +381,18 @@ async function sendMessage() {
 }
 
 onMounted(() => scrollToBottom("auto"));
+
+// When the selected conversation finishes loading, the message list is only
+// rendered at this point (before that it is replaced by Loader).
+watch(
+  () => props.isLoadingGetMessage,
+  (isLoading) => {
+    if (!isLoading) {
+      requestAnimationFrame(() => scrollToBottom("auto"));
+    }
+  },
+  { flush: "post" },
+);
 
 watch(
   () => props.conversation?.messages?.length,
