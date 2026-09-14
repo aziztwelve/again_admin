@@ -126,12 +126,13 @@
 
       <div class="p-2">
         <div class="flex space-x-1">
-          <Input
+          <Textarea
             v-model="newMessage"
             placeholder="Сообщение..."
-            class="h-8 text-xs flex-1"
+            rows="1"
+            class="min-h-8 h-8 max-h-32 flex-1 resize-y py-1.5 text-xs"
             :disabled="isSending"
-            @keyup.enter="sendMessage"
+            @keydown="handleMessageKeydown"
           />
 
           <FileUploadButton
@@ -153,7 +154,7 @@
           </Button>
         </div>
         <p class="mt-1 text-[0.6rem] text-muted-foreground">
-          Через {{ sourceName }}
+          Через {{ sourceName }} · Enter — отправить, Ctrl+Enter — новая строка
         </p>
       </div>
     </div>
@@ -178,7 +179,7 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Clock,
@@ -228,6 +229,15 @@ const messagesEndRef = ref<HTMLDivElement | null>(null);
 const isSending = ref(false); // ← ДОБАВИЛИ
 
 const pendingFiles = ref<PendingFile[]>([]);
+
+function handleMessageKeydown(event: KeyboardEvent) {
+  if (event.key !== "Enter" || event.isComposing) return;
+
+  if (event.ctrlKey || event.metaKey) return;
+
+  event.preventDefault();
+  void sendMessage();
+}
 
 const sourceName = computed(() => {
   switch (props.conversation?.source) {
