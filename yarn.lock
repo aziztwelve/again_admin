@@ -7284,3 +7284,7 @@ tinymce@^8.9.1:
   version "8.9.1"
   resolved "https://registry.npmjs.org/tinymce/-/tinymce-8.9.1.tgz"
   integrity sha512-5KrFiuKri2sPQW3ERWodsx3R0RZiw0cJJDr61qaMQiXO1ir3ZYaf6gVVaao+T29spZ9L9waaeE/co8Ov2Rn3vQ==
+emoji-picker-element@^1.29.1:
+  version "1.29.1"
+  resolved "https://registry.npmjs.org/emoji-picker-element/-/emoji-picker-element-1.29.1.tgz"
+  integrity sha512-TOiHzu9Dqib3x4MwcAi3wi3RdyT4SoeB4b15AvH1ks4SBwTl7DeebhZ0d3x6dNi4XfNU7IGRZ7NBQllj0RqwrQ==

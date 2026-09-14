@@ -127,14 +127,41 @@
 
       <div class="p-2">
         <div class="flex space-x-1">
-          <Textarea
+          <textarea
+            ref="messageInputRef"
             v-model="newMessage"
             placeholder="Сообщение..."
             rows="1"
-            class="min-h-8 h-8 max-h-32 flex-1 resize-y py-1.5 text-xs"
+            class="flex min-h-8 h-8 max-h-32 w-full flex-1 resize-y rounded-md border border-input bg-transparent px-3 py-1.5 text-xs shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             :disabled="isSending"
             @keydown="handleMessageKeydown"
           />
+
+          <div class="relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="h-8 w-8 px-2"
+              title="Смайлики"
+              aria-label="Открыть смайлики"
+              :disabled="isSending"
+              @click="toggleEmojiPicker"
+            >
+              <Smile class="w-4 h-4" />
+            </Button>
+
+            <div
+              v-if="isEmojiPickerOpen"
+              class="absolute bottom-full left-0 z-50 mb-2 overflow-hidden rounded-md border bg-background shadow-lg"
+            >
+              <emoji-picker
+                v-if="isEmojiPickerLoaded"
+                class="chat-emoji-picker"
+                @emoji-click="handleEmojiClick"
+              />
+            </div>
+          </div>
 
           <FileUploadButton
             :disabled="isSending"
@@ -180,7 +207,6 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Clock,
@@ -190,6 +216,7 @@ import {
   AlertCircle,
   Send,
   Loader2,
+  Smile,
 } from "lucide-vue-next";
 import { useChatsFunctions } from "@/composables/useChatsFunctions";
 import "@/echo";
@@ -226,33 +253,57 @@ const clientAvatar = computed(() => {
 });
 
 const newMessage = ref("");
+const messageInputRef = ref<HTMLTextAreaElement | null>(null);
 const messagesEndRef = ref<HTMLDivElement | null>(null);
 const messagesScrollRef = ref<HTMLDivElement | null>(null);
 const isSending = ref(false); // ← ДОБАВИЛИ
+const isEmojiPickerOpen = ref(false);
+const isEmojiPickerLoaded = ref(false);
 
 const pendingFiles = ref<PendingFile[]>([]);
+
+function insertTextAtCursor(text: string) {
+  const textarea = messageInputRef.value;
+  const start = textarea?.selectionStart ?? newMessage.value.length;
+  const end = textarea?.selectionEnd ?? start;
+
+  newMessage.value = `${newMessage.value.slice(0, start)}${text}${newMessage.value.slice(end)}`;
+
+  nextTick(() => {
+    const cursor = start + text.length;
+    textarea?.focus();
+    textarea?.setSelectionRange(cursor, cursor);
+  });
+}
 
 function handleMessageKeydown(event: KeyboardEvent) {
   if (event.key !== "Enter" || event.isComposing) return;
 
   if (event.ctrlKey || event.metaKey) {
     event.preventDefault();
-
-    const textarea = event.currentTarget as HTMLTextAreaElement;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    newMessage.value = `${newMessage.value.slice(0, start)}\n${newMessage.value.slice(end)}`;
-
-    nextTick(() => {
-      const cursor = start + 1;
-      textarea.selectionStart = cursor;
-      textarea.selectionEnd = cursor;
-    });
+    insertTextAtCursor("\n");
     return;
   }
 
   event.preventDefault();
   void sendMessage();
+}
+
+async function toggleEmojiPicker() {
+  if (!isEmojiPickerLoaded.value) {
+    await import("emoji-picker-element");
+    isEmojiPickerLoaded.value = true;
+  }
+
+  isEmojiPickerOpen.value = !isEmojiPickerOpen.value;
+}
+
+function handleEmojiClick(event: Event) {
+  const emoji = (event as CustomEvent<{ unicode?: string }>).detail?.unicode;
+  if (!emoji) return;
+
+  insertTextAtCursor(emoji);
+  isEmojiPickerOpen.value = false;
 }
 
 const sourceName = computed(() => {
