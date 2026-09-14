@@ -158,6 +158,7 @@
               <emoji-picker
                 v-if="isEmojiPickerLoaded"
                 class="chat-emoji-picker"
+                :data-source="emojiDataSource"
                 @emoji-click="handleEmojiClick"
               />
             </div>
@@ -259,6 +260,7 @@ const messagesScrollRef = ref<HTMLDivElement | null>(null);
 const isSending = ref(false); // ← ДОБАВИЛИ
 const isEmojiPickerOpen = ref(false);
 const isEmojiPickerLoaded = ref(false);
+const emojiDataSource = ref("");
 
 const pendingFiles = ref<PendingFile[]>([]);
 
@@ -291,7 +293,18 @@ function handleMessageKeydown(event: KeyboardEvent) {
 
 async function toggleEmojiPicker() {
   if (!isEmojiPickerLoaded.value) {
-    await import("emoji-picker-element");
+    const [, emojiDataModule] = await Promise.all([
+      import("emoji-picker-element"),
+      import("emoji-picker-element-data/en/emojibase/data.json"),
+    ]);
+
+    // Набор эмодзи включён в сборку, а Blob URL позволяет пикеру загрузить
+    // его как обычный JSON без обращения к внешнему CDN.
+    emojiDataSource.value = URL.createObjectURL(
+      new Blob([JSON.stringify(emojiDataModule.default)], {
+        type: "application/json",
+      }),
+    );
     isEmojiPickerLoaded.value = true;
   }
 
