@@ -316,7 +316,6 @@ function handleEmojiClick(event: Event) {
   if (!emoji) return;
 
   insertTextAtCursor(emoji);
-  isEmojiPickerOpen.value = false;
 }
 
 const sourceName = computed(() => {
