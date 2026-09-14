@@ -162,30 +162,33 @@
 
       <!-- Боковая колонка -->
       <aside class="space-y-6">
-        <SideApps :order="order" />
-        <SideDelivery
-          :order="order"
-          :saving="isSavingDelivery"
-          @save="onDeliverySave"
-          @refresh="fetchOrder(order.id)"
-        />
-        <SideClient
-          :client="order.client"
-          :order="order"
-          :stats="clientStats"
-          :saving="isSavingClient"
-          @save="onClientSave"
-        />
-        <SideTasks
-          :order-id="order.id"
-          :tasks="tasks"
-          @refresh="fetchOrder(order.id)"
-        />
-        <SideCdek :order="order" @refresh="fetchOrder(order.id)" />
-        <SideSource :source="source" />
-        <SideViewedProducts :products="viewedProducts" />
-        <SidePaymentWidgets :payments="payments" />
-        <SideMoySklad :order="order" />
+        <div class="flex items-center justify-between px-1">
+          <span class="text-sm font-medium text-gray-600">Информация</span>
+          <button type="button" class="text-xs text-blue-600 hover:text-blue-800" @click="isSidebarEditing = !isSidebarEditing">
+            {{ isSidebarEditing ? 'Готово' : 'Настроить порядок' }}
+          </button>
+        </div>
+
+        <div
+          v-for="(card, index) in orderedSideCards"
+          :key="card.id"
+          :draggable="isSidebarEditing"
+          :class="isSidebarEditing ? 'rounded-lg border border-dashed border-blue-300 bg-blue-50/30 p-1' : ''"
+          @dragstart="onSideCardDragStart(card.id)"
+          @dragover.prevent
+          @drop="onSideCardDrop(card.id)"
+        >
+          <div v-if="isSidebarEditing" class="mb-1 flex items-center justify-between px-2 text-xs text-gray-500">
+            <span class="cursor-grab select-none">⋮⋮ {{ card.label }}</span>
+            <span class="flex gap-1">
+              <button type="button" class="rounded px-1 hover:bg-blue-100 disabled:opacity-40" :disabled="index === 0" title="Переместить выше" @click="moveSideCard(index, -1)">↑</button>
+              <button type="button" class="rounded px-1 hover:bg-blue-100 disabled:opacity-40" :disabled="index === orderedSideCards.length - 1" title="Переместить ниже" @click="moveSideCard(index, 1)">↓</button>
+            </span>
+          </div>
+          <component :is="card.component" v-bind="card.props" v-on="card.listeners" />
+        </div>
+
+        <button v-if="isSidebarEditing" type="button" class="w-full text-xs text-gray-500 hover:text-gray-800" @click="resetSideCardOrder">Сбросить порядок</button>
       </aside>
     </div>
   </div>
@@ -250,6 +253,49 @@ const isSavingCoupon = ref(false);
 const isSavingCustomFields = ref(false);
 const isSavingDiscount = ref(false);
 const isSavingSellerComment = ref(false);
+
+const sideCardStorageKey = "again:order-side-card-order";
+const defaultSideCardOrder = ["apps", "delivery", "client", "tasks", "cdek", "source", "viewed-products", "payments", "moysklad"];
+const sideCardOrder = ref([...defaultSideCardOrder]);
+const isSidebarEditing = ref(false);
+const draggedSideCardId = ref(null);
+
+const sideCardMap = computed(() => ({
+  apps: {id: "apps", label: "Приложения", component: SideApps, props: {order: order.value}, listeners: {}},
+  delivery: {id: "delivery", label: "Доставка", component: SideDelivery, props: {order: order.value, saving: isSavingDelivery.value}, listeners: {save: onDeliverySave, refresh: () => fetchOrder(order.value.id)}},
+  client: {id: "client", label: "Клиент", component: SideClient, props: {client: order.value?.client, order: order.value, stats: clientStats.value, saving: isSavingClient.value}, listeners: {save: onClientSave}},
+  tasks: {id: "tasks", label: "Задачи", component: SideTasks, props: {orderId: order.value?.id, tasks: tasks.value}, listeners: {refresh: () => fetchOrder(order.value.id)}},
+  cdek: {id: "cdek", label: "СДЭК", component: SideCdek, props: {order: order.value}, listeners: {refresh: () => fetchOrder(order.value.id)}},
+  source: {id: "source", label: "Источник", component: SideSource, props: {source: source.value}, listeners: {}},
+  "viewed-products": {id: "viewed-products", label: "Просмотренные товары", component: SideViewedProducts, props: {products: viewedProducts.value}, listeners: {}},
+  payments: {id: "payments", label: "Платежи", component: SidePaymentWidgets, props: {payments: payments.value}, listeners: {}},
+  moysklad: {id: "moysklad", label: "МойСклад", component: SideMoySklad, props: {order: order.value}, listeners: {}},
+}));
+
+const orderedSideCards = computed(() => sideCardOrder.value.map((id) => sideCardMap.value[id]).filter(Boolean));
+const persistSideCardOrder = () => localStorage.setItem(sideCardStorageKey, JSON.stringify(sideCardOrder.value));
+const moveSideCard = (index, direction) => {
+  const target = index + direction;
+  if (target < 0 || target >= sideCardOrder.value.length) return;
+  const order = [...sideCardOrder.value];
+  [order[index], order[target]] = [order[target], order[index]];
+  sideCardOrder.value = order;
+  persistSideCardOrder();
+};
+const onSideCardDragStart = (id) => { draggedSideCardId.value = id; };
+const onSideCardDrop = (targetId) => {
+  const sourceId = draggedSideCardId.value;
+  draggedSideCardId.value = null;
+  if (!sourceId || sourceId === targetId) return;
+  const order = sideCardOrder.value.filter((id) => id !== sourceId);
+  order.splice(order.indexOf(targetId), 0, sourceId);
+  sideCardOrder.value = order;
+  persistSideCardOrder();
+};
+const resetSideCardOrder = () => {
+  sideCardOrder.value = [...defaultSideCardOrder];
+  persistSideCardOrder();
+};
 
 // Состояние купона
 const appliedCouponCode = ref("");
@@ -684,7 +730,17 @@ const onCopy = async () => {
   }
 };
 
-onMounted(() => fetchOrder(route.params.id));
+onMounted(() => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(sideCardStorageKey) || "[]");
+    if (Array.isArray(saved) && saved.length === defaultSideCardOrder.length && saved.every((id) => defaultSideCardOrder.includes(id))) {
+      sideCardOrder.value = saved;
+    }
+  } catch {
+    // Некорректное старое значение хранилища заменяется порядком по умолчанию.
+  }
+  fetchOrder(route.params.id);
+});
 
 watch(
   () => route.params.id,
