@@ -114,6 +114,7 @@ const active = computed<boolean>(() => {
   }
 
   const v = f[c.field];
+  if (Array.isArray(v)) return v.length > 0;
   return v !== undefined && v !== '' && v !== null;
 });
 
@@ -133,6 +134,8 @@ const onClear = () => {
   for (const f of fieldsToClear.value) {
     if (props.column.type === 'date_range') {
       props.filter[f] = {start: '', end: ''};
+    } else if (props.column.type === 'multi_select') {
+      props.filter[f] = [];
     } else {
       props.filter[f] = '';
     }

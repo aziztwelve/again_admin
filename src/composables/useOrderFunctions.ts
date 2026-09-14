@@ -11,7 +11,7 @@ export function useOrderFunctions() {
 
     const getOrders = async (params: {
         id?: number | string,
-        status?: string,
+        status?: string | string[],
         per_page?: number,
         page?: number,
         paginate?: boolean,

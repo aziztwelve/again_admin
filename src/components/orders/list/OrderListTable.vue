@@ -188,9 +188,9 @@ const columns = computed(() => [
   {
     accessorKey: "status",
     header: headerWithFilter('Статус', {
-      type: 'select',
+      type: 'multi_select',
       field: 'status',
-      placeholder: 'Выберите статус',
+      placeholder: 'Выберите статусы',
       options: getStatuses('order'),
       optionValue: 'value',
       optionLabel: 'label',

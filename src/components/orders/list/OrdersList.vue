@@ -109,7 +109,7 @@ const searchParams = ref({
   recipient_search: '',
   email: '',
   order_number: '',
-  status: '',
+  status: [] as string[],
   payment_status: '',
   delivery_method_id: '',
   assigned_user_id: '',
@@ -138,7 +138,7 @@ const hasActiveFilters = computed(() => {
       || !!s.order_number
       || !!s.datePicker.start
       || !!s.datePicker.end
-      || !!s.status
+      || s.status.length > 0
       || !!s.payment_status
       || !!s.delivery_method_id
       || !!s.assigned_user_id
@@ -161,7 +161,9 @@ const {getOrders, sending} = useOrderFunctions()
 
 async function fetchData() {
 
-  const status = route.query?.status ? `${route.query?.status}` : searchParams.value.status ? searchParams.value.status : ''
+  const status = route.query?.status
+      ? (Array.isArray(route.query.status) ? route.query.status.map(String) : [String(route.query.status)])
+      : searchParams.value.status
 
   const result = await getOrders({
     status: status,
@@ -237,7 +239,7 @@ function resetFilters() {
     recipient_search: '',
     email: '',
     order_number: '',
-    status: '',
+    status: [] as string[],
     payment_status: '',
     delivery_method_id: '',
     assigned_user_id: '',
