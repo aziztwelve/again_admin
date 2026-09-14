@@ -29,10 +29,16 @@
             </CardDescription>
           </div>
         </div>
-        <div class="text-right text-xs">
+        <div class="flex items-center gap-1 text-right text-xs">
+          <Button type="button" variant="ghost" size="sm" class="h-7 w-7 px-0" :title="conversation.unread_messages_count ? 'Отметить прочитанным' : 'Отметить непрочитанным'" @click="toggleReadState">
+            <MailOpen v-if="conversation.unread_messages_count" class="h-4 w-4" />
+            <Mail v-else class="h-4 w-4" />
+          </Button>
+          <div>
           <div class="font-medium">ID {{ conversation.id }}</div>
           <div class="text-muted-foreground">
             {{ formatTime(conversation.last_message_at) }}
+          </div>
           </div>
         </div>
       </div>
@@ -54,9 +60,16 @@
         class="flex-1 overflow-y-auto space-y-1 max-md:max-h-[66vh] max-md:min-h-[66vh]"
         v-else
       >
-        <div
-          v-for="message in conversation.messages"
+        <template
+          v-for="(message, index) in conversation.messages"
           :key="message.id"
+        >
+        <div v-if="isNewMessageDay(index)" class="py-2 text-center">
+          <span class="rounded-full bg-muted px-2 py-1 text-[0.65rem] text-muted-foreground">
+            {{ formatMessageDate(message.created_at) }}
+          </span>
+        </div>
+        <div
           :class="[
             'flex',
             message.direction === 'incoming' ? 'justify-start' : 'justify-end',
@@ -114,6 +127,7 @@
             </div>
           </div>
         </div>
+        </template>
         <div ref="messagesEndRef" />
       </div>
     </CardContent>
@@ -137,7 +151,7 @@
             @keydown="handleMessageKeydown"
           />
 
-          <div class="relative">
+          <div ref="emojiPickerContainerRef" class="relative">
             <Button
               type="button"
               variant="ghost"
@@ -218,6 +232,8 @@ import {
   Send,
   Loader2,
   Smile,
+  Mail,
+  MailOpen,
 } from "lucide-vue-next";
 import { useChatsFunctions } from "@/composables/useChatsFunctions";
 import "@/echo";
@@ -237,7 +253,7 @@ const props = defineProps<{
 
 const emits = defineEmits(["hasNewMessage"]);
 
-const { conversationReplyById } = useChatsFunctions();
+const { conversationReplyById, markConversationAsRead, markConversationAsUnread } = useChatsFunctions();
 
 const clientIcon = assetPath("icons/client.png");
 
@@ -261,6 +277,7 @@ const isSending = ref(false); // ← ДОБАВИЛИ
 const isEmojiPickerOpen = ref(false);
 const isEmojiPickerLoaded = ref(false);
 const emojiDataSource = ref("");
+const emojiPickerContainerRef = ref<HTMLElement | null>(null);
 
 const pendingFiles = ref<PendingFile[]>([]);
 
@@ -318,6 +335,13 @@ function handleEmojiClick(event: Event) {
   insertTextAtCursor(emoji);
 }
 
+async function toggleReadState() {
+  const updated = props.conversation.unread_messages_count
+    ? await markConversationAsRead(props.conversation.id)
+    : await markConversationAsUnread(props.conversation.id);
+  props.conversation.unread_messages_count = updated.unread_messages_count;
+}
+
 const sourceName = computed(() => {
   switch (props.conversation?.source) {
     case "telegram":
@@ -351,6 +375,20 @@ function formatTime(datetime: any): string {
   if (!datetime) return "";
   const date = new Date(datetime);
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatMessageDate(datetime: string): string {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(datetime));
+}
+
+function isNewMessageDay(index: number): boolean {
+  const messages = props.conversation.messages ?? [];
+  return index === 0 || new Date(messages[index].created_at).toDateString()
+    !== new Date(messages[index - 1].created_at).toDateString();
 }
 
 function getStatusIcon(status: string | undefined) {
@@ -457,7 +495,36 @@ async function sendMessage() {
   }
 }
 
-onMounted(() => scrollToBottom("auto"));
+function closeEmojiPickerOnOutsideClick(event: MouseEvent) {
+  if (
+    isEmojiPickerOpen.value
+    && !emojiPickerContainerRef.value?.contains(event.target as Node)
+  ) {
+    isEmojiPickerOpen.value = false;
+  }
+}
+
+const draftsStorageKey = "again-admin-chat-drafts";
+
+function getDrafts(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(draftsStorageKey) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
+function persistDraft(conversationId: number, text: string) {
+  const drafts = getDrafts();
+  if (text) drafts[String(conversationId)] = text;
+  else delete drafts[String(conversationId)];
+  localStorage.setItem(draftsStorageKey, JSON.stringify(drafts));
+}
+
+onMounted(() => {
+  scrollToBottom("auto");
+  document.addEventListener("click", closeEmojiPickerOnOutsideClick);
+});
 
 // When the selected conversation finishes loading, the message list is only
 // rendered at this point (before that it is replaced by Loader).
@@ -480,6 +547,16 @@ watch(
 watch(
   () => props.conversation?.id,
   () => scrollToBottom("auto"),
+);
+
+watch(newMessage, (text) => persistDraft(props.conversation.id, text));
+
+watch(
+  () => props.conversation.id,
+  (conversationId) => {
+    newMessage.value = getDrafts()[String(conversationId)] ?? "";
+  },
+  { immediate: true },
 );
 
 const urlPattern = /(\bhttps?:\/\/[^\s<>]+[^\s<.,:;"')\]\s])/g;
@@ -559,6 +636,7 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  document.removeEventListener("click", closeEmojiPickerOnOutsideClick);
   const id = props.conversation.id;
   if (id && (window as any).Echo) {
     try {

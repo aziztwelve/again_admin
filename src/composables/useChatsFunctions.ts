@@ -113,6 +113,16 @@ export function useChatsFunctions() {
         }
     }
 
+    const markConversationAsRead = async (conversationId: string | number): Promise<Conversation> => {
+        const {data} = await axios.post(`conversations/${conversationId}/read`)
+        return data.data
+    }
+
+    const markConversationAsUnread = async (conversationId: string | number): Promise<Conversation> => {
+        const {data} = await axios.post(`conversations/${conversationId}/unread`)
+        return data.data
+    }
+
 
     // Получить все диалоги конкретного клиента (для inline-чата на карточке заказа).
     // Бэкенд дополнительно подцепляет «анонимные» диалоги по email / телефону.
@@ -155,6 +165,8 @@ export function useChatsFunctions() {
         getConversationByIdWithMessages,
         getConversationsByClient,
         getConversationsByOrder,
-        conversationReplyById
+        conversationReplyById,
+        markConversationAsRead,
+        markConversationAsUnread
     }
 }

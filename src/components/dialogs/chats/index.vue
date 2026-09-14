@@ -139,6 +139,7 @@ const pagination = ref({
 const searchParams = ref<ConversationSearchType>({
   search: ''
 })
+let fetchRequestId = 0;
 
 const checkScreenSize = () => {
   isMobile.value = window.innerWidth < 768;
@@ -149,18 +150,20 @@ const handleBack = () => {
 };
 
 const fetchData = async () => {
+  const requestId = ++fetchRequestId;
   pagination.value.page = 1;
 
-  getConversations({
+  const res = await getConversations({
     page: pagination.value.page,
     per_page: pagination.value.per_page,
     source: currentSourceName.value.source === 'all' ? '' : currentSourceName.value.source,
     search: searchParams.value.search ?? null
-  })
-      .then(res => {
-        pagination.value.total = res.meta.total ?? 0
-        conversations.value = res.data
-      })
+  });
+
+  // Старый ответ (например, для «2») не должен заменить новый для «278».
+  if (requestId !== fetchRequestId) return;
+  pagination.value.total = res.meta.total ?? 0;
+  conversations.value = res.data;
 };
 
 const handleChangeConv = async (c: Conversation) => {
