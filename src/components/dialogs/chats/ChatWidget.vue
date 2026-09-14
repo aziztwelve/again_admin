@@ -235,7 +235,21 @@ const pendingFiles = ref<PendingFile[]>([]);
 function handleMessageKeydown(event: KeyboardEvent) {
   if (event.key !== "Enter" || event.isComposing) return;
 
-  if (event.ctrlKey || event.metaKey) return;
+  if (event.ctrlKey || event.metaKey) {
+    event.preventDefault();
+
+    const textarea = event.currentTarget as HTMLTextAreaElement;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    newMessage.value = `${newMessage.value.slice(0, start)}\n${newMessage.value.slice(end)}`;
+
+    nextTick(() => {
+      const cursor = start + 1;
+      textarea.selectionStart = cursor;
+      textarea.selectionEnd = cursor;
+    });
+    return;
+  }
 
   event.preventDefault();
   void sendMessage();
