@@ -30,9 +30,15 @@
           </div>
         </div>
         <div class="flex items-center gap-1 text-right text-xs">
-          <Button type="button" variant="ghost" size="sm" class="h-7 w-7 px-0" :title="conversation.unread_messages_count ? 'Отметить прочитанным' : 'Отметить непрочитанным'" @click="toggleReadState">
-            <MailOpen v-if="conversation.unread_messages_count" class="h-4 w-4" />
-            <Mail v-else class="h-4 w-4" />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            class="h-7 px-2 text-xs"
+            :disabled="isChangingReadState"
+            @click="toggleReadState"
+          >
+            {{ conversation.unread_messages_count ? 'Отметить прочитанным' : 'Отметить непрочитанным' }}
           </Button>
           <div>
           <div class="font-medium">ID {{ conversation.id }}</div>
@@ -232,8 +238,6 @@ import {
   Send,
   Loader2,
   Smile,
-  Mail,
-  MailOpen,
 } from "lucide-vue-next";
 import { useChatsFunctions } from "@/composables/useChatsFunctions";
 import "@/echo";
@@ -251,7 +255,7 @@ const props = defineProps<{
   isLoadingGetMessage: boolean;
 }>();
 
-const emits = defineEmits(["hasNewMessage"]);
+const emits = defineEmits(["hasNewMessage", "readStateChanged"]);
 
 const { conversationReplyById, markConversationAsRead, markConversationAsUnread } = useChatsFunctions();
 
@@ -274,6 +278,7 @@ const messageInputRef = ref<HTMLTextAreaElement | null>(null);
 const messagesEndRef = ref<HTMLDivElement | null>(null);
 const messagesScrollRef = ref<HTMLDivElement | null>(null);
 const isSending = ref(false); // ← ДОБАВИЛИ
+const isChangingReadState = ref(false);
 const isEmojiPickerOpen = ref(false);
 const isEmojiPickerLoaded = ref(false);
 const emojiDataSource = ref("");
@@ -336,10 +341,18 @@ function handleEmojiClick(event: Event) {
 }
 
 async function toggleReadState() {
-  const updated = props.conversation.unread_messages_count
-    ? await markConversationAsRead(props.conversation.id)
-    : await markConversationAsUnread(props.conversation.id);
-  props.conversation.unread_messages_count = updated.unread_messages_count;
+  if (isChangingReadState.value) return;
+
+  isChangingReadState.value = true;
+  try {
+    const updated = props.conversation.unread_messages_count
+      ? await markConversationAsRead(props.conversation.id)
+      : await markConversationAsUnread(props.conversation.id);
+
+    emits("readStateChanged", updated);
+  } finally {
+    isChangingReadState.value = false;
+  }
 }
 
 const sourceName = computed(() => {

@@ -25,6 +25,7 @@
             :conversation="selectedConversation"
             :isLoadingGetMessage="isLoadingGetMessage"
             @has-new-message="handleUpdateConv"
+            @read-state-changed="handleReadStateChanged"
         />
         <div v-else class="flex flex-col items-center justify-center gap-3 bg-muted/20 p-6 border h-[85vh]">
           <MessagesSquare class="h-10 w-10 text-muted-foreground"/>
@@ -92,6 +93,7 @@
               :conversation="selectedConversation"
               :isLoadingGetMessage="isLoadingGetMessage"
               @has-new-message="handleUpdateConv"
+              @read-state-changed="handleReadStateChanged"
           />
         </div>
 
@@ -192,6 +194,27 @@ const handleChangeConv = async (c: Conversation) => {
 
 const handleUpdateConv = () => {
   fetchData()
+}
+
+const handleReadStateChanged = async (conversation: Conversation) => {
+  // Открытый диалог и строка в списке — разные объекты. Обновляем оба,
+  // чтобы бейдж непрочитанных не оставался в старом состоянии.
+  if (selectedConversation.value?.id === conversation.id) {
+    selectedConversation.value = {
+      ...selectedConversation.value,
+      unread_messages_count: conversation.unread_messages_count,
+    }
+  }
+
+  const listIndex = conversations.value.findIndex(item => item.id === conversation.id)
+  if (listIndex !== -1) {
+    conversations.value[listIndex] = {
+      ...conversations.value[listIndex],
+      unread_messages_count: conversation.unread_messages_count,
+    }
+  }
+
+  await store.dispatch('notifications/checkForUpdates')
 }
 
 const handleTagsUpdated = async () => {
