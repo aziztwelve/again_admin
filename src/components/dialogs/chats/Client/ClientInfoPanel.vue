@@ -3,12 +3,16 @@
     <!-- Header -->
     <div class="p-2 flex flex-col ">
       <span class="text-gray-400 ">О клиенте</span>
-      <span class="text-gray-500 py-3 text-sm">Последний заказ:
-        <span class="text-blue-500" v-if="client?.last_order?.id">
-          <router-link :to="`/order/${client?.last_order?.id}`">
-          {{ client?.last_order?.id }}
-          </router-link>
-        </span>
+      <span class="text-gray-500 py-3 text-sm">
+        Последний заказ:
+        <router-link
+            v-if="client?.last_order?.id"
+            class="text-blue-500 hover:underline"
+            :to="{name: 'orders-view', params: {id: client.last_order.id}}"
+        >
+          Перейти к заказу №{{ client.last_order.id }}
+        </router-link>
+        <span v-else>нет заказов</span>
       </span>
     </div>
 
