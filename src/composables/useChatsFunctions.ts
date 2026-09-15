@@ -115,12 +115,15 @@ export function useChatsFunctions() {
 
     const markConversationAsRead = async (conversationId: string | number): Promise<Conversation> => {
         const {data} = await axios.post(`conversations/${conversationId}/read`)
-        return data.data
+        // ConversationResource на API возвращается без обёртки `data`.
+        // Поддерживаем обёрнутый формат на случай изменений API, но не
+        // пытаемся читать свойство у отсутствующего объекта.
+        return data.data ?? data
     }
 
     const markConversationAsUnread = async (conversationId: string | number): Promise<Conversation> => {
         const {data} = await axios.post(`conversations/${conversationId}/unread`)
-        return data.data
+        return data.data ?? data
     }
 
 
