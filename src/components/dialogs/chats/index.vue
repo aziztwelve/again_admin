@@ -106,6 +106,7 @@
 import ChatWidget from "@/components/dialogs/chats/ChatWidget.vue";
 import ClientInfoPanel from "@/components/dialogs/chats/Client/ClientInfoPanel.vue";
 import {ref, onMounted, onBeforeUnmount, watch} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
 import {Button} from '@/components/ui/button';
 import {ChevronLeft, MessagesSquare} from 'lucide-vue-next';
 import {useChatsFunctions} from "@/composables/useChatsFunctions";
@@ -118,12 +119,15 @@ import {Client} from "@/types/client";
 import ChatClientInfoPanelMobileDrawer from "@/components/dialogs/chats/Client/ChatClientInfoPanelMobileDrawer.vue";
 
 const store = useStore();
+const route = useRoute();
+const router = useRouter();
 
 const {getConversations, getConversationByIdWithMessages, sending} = useChatsFunctions()
 
 const conversations = ref<Conversation[]>([]);
 const currentSourceName = ref<ChatSourceObj>({source: 'all'})
 const selectedConversation = ref<Conversation>()
+const openingConversationId = ref<number | null>(null)
 
 const isMobile = ref(false);
 const showChat = ref(false);
@@ -166,9 +170,22 @@ const fetchData = async () => {
   if (requestId !== fetchRequestId) return;
   pagination.value.total = res.meta.total ?? 0;
   conversations.value = res.data;
+  await openConversationFromRoute();
 };
 
-const handleChangeConv = async (c: Conversation) => {
+const handleChangeConv = async (c: Conversation, updateRoute = true) => {
+  if (selectedConversation.value?.id === c.id) return;
+  if (openingConversationId.value === Number(c.id)) return;
+
+  openingConversationId.value = Number(c.id);
+
+  if (updateRoute && Number(route.query.conversation) !== Number(c.id)) {
+    await router.replace({
+      path: '/dialogs/chats',
+      query: {...route.query, conversation: String(c.id)},
+    });
+  }
+
   showChat.value = true; //for mobile
 
   isLoadingGetMessage.value = true;
@@ -188,8 +205,17 @@ const handleChangeConv = async (c: Conversation) => {
     await store.dispatch('notifications/checkForUpdates')
   } finally {
     isLoadingGetMessage.value = false;
+    openingConversationId.value = null;
   }
 
+}
+
+const openConversationFromRoute = async () => {
+  const conversationId = Number(route.query.conversation)
+  if (!Number.isInteger(conversationId) || conversationId <= 0) return
+  if (selectedConversation.value?.id === conversationId) return
+
+  await handleChangeConv({id: conversationId} as Conversation, false)
 }
 
 const handleUpdateConv = () => {
@@ -294,6 +320,11 @@ watch(
     () => {
       fetchData()
     }
+)
+
+watch(
+    () => route.query.conversation,
+    () => openConversationFromRoute(),
 )
 
 </script>
