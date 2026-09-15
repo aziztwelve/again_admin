@@ -112,8 +112,6 @@ import {ChevronLeft, MessagesSquare} from 'lucide-vue-next';
 import {useChatsFunctions} from "@/composables/useChatsFunctions";
 import ChatListConversations from "@/components/dialogs/chats/ChatListConversations.vue";
 import {useStore} from "vuex";
-import {useEchoListener} from "@/composables/Echo/useEchoListener";
-import {ECHO_CHANNELS, ECHO_EVENTS} from "@/config/echoConfig";
 import {ChatSourceObj, Conversation, ConversationSearchType} from "@/types/conversation";
 import {Client} from "@/types/client";
 import ChatClientInfoPanelMobileDrawer from "@/components/dialogs/chats/Client/ChatClientInfoPanelMobileDrawer.vue";
@@ -296,24 +294,18 @@ const handleSearch = () => {
 onMounted(async () => {
   checkScreenSize();
   window.addEventListener('resize', checkScreenSize);
+  window.addEventListener('conversation-updated', handleConversationUpdated);
   await fetchData()
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', checkScreenSize);
+  window.removeEventListener('conversation-updated', handleConversationUpdated);
 });
 
-const {isSubscribed: listenerSubscribed} = useEchoListener({
-  channel: ECHO_CHANNELS.ADMIN_NOTIFICATIONS,
-  event: ECHO_EVENTS.CONVERSATION_UPDATED,
-  isPrivate: true,
-  onMessage: () => {
-    fetchData();
-  },
-  onError: (error) => {
-    console.error('Ошибка подписки:', error);
-  }
-});
+function handleConversationUpdated() {
+  void fetchData();
+}
 
 watch(
     () => currentSourceName.value.source,

@@ -57,6 +57,13 @@ function handleConversationUpdated(event: ConversationUpdatedEvent) {
 
   void store.dispatch('notifications/checkForUpdates')
 
+  // Подписка на admin.notifications должна быть единственной на всё приложение.
+  // Страница диалогов слушает это DOM-событие для обновления списка, не управляя
+  // Echo-каналом и не отключая глобальные всплывающие уведомления при навигации.
+  window.dispatchEvent(new CustomEvent<ConversationUpdatedEvent>('conversation-updated', {
+    detail: event,
+  }))
+
   if (isOpenedConversation(event.conversation_id)) return
 
   toast(`Новое сообщение · ${sourceNames[event.source] ?? event.source}`, {
