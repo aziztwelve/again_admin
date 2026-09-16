@@ -47,6 +47,7 @@
         "tailwindcss": "^3.4.10",
         "tailwindcss-animate": "^1.0.7",
         "tinymce": "^8.9.1",
+        "tinymce-i18n": "26.9.14",
         "vaul-vue": "^0.4.1",
         "vite": "^6.2.2",
         "vue": "^3.5.13",
