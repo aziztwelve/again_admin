@@ -114,7 +114,7 @@ const editorOptions = computed(() => ({
   content_css: false,
   plugins: 'advlist autolink code image link lists media table',
   toolbar: [
-    'undo redo | blocks | fontfamily fontsizeinput | bold italic | forecolor backcolor',
+    'editorundo editorredo | blocks | fontfamily fontsizeinput | bold italic | forecolor backcolor',
     'alignleft aligncenter alignright alignjustify | selectedbullist selectednumlist | outdent indent',
     'table | link image media | code',
   ].join(' | '),
@@ -124,6 +124,16 @@ const editorOptions = computed(() => ({
   // the dashboard bundle, otherwise TinyMCE overrides the dashboard body.
   content_style: 'body { font-family: Manrope, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.4; margin: 1rem; } strong, b { font-weight: 800; } table { border-collapse: collapse; } th, td { padding: .4rem; border: 1px solid #ccc; } figure { margin: 1rem auto; } img, video, iframe { max-width: 100%; }',
   setup: (editor: any) => {
+    editor.ui.registry.addButton('editorundo', {
+      icon: 'undo',
+      tooltip: 'Отменить',
+      onAction: () => editor.execCommand('Undo'),
+    })
+    editor.ui.registry.addButton('editorredo', {
+      icon: 'redo',
+      tooltip: 'Повторить',
+      onAction: () => editor.execCommand('Redo'),
+    })
     editor.ui.registry.addButton('selectedbullist', {
       icon: 'unordered-list',
       tooltip: 'Маркированный список',
