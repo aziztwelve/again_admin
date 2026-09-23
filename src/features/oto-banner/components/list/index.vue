@@ -30,8 +30,8 @@ import {useOtoBanners} from "@/features/oto-banner/composables/useOtoBanners"
 import {
   formDataToUpdateRequest,
   OtoBanner,
+  OtoBannerFormData,
   OtoBannerSearchParams,
-  otoBannerToFormData,
   createOtoBannerSearchParams,
 } from "@/features/oto-banner/types"
 import {onMounted, ref} from "vue"
@@ -75,11 +75,13 @@ const handleDelete = async (banner: OtoBanner) => {
   }
 }
 
-const handleUpdate = async (banner: OtoBanner) => {
+const handleUpdate = async (banner: OtoBanner & OtoBannerFormData) => {
   if (!banner.id) return
 
-  const bannerFormData = otoBannerToFormData(banner)
-  const formData = formDataToUpdateRequest(bannerFormData)
+  // DataTable уже передаёт отредактированную копию формы. Раньше здесь
+  // создавалась новая форма из исходного баннера, поэтому выбранный файл и
+  // остальные изменения терялись ещё до отправки на API.
+  const formData = formDataToUpdateRequest(banner)
 
   try {
     const updatedBanner = await updateOtoBanner(banner.id, formData)

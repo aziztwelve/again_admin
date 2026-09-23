@@ -62,6 +62,15 @@ const loadPromoCodes = async () => {
     })
     if (res) {
       promoCodes.value = res.data || []
+
+      // Старый или удалённый промокод может остаться в данных баннера. Он не
+      // должен отправляться обратно при смене изображения или другого поля.
+      if (
+          props.formData.promo_code_id != null &&
+          !promoCodes.value.some((promo) => Number(promo.id) === Number(props.formData.promo_code_id))
+      ) {
+        props.formData.promo_code_id = null
+      }
     }
   } catch (e) {
     console.error('Ошибка загрузки промокодов', e)
