@@ -384,7 +384,6 @@ const createEmptyAddress = () => ({
   address: "",
   entrance: "",
   floor: "",
-  intercom: "",
   delivery_comment: "",
   delivery_date: "",
   buyer_comment: "",
@@ -437,7 +436,6 @@ const openEdit = () => {
     address: a.address || props.order?.delivery_target?.name || empty.address,
     entrance: a.entrance || empty.entrance,
     floor: a.floor || empty.floor,
-    intercom: a.intercom || empty.intercom,
     delivery_comment: a.delivery_comment || empty.delivery_comment,
     buyer_comment: a.buyer_comment || empty.buyer_comment,
     delivery_date: formatDateTimeLocal(

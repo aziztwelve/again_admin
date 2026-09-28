@@ -110,7 +110,6 @@ export function useOrderInlineEdit() {
         address: orderAddress.address || order?.delivery_target?.name || "",
         entrance: orderAddress.entrance || "",
         floor: orderAddress.floor || "",
-        intercom: orderAddress.intercom || "",
         delivery_comment: orderAddress.delivery_comment || "",
         buyer_comment: orderAddress.buyer_comment || "",
         delivery_date:

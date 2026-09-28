@@ -324,7 +324,6 @@ const createEmptyDeliveryAddress = () => ({
   address: "",
   entrance: "",
   floor: "",
-  intercom: "",
   delivery_comment: "",
   delivery_date: "",
   buyer_comment: "",
@@ -926,8 +925,6 @@ const fillFormFromOrder = (order) => {
   formData.delivery_address.entrance =
     orderAddress.entrance || emptyAddress.entrance;
   formData.delivery_address.floor = orderAddress.floor || emptyAddress.floor;
-  formData.delivery_address.intercom =
-    orderAddress.intercom || emptyAddress.intercom;
   formData.delivery_address.delivery_comment =
     orderAddress.delivery_comment || emptyAddress.delivery_comment;
   formData.delivery_address.buyer_comment =

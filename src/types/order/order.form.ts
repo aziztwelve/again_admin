@@ -6,7 +6,6 @@ export interface OrderDeliveryAddress {
     address?: string | null
     entrance?: string | null
     floor?: string | null
-    intercom?: string | null
     delivery_comment?: string | null
     delivery_date?: string | null
     buyer_comment?: string | null

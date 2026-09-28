@@ -196,20 +196,6 @@
         />
       </div>
 
-      <div>
-        <label
-          for="delivery_intercom"
-          class="block text-sm/6 font-medium text-gray-900"
-          >Домофон</label
-        >
-        <Input
-          id="delivery_intercom"
-          v-model.trim="delivery.intercom"
-          type="text"
-          placeholder="123В"
-        />
-      </div>
-
       <div class="sm:col-span-2">
         <label
           for="delivery_comment"
