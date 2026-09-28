@@ -422,7 +422,11 @@ const itemImage = (item) => {
 
   if (!image) return null;
 
-  return image.url || (image.path ? `/api/product/image/lg_${encodeURIComponent(image.path)}` : null);
+  if (image.path?.startsWith("image_")) {
+    return `/api/product/image/lg_${encodeURIComponent(image.path)}`;
+  }
+
+  return image.url || (image.path ? `/storage/${encodeURIComponent(image.path)}` : null);
 };
 
 const itemName = (item) =>

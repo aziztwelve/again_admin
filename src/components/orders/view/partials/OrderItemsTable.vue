@@ -266,9 +266,13 @@ const getImage = (item) => {
 
   if (!image) return null;
 
-  // У старых изображений InSales заполнен только path. Витрина строит
-  // превью через этот endpoint, поэтому используем тот же fallback.
-  return image.url || (image.path ? `/api/product/image/lg_${encodeURIComponent(image.path)}` : null);
+  // У старых изображений InSales путь вида image_* лежит в products/lg_*.
+  // В БД у некоторых вариантов при этом остался нерабочий url /storage/… .
+  if (image.path?.startsWith("image_")) {
+    return `/api/product/image/lg_${encodeURIComponent(image.path)}`;
+  }
+
+  return image.url || (image.path ? `/storage/${encodeURIComponent(image.path)}` : null);
 };
 
 /**
