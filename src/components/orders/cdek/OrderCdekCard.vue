@@ -417,8 +417,13 @@ const variantLabel = (item) => {
 const variantColor = (item) =>
   item?.color?.code || item?.variant?.table_color?.code || item?.variant?.color?.code || null;
 
-const itemImage = (item) =>
-  item?.variant?.images?.[0]?.url || item?.product?.images?.[0]?.url || null;
+const itemImage = (item) => {
+  const image = item?.variant?.images?.[0] || item?.product?.images?.[0];
+
+  if (!image) return null;
+
+  return image.url || (image.path ? `/api/product/image/lg_${encodeURIComponent(image.path)}` : null);
+};
 
 const itemName = (item) =>
   item?.product?.name || item?.legacy_name || item?.name || "—";

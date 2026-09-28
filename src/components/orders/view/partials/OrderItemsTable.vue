@@ -262,11 +262,13 @@ function getUnitPrice(item) {
 const getRowTotal = (item) => getUnitPrice(item) * Number(item.quantity || 0);
 
 const getImage = (item) => {
-  return (
-    item?.variant?.images?.[0]?.url ||
-    item?.product?.images?.[0]?.url ||
-    null
-  );
+  const image = item?.variant?.images?.[0] || item?.product?.images?.[0];
+
+  if (!image) return null;
+
+  // У старых изображений InSales заполнен только path. Витрина строит
+  // превью через этот endpoint, поэтому используем тот же fallback.
+  return image.url || (image.path ? `/api/product/image/lg_${encodeURIComponent(image.path)}` : null);
 };
 
 /**
