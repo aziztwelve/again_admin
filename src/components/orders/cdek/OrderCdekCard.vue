@@ -320,7 +320,7 @@ const isCdekDelivery = computed(() =>
   String(order.value?.delivery_method?.code || order.value?.deliveryMethod?.code || "").startsWith("cdek_"),
 );
 const trackingUrl = computed(
-  () => cdekOrder.value?.tracking_url || delivery.value?.tracking_url || null,
+  () => cdekOrder.value?.tracking_url || delivery.value?.cdek_tracking_url || null,
 );
 const deliveryPrice = computed(() => cdekOrder.value?.price ?? delivery.value?.price ?? null);
 const orderNumber = computed(() => order.value?.order_number || order.value?.id);

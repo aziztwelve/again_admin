@@ -88,7 +88,10 @@
         </div>
       </div>
       <div v-if="yandexOrder?.claim_id" class="mt-1 break-all text-xs text-yellow-700">
-        Трек-номер: {{ yandexOrder.claim_id }}
+        Номер заявки Яндекс.Доставки: {{ yandexOrder.claim_id }}
+      </div>
+      <div v-if="yandexOrder?.tracking_number" class="mt-1 break-all text-xs text-yellow-700">
+        Трек-номер Яндекс.Доставки: {{ yandexOrder.tracking_number }}
       </div>
       <a v-if="yandexOrder?.tracking_url" :href="yandexOrder.tracking_url" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block text-xs font-medium underline">
         Открыть отслеживание
