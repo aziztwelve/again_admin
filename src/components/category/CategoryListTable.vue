@@ -163,7 +163,12 @@ const columns = [
 
   {
     accessorKey: "menu_order",
-    header: "Порядок",
+    header: "Порядок в меню",
+  },
+
+  {
+    accessorKey: "home_banner_order",
+    header: "Порядок баннера",
   },
 
   {

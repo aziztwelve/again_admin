@@ -226,7 +226,15 @@ const getColumns = async () => {
       name: 'menu_order',
       component: 'text',
       type: 'number',
-      label: 'Порядок отображения',
+      label: 'Порядок в меню',
+      required: false,
+      placeholder: '0'
+    },
+    {
+      name: 'home_banner_order',
+      component: 'text',
+      type: 'number',
+      label: 'Порядок баннера на главной',
       required: false,
       placeholder: '0'
     },

@@ -10,6 +10,7 @@ export interface CategoryFormData {
     is_new_product: boolean;
     is_coming_soon: boolean;
     menu_order: number | null;
+    home_banner_order: number | null;
 
     banner_image_desktop: File | null | string;
     banner_image_mobile: File | null | string;
@@ -30,6 +31,7 @@ export const initialCategoryFormData: CategoryFormData = {
     is_new_product: false,
     is_coming_soon: false,
     menu_order: null,
+    home_banner_order: null,
 
     banner_image_desktop: null,
     banner_image_mobile: null,

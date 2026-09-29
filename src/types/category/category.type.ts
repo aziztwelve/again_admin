@@ -10,6 +10,7 @@ export interface Category {
     is_new_product: boolean;
     is_coming_soon: boolean;
     menu_order: number;
+    home_banner_order: number;
 
     banner_image_desktop?: string;
     banner_image_mobile?: string;

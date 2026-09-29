@@ -55,6 +55,30 @@ export function useCategoryFunctions() {
             .finally(() => sending.value = false)
     }
 
+    const getOrderOptions = async (type: 'menu' | 'home_banner') => {
+        return await axios.get('categories/order-options', {params: {type}})
+            .then(res => res.data)
+            .catch(e => {
+                useErrorHandler().showError(e)
+                throw e
+            })
+    }
+
+    const reorderCategories = async (payload: {
+        type: 'menu' | 'home_banner',
+        groups: Array<{parent_id: number | null, category_ids: number[]}>,
+    }) => {
+        return await axios.post('categories/reorder', payload)
+            .then(res => {
+                useSuccessHandler().showSuccess(res)
+                return res.data
+            })
+            .catch(e => {
+                useErrorHandler().showError(e)
+                throw e
+            })
+    }
+
     const deleteCategory = async (id: number) => {
         if (sending.value) return
 
@@ -119,6 +143,8 @@ export function useCategoryFunctions() {
         progress,
         getCategories,
         getProductsByCategory,
+        getOrderOptions,
+        reorderCategories,
         deleteCategory,
         createCategory,
         updateCategory,

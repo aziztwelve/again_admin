@@ -14,6 +14,11 @@
 
     </div>
 
+    <div class="mb-4 grid gap-4 xl:grid-cols-2">
+      <CategoryOrdering type="menu" title="Порядок категорий в меню" />
+      <CategoryOrdering type="home_banner" title="Порядок баннеров на главной" />
+    </div>
+
     <CategoryListTable
         :items="data"
         :pagination="pagination"
@@ -32,6 +37,7 @@ import CategorySearch from "@/components/category/CategorySearch.vue";
 import CategoryListTable from "@/components/category/CategoryListTable.vue";
 import {useCategoryFunctions} from "@/composables/useCategoryFunctions";
 import CategoryAddModal from "@/components/category/CategoryAddModal.vue";
+import CategoryOrdering from "@/components/category/CategoryOrdering.vue";
 import {Category, CategoryFilterQuery} from "@/types/category";
 import {PaginationMeta} from "@/types/Types";
 
