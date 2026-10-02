@@ -39,6 +39,11 @@ export interface TaskAttachment {
     updated_at: string;
 }
 
+export interface TaskOrder {
+    id: number;
+    order_number: string | null;
+}
+
 export default class Task {
     id: number | undefined;
     title: string | null | undefined;
@@ -49,6 +54,7 @@ export default class Task {
     assignee_id: number | null | undefined;
     parent_id: number | null | undefined;
     order_id: number | null | undefined;
+    order: TaskOrder | null | undefined;
     due_date: string | null | undefined;
     started_at: string | null | undefined;
     completed_at: string | null | undefined;
@@ -81,6 +87,7 @@ export default class Task {
         this.assignee_id = null;
         this.parent_id = null;
         this.order_id = null;
+        this.order = null;
         this.due_date = null;
         this.started_at = null;
         this.completed_at = null;
@@ -116,6 +123,7 @@ export default class Task {
         task.assignee_id = json.assignee_id ?? null;
         task.parent_id = json.parent_id ?? null;
         task.order_id = json.order_id ?? null;
+        task.order = json.order ?? null;
         task.due_date = json.due_date ?? null;
         task.started_at = json.started_at ?? null;
         task.completed_at = json.completed_at ?? null;

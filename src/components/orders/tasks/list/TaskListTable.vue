@@ -1,43 +1,37 @@
 <template>
-  <div>
-    <DynamicsDataTable
-        :data="items"
-        :columns="columns"
-        :show-print-button="false"
-        :edit="edit"
-        @deleted="handleDeleted"
-        @save_changes="handleSave"
-    >
-      <template #addActions="{item}">
-
-        <AlertDialog
-            v-if="!item?.completed_at"
-            title="Завершить задачу?"
-            description="Вы уверены, что хотите отметить эту задачу как завершённую? Это действие изменит её статус и зафиксирует дату завершения."
-            icon-style="text-green-400 hover:text-green-500"
-            :show-icon="true"
-            :icon="SquareCheckBig"
-            @continue="handleComplete(item.id)"
-        />
-
-      </template>
-    </DynamicsDataTable>
-  </div>
+  <DynamicsDataTable
+      :data="items"
+      :columns="columns"
+      :show-print-button="false"
+      :edit="edit"
+      @deleted="handleDeleted"
+      @save_changes="handleSave"
+  >
+    <template #addActions="{item}">
+      <AlertDialog
+          v-if="!item?.completed_at"
+          title="Завершить задачу?"
+          description="Вы уверены, что хотите отметить эту задачу как завершённую? Это действие изменит её статус и зафиксирует дату завершения."
+          icon-style="text-green-400 hover:text-green-500"
+          :show-icon="true"
+          :icon="SquareCheckBig"
+          @continue="handleComplete(item.id)"
+      />
+    </template>
+  </DynamicsDataTable>
 </template>
 
 <script setup lang="ts">
 import {h, PropType, ref} from "vue";
+import {RouterLink} from "vue-router";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import Task from "@/models/Task";
 import {useTaskFunctions} from "@/composables/useTaskFunctions";
 import {useDateFormat} from "@/composables/useDateFormat";
 import TaskEdit from "@/components/orders/tasks/TaskEdit.vue";
-import TaskStatus from "@/models/TaskStatus";
 import TaskPriority from "@/models/TaskPriority";
-import TaskLabel from "@/models/TaskLabel";
-import AlertDialog from "@/components/dynamics/AlertDialog.vue"
+import AlertDialog from "@/components/dynamics/AlertDialog.vue";
 import {SquareCheckBig} from 'lucide-vue-next';
-
 
 const props = defineProps({
   items: {
@@ -49,7 +43,7 @@ const props = defineProps({
 
 const emits = defineEmits(["deleted", "updated"]);
 
-const {deleteTask, updateTask, completeTask, sending} = useTaskFunctions();
+const {deleteTask, updateTask, completeTask} = useTaskFunctions();
 const {formatDateToRussian} = useDateFormat();
 
 const edit = ref({
@@ -60,297 +54,87 @@ const edit = ref({
   loader: false,
 });
 
-const formatMinutes = (mins: number | null | undefined) => {
-  if (mins === null || mins === undefined) return '';
-  const hours = Math.floor(mins / 60);
-  const minutes = mins % 60;
-  return hours > 0 ? `${hours}ч ${minutes}м` : `${minutes}м`;
-};
+const userName = (user: any): string =>
+    user?.profile?.full_name ?? user?.profile?.fullName ?? user?.fullName ?? user?.name ?? '—';
 
-const isOverdue = (due: string | null | undefined) => {
-  if (!due) return false;
-  const dueDate = new Date(due);
-  const now = new Date();
-  return dueDate < now;
-};
-
+// Состав повторяет список задач InSales: индикатор приоритета и шесть
+// колонок данных. Другие поля задачи доступны в карточке редактирования.
 const columns = [
   {
-    accessorKey: "index",
-    header: "№",
-    cell: ({row}: any) => row.index + 1,
-  },
-
-  {
-    accessorKey: "title",
-    header: "Заголовок",
-  },
-  {
-    accessorKey: "description",
-    header: "Описание",
-  },
-
-  {
-    accessorKey: "status",
-    header: "Статус",
-    cell: ({row}: any) => {
-      const p: TaskStatus | undefined = row.original?.status;
-      if (!p) return '';
-      const name = p.name ?? '';
-      const color = p.color;
-
-      const classes = ['px-2', 'py-1', 'rounded', 'whitespace-nowrap'];
-      if (color) {
-        classes.push('text-white');
-      }
-
-
-      return h(
-          "span",
-          {
-            class: classes.join(' '),
-            style: {backgroundColor: color}
-          },
-          name
-      );
-    }
-  },
-  {
     accessorKey: "priority",
-    header: "Приоритет",
+    header: "",
     cell: ({row}: any) => {
-      const p: TaskPriority | undefined = row.original?.priority;
-      if (!p) return '';
-      const name = p.name ?? '';
-      const color = p.color;
+      const priority: TaskPriority | undefined = row.original?.priority;
 
-      const classes = ['px-2', 'py-1', 'rounded', 'whitespace-nowrap'];
-      if (color) {
-        classes.push('text-white');
-      }
-
-      return h(
-          "span",
-          {
-            class: classes.join(' '),
-            style: {backgroundColor: color}
-          },
-          name
-      );
-    }
-  },
-
-
-  {
-    accessorKey: "labels",
-    header: "Метки",
-    cell: ({row}: any) => {
-      const labels: TaskLabel[] | undefined = row.original?.labels;
-      if (!labels || !labels.length) return '';
-      // отображаем несколько небольших бейджей
-      return h(
-          "div",
-          {class: "flex flex-wrap gap-1"},
-          labels.map((l: any) =>
-              h(
-                  "span",
-                  {
-                    class: "px-2 py-0.5 rounded text-white text-xs",
-                    style: {backgroundColor: l?.color ?? '#6B7280'}
-                  },
-                  l?.name ?? ''
-              )
-          )
-      );
-    }
-  },
-
-
-  {
-    accessorKey: "created_at",
-    header: "Создан",
-    cell: ({row}: any) =>
-        h(
-            "span",
-            {class: "whitespace-nowrap"},
-            formatDateToRussian(row.original?.created_at)
-        ),
-  },
-
-  {
-    accessorKey: "started_at",
-    header: "Начало",
-    cell: ({row}: any) =>
-        h(
-            "span",
-            {class: "whitespace-nowrap"},
-            formatDateToRussian(row.original?.started_at)
-        ),
-  },
-
-  {
-    accessorKey: "due_date",
-    header: "Срок",
-    cell: ({row}: any) => {
-      const due = row.original?.due_date;
-      const formatted = formatDateToRussian(due);
-      const overdue = isOverdue(due) && !row.original?.completed_at;
-      return h(
-          "span",
-          {
-            class: [
-              "whitespace-nowrap",
-              overdue ? "text-red-600 font-medium" : ""
-            ].join(" "),
-          },
-          formatted
-      );
+      return h('span', {
+        class: 'block h-2.5 w-2.5 rounded-full',
+        style: {backgroundColor: priority?.color ?? '#9CA3AF'},
+        title: priority?.name ?? 'Без приоритета',
+      });
     },
   },
-
-
   {
-    accessorKey: "creator",
-    header: "Создал",
+    accessorKey: "order.order_number",
+    header: "№ заказа",
     cell: ({row}: any) => {
-      const c = row.original?.creator;
-      const name = c?.name ?? '';
-      const email = c?.email ?? '';
-      const avatar = c?.profile?.image ?? null;
+      const order = row.original?.order;
+      if (!order) return '—';
 
-      return h('div', {class: 'flex items-center gap-2'}, [
-        // avatar или буква-заглушка
-        avatar
-            ? h('img', {
-              src: avatar,
-              class: 'w-8 h-8 rounded-full object-cover',
-              alt: name || 'Avatar'
-            })
-            : h('div', {
-              class: 'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm text-gray-600',
-              title: name || ''
-            }, name ? name[0].toUpperCase() : '?'),
-
-        // текст: имя + email (маленьким и muted)
-        h('div', {class: 'min-w-0'}, [
-          h('div', {
-            class: 'truncate',
-            title: name || ''
-          }, name || '—'),
-          email
-              ? h('div', {
-                class: 'truncate',
-                title: email
-              }, email)
-              : null
-        ])
-      ])
-    }
+      return h(RouterLink, {
+        to: `/order/${order.id}`,
+        class: 'text-blue-500 hover:underline',
+      }, {default: () => order.order_number || order.id});
+    },
+  },
+  {
+    accessorKey: "due_date",
+    header: "Срок исполнения",
+    cell: ({row}: any) => h(
+        'span',
+        {class: 'whitespace-nowrap'},
+        formatDateToRussian(row.original?.due_date) || '—'
+    ),
+  },
+  {
+    accessorKey: "created_at",
+    header: "Дата создания",
+    cell: ({row}: any) => h(
+        'span',
+        {class: 'whitespace-nowrap'},
+        formatDateToRussian(row.original?.created_at)
+    ),
+  },
+  {
+    accessorKey: "title",
+    header: "Что сделать",
+    cell: ({row}: any) => row.original?.title || '—',
   },
   {
     accessorKey: "assignee",
-    header: "Исполнитель",
-    cell: ({row}: any) => {
-      const a = row.original?.assignee;
-      const name = a?.profile?.fullName ?? a?.fullName ?? a?.name ?? '';
-      const email = a?.email ?? '';
-      const avatar = a?.profile?.image ?? null;
-
-      return h('div', {class: 'flex items-center gap-2'}, [
-        avatar
-            ? h('img', {
-              src: avatar,
-              class: 'w-8 h-8 rounded-full object-cover',
-              alt: name || 'Avatar'
-            })
-            : h('div', {
-              class: 'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm text-gray-600',
-              title: name || ''
-            }, name ? name[0].toUpperCase() : '?'),
-
-        h('div', {class: 'min-w-0'}, [
-          h('div', {
-            class: 'truncate',
-            title: name || ''
-          }, name || '—'),
-          email
-              ? h('div', {
-                class: 'truncate',
-                title: email
-              }, email)
-              : null
-        ])
-      ])
-    }
+    header: "Назначена на",
+    cell: ({row}: any) => userName(row.original?.assignee),
   },
-
-
   {
-    accessorKey: "estimated_time",
-    header: "План. время",
-    cell: ({row}: any) => formatMinutes(row.original?.estimated_time),
+    accessorKey: "creator",
+    header: "Кем назначена",
+    cell: ({row}: any) => userName(row.original?.creator),
   },
-
-  {
-    accessorKey: "spent_time",
-    header: "Потрачено",
-    cell: ({row}: any) => {
-      const spent = row.original?.spent_time;
-
-
-      return h("span", {class: "text-blue-600 font-medium"}, formatMinutes(spent));
-    }
-  },
-
-
-  {
-    accessorKey: "completed_at",
-    header: "Завершена",
-    cell: ({row}: any) => {
-      const completed = row.original?.completed_at;
-      if (!completed) {
-        return h("span", {class: "text-gray-400 italic"}, "—");
-      }
-
-      const formatted = formatDateToRussian(completed);
-      return h(
-          "span",
-          {class: "text-green-600 font-medium"},
-          formatted
-      );
-    }
-  },
-
 ];
 
 const handleDeleted = async (task: Task) => {
   if (!task.id) return;
   const result = await deleteTask(task.id);
-  if (result) {
-    emits("deleted");
-  }
+  if (result) emits("deleted");
 };
-
 
 const handleSave = async (task: Task) => {
   if (!task.id) return;
-
-
   const result = await updateTask(task.id, task.toJSONForUpdate());
-
-  if (result) {
-    emits('updated', result);
-  }
+  if (result) emits('updated', result);
 };
 
-
 const handleComplete = async (id: number) => {
-  const res = await completeTask(id);
-  if (res) {
-    emits("updated", res);
-  }
-}
-
+  const result = await completeTask(id);
+  if (result) emits("updated", result);
+};
 </script>
-
-<style scoped></style>
