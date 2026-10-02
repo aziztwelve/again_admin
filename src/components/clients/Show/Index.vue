@@ -417,6 +417,11 @@ const clientForModal = computed(() => {
     tags: c.tags ?? undefined,
     created_at: c.created_at ?? '',
     updated_at: c.updated_at ?? undefined,
+    subscribed_to_newsletter: Boolean(c.subscribed_to_newsletter),
+    personal_data_consent: Boolean(c.personal_data_consent),
+    messenger_subscription: Boolean(c.messenger_subscription),
+    rfm_segment: c.rfm_segment ?? null,
+    group_name: c.group_name ?? null,
   };
 });
 

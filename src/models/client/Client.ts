@@ -14,6 +14,11 @@ export class Client {
     email: string | undefined;
     name: string | undefined;
     verified_at: string | null;
+    subscribed_to_newsletter: boolean;
+    personal_data_consent: boolean;
+    messenger_subscription: boolean;
+    rfm_segment: string | null;
+    group_name: string | null;
 
     constructor(data: Partial<Client> = {}) {
         this.id = this.validateNumber(data.id, 'id') ?? 0;
@@ -28,6 +33,11 @@ export class Client {
         this.email = data.email ?? undefined;
         this.name = data.name ?? undefined;
         this.verified_at = this.validateNullableString(data.verified_at, 'verified_at');
+        this.subscribed_to_newsletter = Boolean(data.subscribed_to_newsletter);
+        this.personal_data_consent = Boolean(data.personal_data_consent);
+        this.messenger_subscription = Boolean(data.messenger_subscription);
+        this.rfm_segment = this.validateNullableString(data.rfm_segment, 'rfm_segment');
+        this.group_name = this.validateNullableString(data.group_name, 'group_name');
     }
 
     private validateNumber(value: any, fieldName: string): number | undefined {
@@ -68,6 +78,11 @@ export class Client {
                 email: json.email,
                 name:  json.profile?.first_name || json.profile?.last_name ? `${json.profile?.first_name ?? ''} ${json.profile?.last_name ?? ''}` : json.name ?? undefined,
                 verified_at: json.verified_at ?? null,
+                subscribed_to_newsletter: json.subscribed_to_newsletter,
+                personal_data_consent: json.personal_data_consent,
+                messenger_subscription: json.messenger_subscription,
+                rfm_segment: json.rfm_segment,
+                group_name: json.group_name,
             });
         } catch (error) {
             console.error('Failed to parse Client from JSON:', error);
@@ -84,6 +99,11 @@ export class Client {
             created_at: this.created_at,
             deleted_at: this.deleted_at,
             updated_at: this.updated_at,
+            subscribed_to_newsletter: this.subscribed_to_newsletter,
+            personal_data_consent: this.personal_data_consent,
+            messenger_subscription: this.messenger_subscription,
+            rfm_segment: this.rfm_segment,
+            group_name: this.group_name,
             user: this.user?.toJSON?.() ?? null,
             profile: this.profile?.toJSON?.() ?? null
         };
@@ -103,7 +123,12 @@ export class Client {
             profile: this.profile ? this.profile : null,
             email: this.email,
             name: this.name,
-            verified_at: this.verified_at
+            verified_at: this.verified_at,
+            subscribed_to_newsletter: this.subscribed_to_newsletter,
+            personal_data_consent: this.personal_data_consent,
+            messenger_subscription: this.messenger_subscription,
+            rfm_segment: this.rfm_segment,
+            group_name: this.group_name,
         });
     }
 
