@@ -57,12 +57,14 @@ export enum CustomerType {
     AUTHORIZED = 'authorized',
     GUEST = 'guest',
     ALL = 'all',
+    HIDDEN = 'hidden',
 }
 
 export const CustomerTypeLabels: Record<CustomerType, string> = {
     [CustomerType.AUTHORIZED]: 'Авторизованный пользователь',
     [CustomerType.GUEST]: 'Гостевой пользователь',
     [CustomerType.ALL]: 'Все пользователи',
+    [CustomerType.HIDDEN]: 'Скрыть промокод',
 };
 
 export const CustomerTypeOptions = Object.entries(CustomerTypeLabels).map(
