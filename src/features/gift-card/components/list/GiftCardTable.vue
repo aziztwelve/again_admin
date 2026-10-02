@@ -116,6 +116,18 @@ const columns = [
   },
 
   {
+    accessorKey: "sender_name",
+    header: "Отправитель",
+    cell: ({row}: any) => {
+      const card = row.original as GiftCard
+      return h('div', {class: 'space-y-1'}, [
+        h('div', {class: 'font-medium'}, card.sender_name || '—'),
+        h('div', {class: 'text-xs text-gray-500'}, card.sender_email || card.sender_phone || '')
+      ])
+    },
+  },
+
+  {
     accessorKey: "type",
     header: "Тип",
     cell: ({row}: any) => {
@@ -146,8 +158,12 @@ const columns = [
     }
   },
   {
-    accessorKey: "send",
+    accessorKey: "is_sent",
     header: "Отправлен",
+    cell: ({row}: any) => {
+      const card = row.original as GiftCard
+      return card.is_sent ? 'Да' : 'Нет'
+    },
   },
 ]
 </script>

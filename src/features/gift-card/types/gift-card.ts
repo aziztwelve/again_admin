@@ -19,6 +19,7 @@ export interface GiftCard {
     scheduled_at: string | null
     timezone: string | null
     sent_at: string | null
+    is_sent: boolean
     delivered_at: string | null
     created_at: string
     updated_at: string
