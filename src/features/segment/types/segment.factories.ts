@@ -15,6 +15,8 @@ export function createSegmentFormData(): SegmentFormData {
 export function createEmptyConditions(): SegmentConditions {
     return {
         period: null,
+        period_from: null,
+        period_to: null,
         min_orders_count: null,
         max_orders_count: null,
         min_total_amount: null,

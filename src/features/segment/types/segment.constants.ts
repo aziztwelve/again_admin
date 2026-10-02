@@ -9,6 +9,8 @@ export const initialSegmentFormData: SegmentFormData = {
     is_active: true,
     recalculate_frequency: 'on_view',
     period: '',
+    period_from: null,
+    period_to: null,
     min_orders_count: null,
     max_orders_count: null,
     min_total_amount: null,
@@ -23,6 +25,7 @@ export const PERIOD_OPTIONS = [
     {value: 'last_month', label: 'За последний месяц'},
     {value: 'last_6_months', label: 'За последние 6 месяцев'},
     {value: 'last_year', label: 'За последний год'},
+    {value: 'custom', label: 'Заданный период'},
 ] as const
 
 /**

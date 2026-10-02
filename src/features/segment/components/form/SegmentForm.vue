@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, watch} from 'vue'
 import DynamicForm from '@/components/dynamics/DynamicForm.vue'
 import type {SegmentFormData} from '@/features/segment/types'
 import {PERIOD_OPTIONS, RECALCULATE_FREQUENCY_OPTIONS} from '@/features/segment/types'
@@ -39,6 +39,18 @@ onMounted(() => {
   buildFormFields()
   isLoading.value = false
 })
+
+watch(
+    () => props.formData.period,
+    (period) => {
+      if (period !== 'custom') {
+        props.formData.period_from = null
+        props.formData.period_to = null
+      }
+
+      buildFormFields()
+    }
+)
 
 const buildFormFields = () => {
   formFields.value = [
@@ -109,6 +121,25 @@ const buildFormFields = () => {
         min: 0,
       },
     ],
+
+    ...(props.formData.period === 'custom'
+        ? [[
+          {
+            name: 'period_from',
+            component: 'date',
+            label: 'Дата начала периода',
+            required: true,
+            placeholder: 'Выберите дату начала',
+          },
+          {
+            name: 'period_to',
+            component: 'date',
+            label: 'Дата окончания периода',
+            required: true,
+            placeholder: 'Выберите дату окончания',
+          },
+        ]]
+        : []),
 
     // Суммы
     [

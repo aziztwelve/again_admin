@@ -30,7 +30,9 @@ export interface Segment {
  * Условия фильтрации клиентов для сегмента
  */
 export interface SegmentConditions {
-    period?: 'all_time' | 'last_month' | 'last_6_months' | 'last_year' | null
+    period?: 'all_time' | 'last_month' | 'last_6_months' | 'last_year' | 'custom' | null
+    period_from?: string | null
+    period_to?: string | null
     min_orders_count?: number | null
     max_orders_count?: number | null
     min_total_amount?: number | null

@@ -16,7 +16,9 @@ export function segmentToFormData(segment: Segment): SegmentFormData {
         recalculate_frequency: segment.recalculate_frequency,
 
         // Распаковываем conditions
-        period: (segment.conditions?.period ?? segment.conditions?.period ??  '') as 'all_time' | 'last_month' | 'last_6_months' | 'last_year' | '',
+        period: (segment.conditions?.period ?? '') as 'all_time' | 'last_month' | 'last_6_months' | 'last_year' | 'custom' | '',
+        period_from: segment.conditions?.period_from ?? null,
+        period_to: segment.conditions?.period_to ?? null,
         min_orders_count: segment.conditions?.min_orders_count ?? null,
         max_orders_count: segment.conditions?.max_orders_count ?? null,
         min_total_amount: segment.conditions?.min_total_amount ?? null,
@@ -32,6 +34,8 @@ export function formDataToCreateRequest(
 ): CreateSegmentRequest {
     const hasConditions =
         formData.period ||
+        formData.period_from !== null ||
+        formData.period_to !== null ||
         formData.min_orders_count !== null ||
         formData.max_orders_count !== null ||
         formData.min_total_amount !== null ||
@@ -45,6 +49,8 @@ export function formDataToCreateRequest(
         conditions: hasConditions
             ? {
                 period: formData.period || null,
+                period_from: formData.period_from,
+                period_to: formData.period_to,
                 min_orders_count: formData.min_orders_count,
                 max_orders_count: formData.max_orders_count,
                 min_total_amount: formData.min_total_amount,

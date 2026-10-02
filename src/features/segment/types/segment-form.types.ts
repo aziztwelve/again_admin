@@ -9,7 +9,9 @@ export interface SegmentFormData {
     is_active: boolean
     recalculate_frequency: 'on_view' | 'manual'
 
-    period: 'all_time' | 'last_month' | 'last_6_months' | 'last_year' | ''
+    period: 'all_time' | 'last_month' | 'last_6_months' | 'last_year' | 'custom' | ''
+    period_from: string | null
+    period_to: string | null
     min_orders_count: number | null
     max_orders_count: number | null
     min_total_amount: number | null

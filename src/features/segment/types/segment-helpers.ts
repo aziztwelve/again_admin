@@ -12,6 +12,8 @@ export function syncFormDataToSegment(formData: SegmentFormData, segment: Segmen
 
     const hasConditions =
         formData.period ||
+        formData.period_from !== null ||
+        formData.period_to !== null ||
         formData.min_orders_count !== null ||
         formData.max_orders_count !== null ||
         formData.min_total_amount !== null ||
@@ -20,6 +22,8 @@ export function syncFormDataToSegment(formData: SegmentFormData, segment: Segmen
     if (hasConditions) {
         segment.conditions = {
             period: formData.period || null,
+            period_from: formData.period_from,
+            period_to: formData.period_to,
             min_orders_count: formData.min_orders_count,
             max_orders_count: formData.max_orders_count,
             min_total_amount: formData.min_total_amount,
