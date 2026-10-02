@@ -74,27 +74,6 @@ export function usePromoCodeFunctions() {
         }
     };
 
-    const hidePromoCodesInProfile = async (promoCodeIds: number[]): Promise<boolean> => {
-        if (promoCodeIds.length < 1 || promoCodeIds.length > 50) {
-            toast.error('Выберите от 1 до 50 промокодов');
-            return false;
-        }
-
-        sending.value = true;
-        try {
-            const response = await axios.post('/promo-codes/hide-in-profile', {
-                promo_code_ids: promoCodeIds,
-            });
-            useSuccessHandler().showSuccess(response);
-            return true;
-        } catch (error) {
-            useErrorHandler().showError(error);
-            return false;
-        } finally {
-            sending.value = false;
-        }
-    };
-
     const getPromoCodes = async (params: {
         id?: number | string;
         per_page?: number;
@@ -131,7 +110,6 @@ export function usePromoCodeFunctions() {
         updatePromoCode,
         deletePromoCode,
         duplicatePromoCode,
-        hidePromoCodesInProfile,
         getPromoCodes,
         sending
     };

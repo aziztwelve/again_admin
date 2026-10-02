@@ -271,12 +271,6 @@ const buildFormFields = () => {
       placeholder: 'Выберите аудиторию',
     },
 
-    {
-      name: 'isHiddenInProfile',
-      component: 'checkbox',
-      label: 'Скрыть промокод в профиле «Скидки и бонусы»',
-    },
-
     [
 
       {

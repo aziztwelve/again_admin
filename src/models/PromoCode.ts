@@ -17,7 +17,6 @@ export class PromoCode {
     maxUses: number | undefined;
     timesUsed: number | undefined;
     isActive: boolean | undefined;
-    isHiddenInProfile: boolean | undefined;
     customerType: CustomerType | undefined;
     is_unlimited: boolean | undefined;
     applies_to_all_products: boolean | undefined;
@@ -41,7 +40,6 @@ export class PromoCode {
         this.maxUses = undefined;
         this.timesUsed = 0;
         this.isActive = true;
-        this.isHiddenInProfile = false;
         this.customerType = CustomerType.ALL;
         this.applies_to_all_products = false;
         this.applies_to_all_clients = false;
@@ -82,7 +80,6 @@ export class PromoCode {
         promo.maxUses = json.max_uses ?? undefined;
         promo.timesUsed = json.times_used ?? 0;
         promo.isActive = !!json.is_active;
-        promo.isHiddenInProfile = !!json.is_hidden_in_profile;
         promo.customerType = json.customer_type ?? CustomerType.ALL;
         promo.applies_to_all_products = !!json.applies_to_all_products;
         promo.applies_to_all_clients = !!json.applies_to_all_clients;
@@ -108,7 +105,6 @@ export class PromoCode {
             max_uses: this.maxUses ?? null,
             times_used: this.timesUsed ?? 0,
             is_active: this.isActive ?? null,
-            is_hidden_in_profile: this.isHiddenInProfile ?? false,
             customer_type: this.customerType ?? CustomerType.ALL,
             is_unlimited: this.is_unlimited ?? null,
         };
@@ -129,7 +125,6 @@ export class PromoCode {
         formData.append('max_uses', String(this.maxUses ?? ''));
         formData.append('times_used', String(this.timesUsed ?? 0));
         formData.append('is_active', this.isActive ? '1' : '0');
-        formData.append('is_hidden_in_profile', this.isHiddenInProfile ? '1' : '0');
         formData.append('customer_type', this.customerType ?? CustomerType.ALL);
         formData.append('is_unlimited', this.is_unlimited ? '1' : '0');
         formData.append('applies_to_all_clients', this.applies_to_all_clients ? '1' : '0');
@@ -183,7 +178,6 @@ export class PromoCode {
         cloned.maxUses = this.maxUses;
         cloned.timesUsed = this.timesUsed;
         cloned.isActive = this.isActive;
-        cloned.isHiddenInProfile = this.isHiddenInProfile;
         cloned.customerType = this.customerType;
         cloned.is_unlimited = this.is_unlimited;
         cloned.createdAt = this.createdAt;
