@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import {h, PropType, ref} from "vue";
+import {h, PropType, ref, watch} from "vue";
 import {useRouter} from "vue-router";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import {Check, X, Copy} from 'lucide-vue-next';
@@ -28,6 +28,7 @@ import {usePromoCodeFunctions} from "@/composables/usePromoCodeFunctions";
 import {useDateFormat} from "@/composables/useDateFormat";
 import PromoEdit from "@/components/discount/Promo/PromoEdit.vue";
 import {getCustomerTypeLabel, getDiscountTargetLabel} from "@/constants/DiscountType";
+import {useSelectableColumn} from "@/composables/useSelectableColumn";
 
 const props = defineProps({
   items: {
@@ -45,7 +46,11 @@ const edit = ref({
   loader: false,
 });
 
-const emits = defineEmits(["deleted", "updated"]);
+const emits = defineEmits(["deleted", "updated", "selection-change"]);
+
+const {selectedIds, selectColumn} = useSelectableColumn();
+
+watch(selectedIds, (ids) => emits('selection-change', ids.slice(0, 50)));
 
 const {deletePromoCode, updatePromoCode} = usePromoCodeFunctions();
 const {duplicatePromoCode} = usePromoCodeFunctions();
@@ -92,6 +97,7 @@ const handleUpdate = async (item: PromoCode) => {
 
 
 const columns = [
+  selectColumn,
   {
     accessorKey: "id",
     header: "ID",
@@ -215,6 +221,13 @@ const columns = [
           ? h(Check, {class: "h-4 w-4 text-green-500"})
           : h(X, {class: "h-4 w-4 text-red-500"});
     },
+  },
+  {
+    accessorKey: "isHiddenInProfile",
+    header: "В профиле",
+    cell: ({row}: any) => row.original.isHiddenInProfile
+        ? h(X, {class: "h-4 w-4 text-red-500", title: "Скрыт в профиле"})
+        : h(Check, {class: "h-4 w-4 text-green-500", title: "Показывается в профиле"}),
   },
 ];
 </script>
