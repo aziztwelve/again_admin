@@ -6,9 +6,12 @@
           :filter="searchParams"
           @search="handleSearch"
       />
-      <SegmentAdd
-          @create-emit="handleCreate"
-      />
+      <div class="flex items-center gap-2">
+        <SegmentSyncButton @synced-emit="getData"/>
+        <SegmentAdd
+            @create-emit="handleCreate"
+        />
+      </div>
     </div>
 
     <SegmentTable
@@ -34,6 +37,7 @@ import {onMounted, ref} from "vue";
 import SegmentTable from "@/features/segment/components/list/SegmentTable.vue";
 import SegmentAdd from "@/features/segment/components/add/SegmentAdd.vue";
 import SegmentSearch from "@/features/segment/components/list/SegmentSearch.vue";
+import SegmentSyncButton from "@/features/segment/components/list/SegmentSyncButton.vue";
 
 const segments = ref<Segment[]>();
 

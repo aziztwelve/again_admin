@@ -209,6 +209,31 @@ export function useSegments() {
     }
 
     /**
+     * Синхронизировать все сегменты с актуальными заказами и клиентами
+     */
+    const recalculateAllSegments = async (): Promise<any> => {
+        if (sending.value) return
+
+        sending.value = true
+        progress.value = 0
+
+        return await axios.post<{ success: boolean; message: string; data: any }>(
+            'segments/recalculate-all'
+        )
+            .then(res => {
+                useSuccessHandler().showSuccess(res)
+                return res.data.data
+            })
+            .catch(e => {
+                useErrorHandler().showError(e)
+                throw e
+            })
+            .finally(() => {
+                sending.value = false
+            })
+    }
+
+    /**
      * Получить клиентов сегмента с пагинацией
      */
     const getSegmentClients = async (
@@ -474,6 +499,7 @@ export function useSegments() {
         // Управление
         toggleActive,
         recalculateSegment,
+        recalculateAllSegments,
 
         // Клиенты
         getSegmentClients,

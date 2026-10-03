@@ -117,7 +117,7 @@ const buildFormFields = () => {
         component: 'text',
         type: 'number',
         label: 'Макс заказов',
-        placeholder: 'Например: 100',
+        placeholder: '0 — ни одной покупки',
         min: 0,
       },
     ],
