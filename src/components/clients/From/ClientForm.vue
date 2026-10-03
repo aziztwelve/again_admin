@@ -100,6 +100,31 @@
       </div>
     </div>
 
+    <fieldset class="space-y-2 rounded border p-3">
+      <legend class="px-1 text-xs uppercase text-gray-500">Согласия и подписки</legend>
+
+      <div class="flex items-center space-x-2">
+        <Checkbox id="subscribed_to_newsletter" v-model="form.subscribed_to_newsletter"/>
+        <label for="subscribed_to_newsletter" class="text-sm leading-none">
+          Подписан на новости / рассылку
+        </label>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <Checkbox id="personal_data_consent" v-model="form.personal_data_consent"/>
+        <label for="personal_data_consent" class="text-sm leading-none">
+          Согласие на обработку персональных данных
+        </label>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <Checkbox id="messenger_subscription" v-model="form.messenger_subscription"/>
+        <label for="messenger_subscription" class="text-sm leading-none">
+          Получать уведомления о заказе
+        </label>
+      </div>
+    </fieldset>
+
     <Button type="submit" class="mt-4 w-full" variant="secondary">
       {{ submitButtonText }}
     </Button>
@@ -113,6 +138,7 @@ import {Input} from '@/components/ui/input'
 import {Textarea} from '@/components/ui/textarea'
 import {Label} from '@/components/ui/label'
 import {Button} from '@/components/ui/button'
+import {Checkbox} from '@/components/ui/checkbox'
 import {Spinner} from "@/components/ui/spinner"
 import DatePicker from '@/components/dynamics/DatePicker.vue'
 import Select from '@/components/dynamics/Dropdown/Select.vue'

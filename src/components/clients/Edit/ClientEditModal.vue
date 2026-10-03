@@ -14,7 +14,7 @@
 <script setup lang="ts">
 import ClientFormModal from "@/components/clients/Modal/ClientFormModal.vue";
 import {Client, ClientFormData, clientToFormData} from "@/types/client";
-import {ref} from "vue";
+import {ref, watch} from "vue";
 import {useClientFunctions} from "@/composables/useClientFunctions";
 
 interface Props {
@@ -30,6 +30,15 @@ const emit = defineEmits<{
 
 const formData = ref<ClientFormData>(clientToFormData(props.client));
 const {editClientCorrect} = useClientFunctions()
+
+// При повторном открытии карточки показываем значения, сохранённые у клиента,
+// а не данные от предыдущего открытия модального окна.
+watch(
+    () => props.client,
+    (client) => {
+      formData.value = clientToFormData(client)
+    },
+)
 
 const clientFormModal = ref<{
   closeModal: () => void
