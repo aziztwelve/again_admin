@@ -45,7 +45,7 @@
                 </h3>
 
                 <span class="text-[10px] text-gray-500">
-                {{ formatTime(item.last_message_at) }}
+                {{ formatLastMessageAt(item.last_message_at) }}
               </span>
 
               </div>
@@ -147,10 +147,19 @@ function getInitials(email: string): string {
   return email.split('@')[0]?.slice(0, 2).toUpperCase()
 }
 
-function formatTime(dateString?: string | null): string {
+function formatLastMessageAt(dateString?: string | null): string {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
+  if (Number.isNaN(date.getTime())) return ''
+
+  const today = new Date()
+  const isToday = date.getFullYear() === today.getFullYear()
+      && date.getMonth() === today.getMonth()
+      && date.getDate() === today.getDate()
+
+  return isToday
+      ? date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})
+      : date.toLocaleDateString('ru-RU')
 }
 
 
