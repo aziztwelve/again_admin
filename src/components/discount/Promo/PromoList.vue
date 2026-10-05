@@ -28,7 +28,7 @@
             button-style="border-red-200 text-red-700 hover:bg-red-50"
             :disabled-button="selectedPromoIds.length === 0 || isHiding"
             :title="`Скрыть ${selectedPromoIds.length} промокодов?`"
-            description="У выбранных кодов аудитория станет «Скрыть промокод». Они не будут показаны или применены покупателям."
+            description="У выбранных кодов аудитория станет «Скрыт». Они не будут показаны или применены покупателям."
             @continue="hideSelected"
         />
       </div>
