@@ -6,6 +6,8 @@
       :loading="loading"
       :pagination="pagination"
       sub-rows-field="children"
+      :row-draggable="true"
+      @row-reordered="emits('reordered', $event)"
   >
     <template #actions="{row}">
 
@@ -76,6 +78,7 @@ defineProps<Props>();
 const emits = defineEmits<{
   (e: 'updated', category: Category): void;
   (e: 'deleted', category: Category): void;
+  (e: 'reordered', items: {source: Category, target: Category}): void;
 }>();
 
 const products = ref<Product[]>([]);

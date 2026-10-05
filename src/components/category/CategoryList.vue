@@ -14,14 +14,13 @@
 
     </div>
 
-    <CategoryAdminOrdering :categories="data" />
-
     <CategoryListTable
         :items="data"
         :pagination="pagination"
         :loading="sending"
         @deleted="handleDelete"
         @updated="handleUpdate"
+        @reordered="handleReorder"
     />
 
   </div>
@@ -34,12 +33,12 @@ import CategorySearch from "@/components/category/CategorySearch.vue";
 import CategoryListTable from "@/components/category/CategoryListTable.vue";
 import {useCategoryFunctions} from "@/composables/useCategoryFunctions";
 import CategoryAddModal from "@/components/category/CategoryAddModal.vue";
-import CategoryAdminOrdering from "@/components/category/CategoryAdminOrdering.vue";
 import {Category, CategoryFilterQuery} from "@/types/category";
 import {PaginationMeta} from "@/types/Types";
 
 
 const data = ref<Category[]>([]);
+const adminOrderStorageKey = 'again-admin-category-order'
 
 const pagination = ref<PaginationMeta>({
   page: 1,
@@ -63,8 +62,40 @@ async function fetchData() {
   await getCategories(queryParams.value)
       .then((res) => {
         pagination.value.total = res.meta.total ?? 0
-        data.value = res.data
+        data.value = sortForAdmin(res.data)
       })
+}
+
+const sortForAdmin = (categories: Category[]) => {
+  const savedIds = JSON.parse(window.localStorage.getItem(adminOrderStorageKey) ?? '[]') as number[]
+  const positions = new Map(savedIds.map((id, index) => [id, index]))
+  const sort = (items: Category[]) => [...items]
+      .sort((left, right) => (positions.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (positions.get(right.id) ?? Number.MAX_SAFE_INTEGER))
+      .map(item => ({...item, children: item.children ? sort(item.children) : item.children}))
+  return sort(categories)
+}
+
+const handleReorder = ({source, target}: {source: Category, target: Category}) => {
+  const reorder = (items: Category[]): Category[] => {
+    const sourceIndex = items.findIndex(item => item.id === source.id)
+    const targetIndex = items.findIndex(item => item.id === target.id)
+    if (sourceIndex !== -1 && targetIndex !== -1) {
+      const next = [...items]
+      const [item] = next.splice(sourceIndex, 1)
+      next.splice(targetIndex, 0, item)
+      return next
+    }
+    return items.map(item => ({...item, children: item.children ? reorder(item.children) : item.children}))
+  }
+
+  data.value = reorder(data.value)
+  const ids: number[] = []
+  const collectIds = (items: Category[]) => items.forEach(item => {
+    ids.push(item.id)
+    if (item.children) collectIds(item.children)
+  })
+  collectIds(data.value)
+  window.localStorage.setItem(adminOrderStorageKey, JSON.stringify(ids))
 }
 
 onMounted(() => {

@@ -57,7 +57,16 @@
           <template v-else-if="table.getRowModel().rows.length">
             <template v-for="row in table.getRowModel().rows" :key="row.id">
 
-              <TableRow v-if="row.depth === 0" :data-state="row.getIsSelected() && 'selected'">
+              <TableRow
+                  v-if="row.depth === 0"
+                  :data-state="row.getIsSelected() && 'selected'"
+                  :draggable="rowDraggable"
+                  :class="{'cursor-grab active:cursor-grabbing': rowDraggable}"
+                  @dragstart="startRowDrag(row, $event)"
+                  @dragover.prevent
+                  @drop.prevent="dropRow(row)"
+                  @dragend="draggedRow = null"
+              >
                 <TableCell
                     v-for="cell in row.getVisibleCells()"
                     :key="cell.id"
@@ -123,6 +132,11 @@
               <TableRow
                   v-else-if="row.depth > 0"
                   class="bg-gray-50"
+                  :draggable="rowDraggable"
+                  @dragstart="startRowDrag(row, $event)"
+                  @dragover.prevent
+                  @drop.prevent="dropRow(row)"
+                  @dragend="draggedRow = null"
               >
                 <TableCell
                     v-for="cell in row.getVisibleCells()"
@@ -237,6 +251,7 @@ const props = defineProps({
     default: true
   },
   subRowsField: String,
+  rowDraggable: Boolean,
 
   pagination: {
     type: Object as PropType<Pagination | PaginationMeta>,
@@ -258,6 +273,7 @@ const emits = defineEmits([
   "show",
   "edit",
   "paginationChange",
+  "row_reordered",
 ]);
 
 
@@ -292,6 +308,20 @@ const table = useVueTable({
 });
 
 const tableRef = ref(null);
+const draggedRow = ref<any>(null);
+
+const startRowDrag = (row: any, event: DragEvent) => {
+  if (!props.rowDraggable) return
+  draggedRow.value = row
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+}
+
+const dropRow = (targetRow: any) => {
+  if (!draggedRow.value || draggedRow.value.id === targetRow.id) return
+  if (draggedRow.value.original.parent_id !== targetRow.original.parent_id) return
+  emits('row_reordered', {source: draggedRow.value.original, target: targetRow.original})
+  draggedRow.value = null
+}
 
 const printTable = () => {
   try {
