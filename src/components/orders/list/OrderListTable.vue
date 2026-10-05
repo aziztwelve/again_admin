@@ -34,10 +34,10 @@
     </DynamicsDataTable>
 
     <div
-        v-if="selectedIds.length"
+        v-if="selectedCount"
         class="mt-3 inline-flex items-center gap-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900"
     >
-      <span>Выбрано заказов: <strong>{{ selectedIds.length }}</strong></span>
+      <span>Выбрано заказов: <strong>{{ selectedCount }}</strong></span>
       <span class="h-4 w-px bg-blue-200" aria-hidden="true"></span>
       <span>На сумму: <strong>{{ formatPrice(selectedTotal) }}</strong></span>
     </div>
@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import {h, computed, watch} from "vue";
+import {h, computed, ref} from "vue";
 import {Check, X} from "lucide-vue-next";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import {RouterLink, useRouter} from "vue-router";
@@ -58,6 +58,7 @@ import {useStatusFunctions} from "@/composables/useStatusFunctions";
 import {PaginationMeta} from "@/types/Types";
 import {useSelectableColumn} from "@/composables/useSelectableColumn";
 import {usePriceFormatter} from "@/composables/usePriceFormatter";
+import {Checkbox} from "@/components/ui/checkbox";
 
 
 interface FilterOption {
@@ -92,24 +93,50 @@ const handlerEdit = (row: Order) => {
 
 const {getStatus, getStatuses} = useStatusFunctions()
 const {formatPrice} = usePriceFormatter()
-const {selectedIds, selectColumn, indexColumn} = useSelectableColumn(props.pagination)
+const {indexColumn} = useSelectableColumn(props.pagination)
 
-// Выбранные строки хранятся в таблице только для текущей страницы — это
-// соответствует поведению чекбокса «выбрать все» в InSales и не смешивает
-// заказы из разных страниц выдачи.
+// Храним сами заказы, а не только их id: итог не пропадает при применении
+// фильтра или переходе на другую страницу выдачи.
+const selectedOrders = ref<Map<number, Order>>(new Map())
+const selectedCount = computed(() => selectedOrders.value.size)
+
 const selectedTotal = computed(() => {
-  const ids = new Set(selectedIds.value)
-
-  return props.items
-      .filter((order) => order.id !== undefined && ids.has(order.id))
+  return Array.from(selectedOrders.value.values())
       .reduce((sum, order) => sum + Number(order.total_amount ?? order.final_amount ?? 0), 0)
 })
 
-// При смене страницы или фильтра состав строк меняется: не переносим выбор
-// на новую выдачу и не показываем итог по уже скрытым заказам.
-watch(() => props.items, () => {
-  selectedIds.value = []
-})
+const isOrderSelected = (order: Order) => order.id !== undefined && selectedOrders.value.has(order.id)
+
+const setOrderSelected = (order: Order, selected: boolean) => {
+  if (order.id === undefined) return
+
+  const next = new Map(selectedOrders.value)
+  selected ? next.set(order.id, order) : next.delete(order.id)
+  selectedOrders.value = next
+}
+
+const selectColumn = {
+  id: 'select',
+  header: ({table}: any) => {
+    const pageOrders = table.getRowModel().rows
+        .map((row: any) => row.original as Order)
+        .filter((order: Order) => order.id !== undefined)
+    const selectedOnPage = pageOrders.filter(isOrderSelected).length
+
+    return h(Checkbox, {
+      modelValue: (pageOrders.length > 0 && selectedOnPage === pageOrders.length) || (selectedOnPage > 0 && 'indeterminate'),
+      'onUpdate:modelValue': (value: boolean) => pageOrders.forEach((order: Order) => setOrderSelected(order, !!value)),
+      ariaLabel: 'Выбрать все заказы на странице',
+    })
+  },
+  cell: ({row}: any) => h(Checkbox, {
+    modelValue: isOrderSelected(row.original),
+    'onUpdate:modelValue': (value: boolean) => setOrderSelected(row.original, !!value),
+    ariaLabel: 'Выбрать заказ',
+  }),
+  enableSorting: false,
+  enableHiding: false,
+}
 
 const onFilterApply = () => emits('filter');
 
