@@ -95,13 +95,14 @@ const {getStatus, getStatuses} = useStatusFunctions()
 const {formatPrice} = usePriceFormatter()
 const {indexColumn} = useSelectableColumn(props.pagination)
 
-// Храним сами заказы, а не только их id: итог не пропадает при применении
-// фильтра или переходе на другую страницу выдачи.
+// Храним сами заказы, чтобы галочки могли сохраняться между выдачами.
+// В итог попадают только строки, видимые при текущем фильтре.
 const selectedOrders = ref<Map<number, Order>>(new Map())
-const selectedCount = computed(() => selectedOrders.value.size)
+const visibleSelectedOrders = computed(() => props.items.filter(isOrderSelected))
+const selectedCount = computed(() => visibleSelectedOrders.value.length)
 
 const selectedTotal = computed(() => {
-  return Array.from(selectedOrders.value.values())
+  return visibleSelectedOrders.value
       .reduce((sum, order) => sum + Number(order.total_amount ?? order.final_amount ?? 0), 0)
 })
 
