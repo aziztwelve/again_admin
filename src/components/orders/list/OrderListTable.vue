@@ -32,11 +32,20 @@
 
       </template>
     </DynamicsDataTable>
+
+    <div
+        v-if="selectedIds.length"
+        class="mt-3 inline-flex items-center gap-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900"
+    >
+      <span>Выбрано заказов: <strong>{{ selectedIds.length }}</strong></span>
+      <span class="h-4 w-px bg-blue-200" aria-hidden="true"></span>
+      <span>На сумму: <strong>{{ formatPrice(selectedTotal) }}</strong></span>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {h, computed} from "vue";
+import {h, computed, watch} from "vue";
 import {Check, X} from "lucide-vue-next";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import {RouterLink, useRouter} from "vue-router";
@@ -48,6 +57,7 @@ import {useDateFormat} from "@/composables/useDateFormat";
 import {useStatusFunctions} from "@/composables/useStatusFunctions";
 import {PaginationMeta} from "@/types/Types";
 import {useSelectableColumn} from "@/composables/useSelectableColumn";
+import {usePriceFormatter} from "@/composables/usePriceFormatter";
 
 
 interface FilterOption {
@@ -81,7 +91,25 @@ const handlerEdit = (row: Order) => {
 
 
 const {getStatus, getStatuses} = useStatusFunctions()
-const {indexColumn} = useSelectableColumn(props.pagination)
+const {formatPrice} = usePriceFormatter()
+const {selectedIds, selectColumn, indexColumn} = useSelectableColumn(props.pagination)
+
+// Выбранные строки хранятся в таблице только для текущей страницы — это
+// соответствует поведению чекбокса «выбрать все» в InSales и не смешивает
+// заказы из разных страниц выдачи.
+const selectedTotal = computed(() => {
+  const ids = new Set(selectedIds.value)
+
+  return props.items
+      .filter((order) => order.id !== undefined && ids.has(order.id))
+      .reduce((sum, order) => sum + Number(order.total_amount ?? order.final_amount ?? 0), 0)
+})
+
+// При смене страницы или фильтра состав строк меняется: не переносим выбор
+// на новую выдачу и не показываем итог по уже скрытым заказам.
+watch(() => props.items, () => {
+  selectedIds.value = []
+})
 
 const onFilterApply = () => emits('filter');
 
@@ -109,6 +137,7 @@ const managerFilterOptions = computed<FilterOption[]>(() => [
 ]);
 
 const columns = computed(() => [
+  selectColumn,
   indexColumn,
 
   {
