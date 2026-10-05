@@ -32,6 +32,7 @@ import TaskEdit from "@/components/orders/tasks/TaskEdit.vue";
 import TaskPriority from "@/models/TaskPriority";
 import AlertDialog from "@/components/dynamics/AlertDialog.vue";
 import {SquareCheckBig} from 'lucide-vue-next';
+import TaskDescriptionPreview from "@/components/orders/tasks/list/TaskDescriptionPreview.vue";
 
 const props = defineProps({
   items: {
@@ -108,6 +109,11 @@ const columns = [
     accessorKey: "title",
     header: "Что сделать",
     cell: ({row}: any) => row.original?.title || '—',
+  },
+  {
+    accessorKey: "description",
+    header: "Описание",
+    cell: ({row}: any) => h(TaskDescriptionPreview, {description: row.original?.description}),
   },
   {
     accessorKey: "assignee",
