@@ -23,13 +23,15 @@
           Выберите до 50 промокодов чекбоксами в таблице, чтобы скрыть их через поле «Аудитория».
         </span>
         <AlertDialog
-            :button-name="`Скрыть выбранные (${selectedPromoIds.length})`"
+            :button-name="`${selectedAreHidden ? 'Показать' : 'Скрыть'} выбранные (${selectedPromoIds.length})`"
             button-variant="outline"
             button-style="border-red-200 text-red-700 hover:bg-red-50"
             :disabled-button="selectedPromoIds.length === 0 || isHiding"
-            :title="`Скрыть ${selectedPromoIds.length} промокодов?`"
-            description="У выбранных кодов аудитория станет «Скрыт». Они не будут показаны или применены покупателям."
-            @continue="hideSelected"
+            :title="`${selectedAreHidden ? 'Показать' : 'Скрыть'} ${selectedPromoIds.length} промокодов?`"
+            :description="selectedAreHidden
+              ? 'У выбранных кодов аудитория станет «Все пользователи». Их снова смогут увидеть и применить покупатели.'
+              : 'У выбранных кодов аудитория станет «Скрыт». Они не будут показаны или применены покупателям.'"
+            @continue="toggleSelected"
         />
       </div>
 
@@ -57,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted} from 'vue';
+import {computed, ref, onMounted} from 'vue';
 import PaginationTable from "@/components/PaginationTable.vue";
 import Loader from "@/components/common/Loader.vue";
 import PromoListTable from "@/components/discount/Promo/PromoListTable.vue";
@@ -66,6 +68,7 @@ import PromoSearch from "@/components/discount/Promo/PromoSearch.vue";
 import {usePromoCodeFunctions} from "@/composables/usePromoCodeFunctions";
 import {PromoCode} from "@/models/PromoCode";
 import AlertDialog from "@/components/dynamics/AlertDialog.vue";
+import {CustomerType} from "@/constants/DiscountType";
 
 const data = ref<PromoCode[]>();
 const totalItems = ref(0);
@@ -82,7 +85,13 @@ const paramsSearch = ref({
   search: '',
 })
 
-const {getPromoCodes, hidePromoCodes} = usePromoCodeFunctions()
+const {getPromoCodes, hidePromoCodes, showPromoCodes} = usePromoCodeFunctions()
+
+const selectedAreHidden = computed(() => {
+  if (selectedPromoIds.value.length === 0) return false
+  const selected = (data.value ?? []).filter(promo => selectedPromoIds.value.includes(promo.id!))
+  return selected.length === selectedPromoIds.value.length && selected.every(promo => promo.customerType === CustomerType.HIDDEN)
+})
 
 onMounted(async () => {
   await fetchData()
@@ -105,10 +114,11 @@ async function fetchData() {
   renderTable.value++
 }
 
-async function hideSelected() {
+async function toggleSelected() {
   isHiding.value = true
   try {
-    if (await hidePromoCodes(selectedPromoIds.value)) {
+    const action = selectedAreHidden.value ? showPromoCodes : hidePromoCodes
+    if (await action(selectedPromoIds.value)) {
       await fetchData()
     }
   } finally {
