@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import {h, ref} from "vue";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
-import {ChevronRight, ChevronDown, Check, GripVertical, X} from 'lucide-vue-next'
+import {ChevronRight, ChevronDown, Check, ChevronUp, GripVertical, ChevronDown as ChevronDownIcon, X} from 'lucide-vue-next'
 import IconButtons from "@/components/dynamics/IconButtons.vue";
 import CategoryEditModal from "@/components/category/CategoryEditModal.vue";
 import {useCategoryFunctions} from "@/composables/useCategoryFunctions";
@@ -79,6 +79,7 @@ const emits = defineEmits<{
   (e: 'updated', category: Category): void;
   (e: 'deleted', category: Category): void;
   (e: 'reordered', items: {source: Category, target: Category}): void;
+  (e: 'moved', item: {category: Category, direction: 'up' | 'down'}): void;
 }>();
 
 const products = ref<Product[]>([]);
@@ -106,6 +107,21 @@ const columns = [
       class: 'inline-flex cursor-grab touch-none text-gray-400 active:cursor-grabbing',
     }, [h(GripVertical, {class: 'h-4 w-4'})]),
     meta: {cellClass: 'w-8'},
+  },
+  {
+    id: 'move',
+    header: '',
+    cell: ({row}: any) => h('div', {class: 'flex items-center gap-1'}, [
+      h('button', {
+        type: 'button', title: 'Переместить выше', class: 'rounded p-0.5 hover:bg-gray-100',
+        onClick: () => emits('moved', {category: row.original, direction: 'up'}),
+      }, [h(ChevronUp, {class: 'h-4 w-4'})]),
+      h('button', {
+        type: 'button', title: 'Переместить ниже', class: 'rounded p-0.5 hover:bg-gray-100',
+        onClick: () => emits('moved', {category: row.original, direction: 'down'}),
+      }, [h(ChevronDownIcon, {class: 'h-4 w-4'})]),
+    ]),
+    meta: {cellClass: 'w-14'},
   },
   {
     id: 'expander',

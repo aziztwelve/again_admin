@@ -21,6 +21,7 @@
         @deleted="handleDelete"
         @updated="handleUpdate"
         @reordered="handleReorder"
+        @moved="handleMove"
     />
 
   </div>
@@ -89,6 +90,27 @@ const handleReorder = ({source, target}: {source: Category, target: Category}) =
   }
 
   data.value = reorder(data.value)
+  saveLocalOrder()
+}
+
+const handleMove = ({category, direction}: {category: Category, direction: 'up' | 'down'}) => {
+  const move = (items: Category[]): Category[] => {
+    const index = items.findIndex(item => item.id === category.id)
+    if (index !== -1) {
+      const targetIndex = index + (direction === 'up' ? -1 : 1)
+      if (targetIndex < 0 || targetIndex >= items.length) return items
+      const next = [...items]
+      const [item] = next.splice(index, 1)
+      next.splice(targetIndex, 0, item)
+      return next
+    }
+    return items.map(item => ({...item, children: item.children ? move(item.children) : item.children}))
+  }
+  data.value = move(data.value)
+  saveLocalOrder()
+}
+
+const saveLocalOrder = () => {
   const ids: number[] = []
   const collectIds = (items: Category[]) => items.forEach(item => {
     ids.push(item.id)
