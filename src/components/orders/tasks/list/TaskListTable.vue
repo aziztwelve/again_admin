@@ -108,12 +108,7 @@ const columns = [
   {
     accessorKey: "title",
     header: "Что сделать",
-    cell: ({row}: any) => row.original?.title || '—',
-  },
-  {
-    accessorKey: "description",
-    header: "Описание",
-    cell: ({row}: any) => h(TaskDescriptionPreview, {description: row.original?.description}),
+    cell: ({row}: any) => h(TaskDescriptionPreview, {text: row.original?.title}),
   },
   {
     accessorKey: "assignee",

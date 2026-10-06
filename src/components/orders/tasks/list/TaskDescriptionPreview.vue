@@ -1,7 +1,7 @@
 <template>
-  <div v-if="description" class="max-w-xs">
+  <div v-if="text" class="max-w-xs">
     <p class="whitespace-pre-wrap break-words" :class="{'line-clamp-2': isLong}">
-      {{ description }}
+      {{ text }}
     </p>
     <Dialog v-if="isLong" v-model:open="isOpen">
       <DialogTrigger as-child>
@@ -9,10 +9,10 @@
       </DialogTrigger>
       <DialogContent class="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Описание задачи</DialogTitle>
+          <DialogTitle>Что сделать</DialogTitle>
         </DialogHeader>
         <div class="max-h-[60vh] overflow-y-auto whitespace-pre-wrap break-words text-sm text-gray-700">
-          {{ description }}
+          {{ text }}
         </div>
         <DialogFooter>
           <button class="rounded-md border px-3 py-2 text-sm hover:bg-gray-50" type="button" @click="isOpen = false">
@@ -29,7 +29,7 @@
 import {computed, ref} from 'vue'
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from '@/components/ui/dialog'
 
-const props = defineProps<{description?: string | null}>()
+const props = defineProps<{text?: string | null}>()
 const isOpen = ref(false)
-const isLong = computed(() => (props.description?.length ?? 0) > 120)
+const isLong = computed(() => (props.text?.length ?? 0) > 120)
 </script>
