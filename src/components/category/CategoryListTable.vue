@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import {h, ref} from "vue";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
-import {ChevronRight, ChevronDown, Check, ChevronUp, GripVertical, ChevronDown as ChevronDownIcon, X} from 'lucide-vue-next'
+import {ChevronRight, ChevronDown, Check, ChevronUp, ChevronDown as ChevronDownIcon, X} from 'lucide-vue-next'
 import IconButtons from "@/components/dynamics/IconButtons.vue";
 import CategoryEditModal from "@/components/category/CategoryEditModal.vue";
 import {useCategoryFunctions} from "@/composables/useCategoryFunctions";
@@ -98,16 +98,6 @@ const deleteCategoryHandle = (category: Category) => {
 
 
 const columns = [
-  {
-    id: 'drag',
-    header: '',
-    cell: () => h('span', {
-      draggable: true,
-      title: 'Перетащить категорию',
-      class: 'inline-flex cursor-grab touch-none text-gray-400 active:cursor-grabbing',
-    }, [h(GripVertical, {class: 'h-4 w-4'})]),
-    meta: {cellClass: 'w-8'},
-  },
   {
     id: 'move',
     header: '',
