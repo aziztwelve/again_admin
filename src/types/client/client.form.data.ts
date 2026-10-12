@@ -11,6 +11,8 @@ export interface ClientFormData {
     level_id?: number;
     subscribed_to_newsletter?: boolean;
     personal_data_consent?: boolean;
+    privacy_policy_accepted?: boolean;
+    oferta_accepted?: boolean;
     messenger_subscription?: boolean;
     delivery_country_id?: number | null;
     delivery_city_id?: number | null;
@@ -35,7 +37,8 @@ export function createClientFormData(): ClientFormData {
         level_id: undefined,
         subscribed_to_newsletter: false,
         personal_data_consent: false,
-        messenger_subscription: false,
+        privacy_policy_accepted: false,
+        oferta_accepted: false,
         delivery_country_id: null,
         delivery_city_id: null,
         delivery_region: '',
@@ -60,7 +63,8 @@ export function clientToFormData(client: Client): ClientFormData {
         level_id: undefined,
         subscribed_to_newsletter: client.subscribed_to_newsletter ?? false,
         personal_data_consent: client.personal_data_consent ?? false,
-        messenger_subscription: client.messenger_subscription ?? false,
+        privacy_policy_accepted: client.privacy_policy_accepted ?? false,
+        oferta_accepted: client.oferta_accepted ?? false,
         delivery_country_id: client.profile?.delivery_country_id ?? null,
         delivery_city_id: client.profile?.delivery_city_id ?? null,
         delivery_region: client.profile?.delivery_region || '',

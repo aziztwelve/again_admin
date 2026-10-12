@@ -37,6 +37,8 @@ export interface Client {
     segments?: Segment[];
     subscribed_to_newsletter?: boolean;
     personal_data_consent?: boolean;
+    privacy_policy_accepted?: boolean;
+    oferta_accepted?: boolean;
     messenger_subscription?: boolean;
     rfm_segment?: string | null;
     group_name?: string | null;

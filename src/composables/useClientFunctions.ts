@@ -155,7 +155,8 @@ export function useClientFunctions() {
             delivery_postal_code: profile.delivery_postal_code ?? null,
             subscribed_to_newsletter: c.subscribed_to_newsletter ?? false,
             personal_data_consent: c.personal_data_consent ?? false,
-            messenger_subscription: c.messenger_subscription ?? false,
+            privacy_policy_accepted: c.privacy_policy_accepted ?? false,
+            oferta_accepted: c.oferta_accepted ?? false,
             rfm_segment: c.rfm_segment ?? null,
             group_name: c.group_name ?? null,
         };

@@ -16,6 +16,8 @@ export class Client {
     verified_at: string | null;
     subscribed_to_newsletter: boolean;
     personal_data_consent: boolean;
+    privacy_policy_accepted: boolean;
+    oferta_accepted: boolean;
     messenger_subscription: boolean;
     rfm_segment: string | null;
     group_name: string | null;
@@ -35,6 +37,8 @@ export class Client {
         this.verified_at = this.validateNullableString(data.verified_at, 'verified_at');
         this.subscribed_to_newsletter = Boolean(data.subscribed_to_newsletter);
         this.personal_data_consent = Boolean(data.personal_data_consent);
+        this.privacy_policy_accepted = Boolean(data.privacy_policy_accepted);
+        this.oferta_accepted = Boolean(data.oferta_accepted);
         this.messenger_subscription = Boolean(data.messenger_subscription);
         this.rfm_segment = this.validateNullableString(data.rfm_segment, 'rfm_segment');
         this.group_name = this.validateNullableString(data.group_name, 'group_name');
@@ -80,6 +84,8 @@ export class Client {
                 verified_at: json.verified_at ?? null,
                 subscribed_to_newsletter: json.subscribed_to_newsletter,
                 personal_data_consent: json.personal_data_consent,
+                privacy_policy_accepted: json.privacy_policy_accepted,
+                oferta_accepted: json.oferta_accepted,
                 messenger_subscription: json.messenger_subscription,
                 rfm_segment: json.rfm_segment,
                 group_name: json.group_name,
@@ -101,6 +107,8 @@ export class Client {
             updated_at: this.updated_at,
             subscribed_to_newsletter: this.subscribed_to_newsletter,
             personal_data_consent: this.personal_data_consent,
+            privacy_policy_accepted: this.privacy_policy_accepted,
+            oferta_accepted: this.oferta_accepted,
             messenger_subscription: this.messenger_subscription,
             rfm_segment: this.rfm_segment,
             group_name: this.group_name,
@@ -126,6 +134,8 @@ export class Client {
             verified_at: this.verified_at,
             subscribed_to_newsletter: this.subscribed_to_newsletter,
             personal_data_consent: this.personal_data_consent,
+            privacy_policy_accepted: this.privacy_policy_accepted,
+            oferta_accepted: this.oferta_accepted,
             messenger_subscription: this.messenger_subscription,
             rfm_segment: this.rfm_segment,
             group_name: this.group_name,

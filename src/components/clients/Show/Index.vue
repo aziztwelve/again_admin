@@ -74,18 +74,22 @@
               <FieldView label="Почтовый индекс" :value="client.profile?.delivery_postal_code"/>
             </div>
 
-            <div class="grid grid-cols-1 gap-4 px-4 py-4 md:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 px-4 py-4 md:grid-cols-2">
               <FieldView
-                  label="Подписан на рассылку"
-                  :value="boolLabel(client.subscribed_to_newsletter)"
+                  label="Политика конфиденциальности"
+                  :value="boolLabel(client.privacy_policy_accepted)"
               />
               <FieldView
-                  label="Согласие на ПД"
+                  label="Согласие на обработку персональных данных"
                   :value="boolLabel(client.personal_data_consent)"
               />
               <FieldView
-                  label="Уведомления о заказе"
-                  :value="boolLabel(client.messenger_subscription)"
+                  label="Принятие оферты"
+                  :value="boolLabel(client.oferta_accepted)"
+              />
+              <FieldView
+                  label="Согласие на рекламную рассылку"
+                  :value="boolLabel(client.subscribed_to_newsletter)"
               />
             </div>
           </div>
@@ -419,7 +423,8 @@ const clientForModal = computed(() => {
     updated_at: c.updated_at ?? undefined,
     subscribed_to_newsletter: Boolean(c.subscribed_to_newsletter),
     personal_data_consent: Boolean(c.personal_data_consent),
-    messenger_subscription: Boolean(c.messenger_subscription),
+    privacy_policy_accepted: Boolean(c.privacy_policy_accepted),
+    oferta_accepted: Boolean(c.oferta_accepted),
     rfm_segment: c.rfm_segment ?? null,
     group_name: c.group_name ?? null,
   };

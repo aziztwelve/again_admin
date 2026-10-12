@@ -91,9 +91,9 @@
       <legend class="px-1 text-xs uppercase text-gray-500">Согласия и подписки</legend>
 
       <div class="flex items-center space-x-2">
-        <Checkbox id="subscribed_to_newsletter" v-model="clientData.subscribed_to_newsletter"/>
-        <label for="subscribed_to_newsletter" class="text-sm leading-none">
-          Подписан на новости / рассылку
+        <Checkbox id="privacy_policy_accepted" v-model="clientData.privacy_policy_accepted"/>
+        <label for="privacy_policy_accepted" class="text-sm leading-none">
+          Политика конфиденциальности
         </label>
       </div>
 
@@ -105,9 +105,16 @@
       </div>
 
       <div class="flex items-center space-x-2">
-        <Checkbox id="messenger_subscription" v-model="clientData.messenger_subscription"/>
-        <label for="messenger_subscription" class="text-sm leading-none">
-          Получать уведомления о заказе
+        <Checkbox id="oferta_accepted" v-model="clientData.oferta_accepted"/>
+        <label for="oferta_accepted" class="text-sm leading-none">
+          Принятие оферты
+        </label>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <Checkbox id="subscribed_to_newsletter" v-model="clientData.subscribed_to_newsletter"/>
+        <label for="subscribed_to_newsletter" class="text-sm leading-none">
+          Согласие на рекламную рассылку
         </label>
       </div>
     </fieldset>
