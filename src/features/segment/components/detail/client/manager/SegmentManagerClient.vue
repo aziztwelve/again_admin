@@ -1,19 +1,16 @@
 <template>
   <DialogModal
       title="Управление клиентами сегмента"
-      description="Добавьте или удалите клиентов из сегмента"
+      description="Добавленные вручную клиенты сохраняются при пересчёте сегмента"
       dynamic-style="2xl:min-w-[80vw] xl:min-w-[95vw] max-md:min-w-full md:min-w-[95vw]"
   >
     <template #button>
       <Button
-          :disabled="segment.recalculate_frequency !== 'manual'"
+          :disabled="sending"
           variant="outline"
           class="max-md:w-full"
       >
-        {{ segment.recalculate_frequency === 'manual'
-          ? 'Добавить клиент'
-          : 'Автоматический сегмент'
-        }}
+        Добавить клиента вручную
       </Button>
     </template>
 

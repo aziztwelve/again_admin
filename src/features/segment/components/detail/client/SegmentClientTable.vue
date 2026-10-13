@@ -9,7 +9,11 @@
   >
     <template #actions="{row}">
       <div class="flex items-center gap-2">
-        <!-- Кнопка "Добавить" -->
+        <Button v-if="!row.original.is_manual" size="sm" variant="outline"
+            :disabled="sending || pinSending" @click="pinClient(row.original.id)">
+          Закрепить вручную
+        </Button>
+        <!-- Снятие ручного закрепления -->
         <Button
             v-if="isClientPendingDetach(row.original.id)"
             size="sm"
@@ -22,7 +26,8 @@
         </Button>
 
         <Button
-            v-else
+            v-else-if="row.original.is_manual"
+            aria-label="Снять ручное закрепление"
             size="sm"
             variant="destructive"
             @click="handleDetach(row.original.id)"
@@ -43,11 +48,13 @@ import {useTableColumns} from "@/composables/Table/useTableColumns";
 import {usePriceFormatter} from "@/composables/usePriceFormatter";
 import {PaginationMeta} from "@/types/Types";
 import {h} from "vue";
+import {useSegments} from '@/features/segment/composables/useSegments';
 import {Button} from "@/components/ui/button";
 import {Trash2, Plus} from "lucide-vue-next";
 import {useDateFormat} from "@/composables/useDateFormat";
 
 interface PropsData {
+  segmentId: number;
   clients: SegmentClient[];
   sending: boolean;
   pagination: PaginationMeta
@@ -57,7 +64,14 @@ interface PropsData {
 const props = defineProps<PropsData>();
 
 
-console.log(props.clients)
+const emit = defineEmits(['updated']);
+const {attachClients, sending: pinSending} = useSegments();
+async function pinClient(id: number) {
+  try {
+    await attachClients(props.segmentId, {client_ids: [id]});
+    emit('updated');
+  } catch { /* useSegments displays the API error. */ }
+}
 const {createIndexColumn} = useTableColumns();
 const {formatPrice} = usePriceFormatter()
 const {formatDateToRussian} = useDateFormat()
@@ -86,10 +100,15 @@ const handleDetach = (id: number) => {
 
 const columns = [
   createIndexColumn(),
+  {
+    accessorKey: 'is_manual',
+    header: 'Добавление',
+    cell: ({row}: any) => row.original.is_manual ? 'Вручную · закреплён' : 'По условиям',
+  },
 
   {
     accessorKey: "full_name",
-    header: "Код",
+    header: "Клиент",
     cell: ({row}: any) =>
         h(
             "div",

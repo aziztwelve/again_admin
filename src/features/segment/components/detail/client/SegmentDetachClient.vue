@@ -22,7 +22,7 @@
                 <span v-if="hasChanges">
 
                   <span v-if="pendingDetachCount > 0" class="text-red-600 font-medium">
-                    -{{ pendingDetachCount }} удалить
+                    -{{ pendingDetachCount }} снять закрепление
                   </span>
                 </span>
             <span v-else class="text-gray-400">

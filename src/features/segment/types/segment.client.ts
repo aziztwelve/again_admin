@@ -4,6 +4,7 @@ import {Client} from "@/types/client";
  * Клиент в сегменте
  */
 export interface SegmentClient extends Client {
+    is_manual: boolean
     orders_count: number
     total_amount: number
     average_check: number

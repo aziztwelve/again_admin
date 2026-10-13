@@ -32,6 +32,8 @@
       <div v-else-if="clients?.length > 0" class="space-y-3">
         <SegmentClientTable
             :clients="clients"
+            :segment-id="segmentId"
+            @updated="handleDetachUpdated"
             :sending="sending"
             :pagination="pagination"
             :segment-client-manager="segmentClientManager"
@@ -151,6 +153,10 @@ const handleApply = async () => {
       await attachClients(props.segmentId, attachPayload)
     }
 
+    s.pendingAttach = []
+    s.attached = []
+    s.attachedOriginal = []
+    await getClientsData()
     emit('updated')
   } catch (e) {
     console.error(e)
@@ -162,6 +168,7 @@ const handleDetachUpdated = () => {
   handleCancelDetach()
   pagination.value.page = 1
   getClientsData()
+  emit('updated')
 }
 
 
@@ -173,7 +180,7 @@ const getClientsData = () => {
     search: searchParams.value.search,
   }
 
-  getSegmentClients(props.segmentId, params)
+  return getSegmentClients(props.segmentId, params)
       .then((res) => {
         clients.value = res?.data ?? []
         pagination.value.total = res?.meta.total ?? 0
