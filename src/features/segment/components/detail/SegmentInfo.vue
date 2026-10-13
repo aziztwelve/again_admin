@@ -43,6 +43,11 @@
           </p>
         </div>
 
+        <div>
+          <p class="text-sm text-gray-600">Акций</p>
+          <p class="font-bold">{{ segment.promotions_count || 0 }}</p>
+        </div>
+
         <!-- Дата создания -->
         <div>
           <p class="text-sm text-gray-600">Создан</p>

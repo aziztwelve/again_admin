@@ -143,6 +143,11 @@ const columns = [
   },
 
   {
+    accessorKey: "promotions_count",
+    header: "Акций",
+  },
+
+  {
     accessorKey: "is_active",
     header: "Активен",
     cell: ({row}: any) => {

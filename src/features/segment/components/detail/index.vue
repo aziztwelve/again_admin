@@ -34,6 +34,12 @@
           @updated="loadSegment();"
       />
 
+      <SegmentPromotions
+          :segment-id="segment.id"
+          :promotions="segment.promotions || []"
+          @updated="loadSegment()"
+      />
+
       <!--      Клиенты-->
       <SegmentClients
           :segment-id="segment.id"
@@ -51,6 +57,7 @@
 </template>
 
 <script setup lang="ts">
+import SegmentPromotions from "./promotion/SegmentPromotions.vue";
 import {ref, onMounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import BackButton from '@/components/BackButton.vue'

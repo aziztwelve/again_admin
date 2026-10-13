@@ -14,6 +14,8 @@ export interface Segment {
     recalculate_frequency: 'on_view' | 'manual'
     last_recalculated_at: string | null
     clients_count?: number
+    promotions_count?: number
+    promotions?: SegmentPromotionBrief[]
     promo_codes_count?: number
     created_at: string
     updated_at: string
@@ -124,6 +126,14 @@ export interface TopClient {
 /**
  * Детальная информация о сегменте (из SegmentDetailResource)
  */
+export interface SegmentPromotionBrief {
+    id: number
+    name: string
+    is_active: boolean
+    starts_at: string | null
+    ends_at: string | null
+}
+
 export interface SegmentDetail extends Omit<Segment, 'conditions'> {
     conditions: FormattedSegmentConditions | null
 }

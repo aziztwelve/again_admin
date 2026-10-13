@@ -421,7 +421,6 @@ const promotionCheckTotal = computed(() =>
     0,
   ),
 );
-const promotion = usePromotionForOrder(promotionCheckItems, promotionCheckTotal);
 // =======================================================================
 
 const formData = reactive({
@@ -457,6 +456,12 @@ const formData = reactive({
   delivery_method_name: "",
   address: "",
 });
+
+const promotion = usePromotionForOrder(
+  promotionCheckItems,
+  promotionCheckTotal,
+  computed(() => formData.client_id),
+);
 
 const MAP_PICK_DELIVERY_CODES = [
   "cdek_pickup",

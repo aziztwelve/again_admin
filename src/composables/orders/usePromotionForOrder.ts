@@ -73,6 +73,7 @@ export interface CartItemForCheck {
 export function usePromotionForOrder(
   items: Ref<CartItemForCheck[]>,
   total: Ref<number>,
+  clientId: Ref<number | string | null | undefined>,
 ) {
   // Итоговый набор применённых акций (как пришёл с бэка)
   const appliedPromotions = ref<ApplicablePromotion[]>([]);
@@ -335,6 +336,7 @@ export function usePromotionForOrder(
       const response = await axios.post("public/promotions/check-applicable", {
         items: items.value,
         total: total.value,
+        client_id: clientId.value || null,
       });
 
       if (myRequestId !== requestId) return;
@@ -488,9 +490,15 @@ export function usePromotionForOrder(
     return { promotions };
   };
 
+  watch(clientId, () => {
+    requestId += 1;
+    isLoading.value = false;
+    reset();
+  }, { flush: 'sync' });
+
   // Авто-обновление при изменении корзины/суммы
   watch(
-    [items, total],
+    [items, total, clientId],
     () => {
       checkApplicable();
     },
