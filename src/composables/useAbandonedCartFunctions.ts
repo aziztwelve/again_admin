@@ -7,6 +7,7 @@ import type {
     AbandonedCartAnalyticsFilters,
     AbandonedCartListFilters,
     AbandonedCartRow,
+    AbandonedCartDetails,
     Paginated,
 } from '@/types/abandoned-cart'
 
@@ -62,9 +63,11 @@ export function useAbandonedCartFunctions() {
     const sendReminder = async (
         cartId: number,
         channel?: string,
+        message?: string,
+        subject?: string,
     ): Promise<boolean> => {
         return await axios
-            .post(`carts/${cartId}/remind`, channel ? {channel} : {})
+            .post(`carts/${cartId}/remind`, cleanParams({channel, message, subject}))
             .then(res => {
                 useSuccessHandler().showSuccess(res)
                 return true
@@ -81,5 +84,13 @@ export function useAbandonedCartFunctions() {
         getAnalytics,
         getCarts,
         sendReminder,
+        getCartDetails: async (cartId: number): Promise<AbandonedCartDetails | undefined> => {
+            try {
+                return (await axios.get(`carts/${cartId}`)).data.data
+            } catch (e) {
+                useErrorHandler().showError(e)
+                return undefined
+            }
+        },
     }
 }
