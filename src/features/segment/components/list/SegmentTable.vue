@@ -21,13 +21,7 @@
         <RefreshCcw size="17"/>
       </button>
 
-      <button
-          @click="handleExport(item.id)"
-          aria-disabled="true"
-          class="inline-flex items-center justify-center cursor-pointer text-gray-400 hover:text-gray-500"
-      >
-        <Download size="17"/>
-      </button>
+      <SegmentExport :segment-id="item.id" :name="item.name" compact />
 
     </template>
 
@@ -35,6 +29,7 @@
 </template>
 
 <script setup lang="ts">
+import SegmentExport from "../detail/SegmentExport.vue";
 import {h, ref} from "vue";
 import DynamicsDataTable from "@/components/dynamics/DataTable/Index.vue";
 import {PaginationMeta} from "@/types/Types";

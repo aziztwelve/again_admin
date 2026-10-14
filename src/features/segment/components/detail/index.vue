@@ -1,7 +1,10 @@
 <template>
   <div class="container mx-auto p-6 space-y-6">
     <!-- Кнопка назад -->
-    <BackButton title="Назад"/>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <BackButton title="Назад"/>
+      <SegmentExport v-if="segment" :segment-id="segment.id" :name="segment.name" />
+    </div>
 
     <!-- Loader -->
     <div v-if="loading" class="flex items-center justify-center py-12">
@@ -57,6 +60,7 @@
 </template>
 
 <script setup lang="ts">
+import SegmentExport from "./SegmentExport.vue";
 import SegmentPromotions from "./promotion/SegmentPromotions.vue";
 import {ref, onMounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'

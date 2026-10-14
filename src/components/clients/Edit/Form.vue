@@ -72,6 +72,10 @@
           <Input id="delivery_apartment" v-model="clientData.profile.delivery_apartment" placeholder="Квартира"/>
         </div>
       </div>
+      <div class="flex items-center space-x-2">
+        <Checkbox id="subscribed_to_whatsapp" v-model="clientData.subscribed_to_whatsapp" />
+        <label for="subscribed_to_whatsapp" class="text-sm leading-none">Подписка на рекламную рассылку WhatsApp</label>
+      </div>
     </fieldset>
 
     <!-- Маркетинговые сегменты -->
@@ -116,6 +120,10 @@
         <label for="subscribed_to_newsletter" class="text-sm leading-none">
           Согласие на рекламную рассылку
         </label>
+      </div>
+      <div class="flex items-center space-x-2">
+        <Checkbox id="subscribed_to_whatsapp" v-model="clientData.subscribed_to_whatsapp" />
+        <label for="subscribed_to_whatsapp" class="text-sm leading-none">Подписка на рекламную рассылку WhatsApp</label>
       </div>
     </fieldset>
 

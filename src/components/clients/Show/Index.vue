@@ -422,6 +422,7 @@ const clientForModal = computed(() => {
     created_at: c.created_at ?? '',
     updated_at: c.updated_at ?? undefined,
     subscribed_to_newsletter: Boolean(c.subscribed_to_newsletter),
+    subscribed_to_whatsapp: Boolean(c.subscribed_to_whatsapp),
     personal_data_consent: Boolean(c.personal_data_consent),
     privacy_policy_accepted: Boolean(c.privacy_policy_accepted),
     oferta_accepted: Boolean(c.oferta_accepted),

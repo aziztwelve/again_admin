@@ -10,6 +10,7 @@ export interface ClientFormData {
     birthday?: string | null;
     level_id?: number;
     subscribed_to_newsletter?: boolean;
+    subscribed_to_whatsapp?: boolean;
     personal_data_consent?: boolean;
     privacy_policy_accepted?: boolean;
     oferta_accepted?: boolean;
@@ -36,6 +37,7 @@ export function createClientFormData(): ClientFormData {
         birthday: '',
         level_id: undefined,
         subscribed_to_newsletter: false,
+        subscribed_to_whatsapp: false,
         personal_data_consent: false,
         privacy_policy_accepted: false,
         oferta_accepted: false,
@@ -62,6 +64,7 @@ export function clientToFormData(client: Client): ClientFormData {
         birthday: client.profile?.birthday || null,
         level_id: undefined,
         subscribed_to_newsletter: client.subscribed_to_newsletter ?? false,
+        subscribed_to_whatsapp: client.subscribed_to_whatsapp ?? false,
         personal_data_consent: client.personal_data_consent ?? false,
         privacy_policy_accepted: client.privacy_policy_accepted ?? false,
         oferta_accepted: client.oferta_accepted ?? false,
