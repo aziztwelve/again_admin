@@ -91,6 +91,10 @@
                   label="Согласие на рекламную рассылку"
                   :value="boolLabel(client.subscribed_to_newsletter)"
               />
+              <FieldView
+                  label="Подписка на рекламную рассылку WhatsApp"
+                  :value="boolLabel(client.subscribed_to_whatsapp)"
+              />
             </div>
           </div>
         </section>
