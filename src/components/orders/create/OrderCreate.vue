@@ -553,10 +553,10 @@ const getProducts = () => store.dispatch("products/getProducts");
 const getClients = () => store.dispatch("clients/getClients");
 const clients = computed(() => store.getters["clients/clients"]);
 const selectedClientForForm = computed(() => {
-  if (cartCustomer.value?.id === formData.client_id) return cartCustomer.value;
-  return (clients.value || []).find((client) => Number(client.id) === Number(formData.client_id)) || null;
+  return sourceCartId && cartCustomer.value?.id === formData.client_id ? cartCustomer.value : null;
 });
 const clearSelectedClient = () => {
+  if (!sourceCartId) return;
   formData.client_id = null;
   cartCustomer.value = null;
 };
@@ -1316,6 +1316,16 @@ watch(status, (newValue) => {
     router.push("/orders/list");
   }
 });
+
+watch(
+  clients,
+  (newClients) => {
+    if (!sourceCartId && !formData.client_id && Array.isArray(newClients) && newClients.length) {
+      formData.client_id = newClients[0].id;
+    }
+  },
+  { immediate: true },
+);
 
 watch(
   paymentMethodOptions,
