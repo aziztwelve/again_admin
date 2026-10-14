@@ -1,15 +1,6 @@
 <template>
   <div>
     <PageHeading :title="pageTitle" />
-    <div v-if="sourceCartId" class="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
-      <p class="font-medium">Оформление корзины #{{ sourceCartId }}</p>
-      <p v-if="loadingCartDraft" class="mt-1" role="status">Загружаем клиента и товары…</p>
-      <template v-else-if="cartDraftError">
-        <p class="mt-1 text-red-700" role="alert">{{ cartDraftError }}</p>
-        <Button class="mt-3" variant="outline" size="sm" @click="loadCartDraft">Повторить загрузку</Button>
-      </template>
-      <p v-else class="mt-1">Клиент и состав перенесены. Цены пересчитаны на сегодня. Проверьте получателя и доставку перед созданием заказа.</p>
-    </div>
 
     <!-- Сводка ошибок валидации. Показывается сверху, чтобы оператор
          сразу понимал, что и где не заполнено, и мог кликнуть по ссылке
@@ -313,10 +304,8 @@
         <OrderQuickClientCreate
           :clients="clients"
           :refresh-clients="getClients"
-          :selected-client="selectedClientForForm"
           :errors="validationErrors"
           @created="handleQuickClientCreated"
-          @cleared="clearSelectedClient"
         />
       </div>
 
@@ -374,15 +363,6 @@ const initialClientIdFromQuery = (() => {
   const parsed = value != null ? Number(value) : NaN;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 })();
-const sourceCartId = (() => {
-  const raw = route.query.cart_id;
-  const parsed = Number(Array.isArray(raw) ? raw[0] : raw);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
-})();
-const loadedCartId = ref(null);
-const loadingCartDraft = ref(false);
-const cartDraftError = ref("");
-const cartCustomer = ref(null);
 // `products` — кэш списка товаров для отображения уже добавленных позиций
 // (имя, артикул, остаток). Сам выбор товара переехал внутрь
 // OrderProductPickerModal, поэтому отдельный поиск/инпут здесь не нужен.
@@ -552,41 +532,6 @@ watch(
 const getProducts = () => store.dispatch("products/getProducts");
 const getClients = () => store.dispatch("clients/getClients");
 const clients = computed(() => store.getters["clients/clients"]);
-const selectedClientForForm = computed(() => {
-  return sourceCartId && cartCustomer.value?.id === formData.client_id ? cartCustomer.value : null;
-});
-const clearSelectedClient = () => {
-  if (!sourceCartId) return;
-  formData.client_id = null;
-  cartCustomer.value = null;
-};
-
-const loadCartDraft = async () => {
-  if (!sourceCartId || loadingCartDraft.value) return;
-  loadingCartDraft.value = true;
-  loadedCartId.value = null;
-  cartDraftError.value = "";
-  try {
-    const {data: response} = await axios.get(`carts/${sourceCartId}/order-draft`);
-    const draft = response.data;
-    if (!draft?.customer?.id || !Array.isArray(draft.items) || !draft.items.length) {
-      throw new Error("Не удалось подготовить корзину к оформлению.");
-    }
-    cartCustomer.value = draft.customer;
-    formData.client_id = draft.customer.id;
-    for (const field of ["first_name", "last_name", "phone"]) {
-      formData.user[field] = draft.customer[field] || "";
-      formData.recipient[field] = draft.customer[field] || "";
-    }
-    formData.recipient.middle_name = draft.customer.middle_name || "";
-    data.items = draft.items;
-    loadedCartId.value = draft.cart_id;
-  } catch (error) {
-    cartDraftError.value = error?.response?.data?.message || error.message || "Не удалось загрузить корзину.";
-  } finally {
-    loadingCartDraft.value = false;
-  }
-};
 const status = computed(() => store.getters["orderActions/status"]);
 const isLoading = computed(() => store.getters["orderActions/isLoading"]);
 
@@ -639,7 +584,6 @@ const formFields = computed(() => [
 ]);
 
 onMounted(async () => {
-  await loadCartDraft();
   await getAllStatuses();
   await fetchPaymentMethods();
   getProducts();
@@ -1028,7 +972,6 @@ const FIELD_LABELS = {
   promo_code: { label: "Промокод", section: "items" },
   discount: { label: "Скидка", section: "items" },
   client_id: { label: "Клиент", section: "client" },
-  cart_id: { label: "Исходная корзина", section: "items" },
   "user.first_name": { label: "Имя клиента", section: "client" },
   "user.last_name": { label: "Фамилия клиента", section: "client" },
   "user.phone": { label: "Телефон клиента", section: "client" },
@@ -1138,10 +1081,6 @@ const scrollToErrorSummary = () => {
 
 const handleCreate = async () => {
   validationErrors.value = {};
-  if (sourceCartId && !loadedCartId.value) {
-    toast({title: "Корзина не загружена", description: cartDraftError.value || "Дождитесь загрузки корзины.", variant: "destructive"});
-    return;
-  }
 
   // Если есть применимая акция и оператор оставил вариант "подарок", но
   // у выбранного подарка есть варианты, а размер не выбран — блокируем создание.
@@ -1202,7 +1141,6 @@ const handleCreate = async () => {
   try {
     const result = await create({
       client_id: formData.client_id,
-      ...(loadedCartId.value ? {cart_id: loadedCartId.value} : {}),
       user: formData.user,
       recipient: formData.recipient,
       delivery_address: formData.delivery_address,
@@ -1320,7 +1258,7 @@ watch(status, (newValue) => {
 watch(
   clients,
   (newClients) => {
-    if (!sourceCartId && !formData.client_id && Array.isArray(newClients) && newClients.length) {
+    if (!formData.client_id && Array.isArray(newClients) && newClients.length) {
       formData.client_id = newClients[0].id;
     }
   },

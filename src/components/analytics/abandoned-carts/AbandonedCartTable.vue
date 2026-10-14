@@ -69,7 +69,7 @@
           <TableRow v-for="row in rows" :key="row.id">
             <TableCell class="font-medium">
               <div class="flex flex-col">
-                <button type="button" class="w-fit text-blue-700 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" :aria-label="`Открыть корзину ${row.id}`" @click="$emit('open', row.id)">#{{ row.id }}</button>
+                <span>#{{ row.id }}</span>
                 <span v-if="row.versions_count > 1" class="text-xs font-normal text-gray-400">
                   Корзин у клиента: {{ row.versions_count }}
                 </span>
@@ -111,8 +111,7 @@
             </TableCell>
             <TableCell class="text-sm text-gray-600">{{ row.email_conversion ?? '—' }}</TableCell>
 
-            <TableCell class="text-right whitespace-nowrap">
-              <Button type="button" variant="outline" size="sm" class="mr-2" @click="$emit('open', row.id)">Открыть</Button>
+            <TableCell class="text-right">
               <button
                   type="button"
                   class="inline-flex h-7 w-7 items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed"
@@ -162,7 +161,6 @@ const emit = defineEmits<{
   (e: 'filter', payload: {search: string; status: CartStatus | ''}): void
   (e: 'page-change', page: number): void
   (e: 'remind', cartId: number): void
-  (e: 'open', cartId: number): void
 }>()
 
 const search = ref('')

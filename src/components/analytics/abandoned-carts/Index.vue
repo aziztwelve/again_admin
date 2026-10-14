@@ -62,10 +62,8 @@
           @filter="onTableFilter"
           @page-change="onPageChange"
           @remind="onRemind"
-          @open="selectedCartId = $event"
       />
     </div>
-    <AbandonedCartDetails :cart-id="selectedCartId" @close="selectedCartId = null" @updated="reload" />
   </div>
 </template>
 
@@ -78,7 +76,6 @@ import AbandonedCartDynamicsChart from '@/components/analytics/abandoned-carts/A
 import AbandonedCartConversionChart from '@/components/analytics/abandoned-carts/AbandonedCartConversionChart.vue'
 import AbandonedCartEmailConversionChart from '@/components/analytics/abandoned-carts/AbandonedCartEmailConversionChart.vue'
 import AbandonedCartTable from '@/components/analytics/abandoned-carts/AbandonedCartTable.vue'
-import AbandonedCartDetails from '@/components/analytics/abandoned-carts/AbandonedCartDetails.vue'
 import {useAbandonedCartFunctions} from '@/composables/useAbandonedCartFunctions'
 import type {
   AbandonedCartAnalytics,
@@ -99,7 +96,6 @@ const perPage = 10
 const analytics = ref<AbandonedCartAnalytics | undefined>(undefined)
 const carts = ref<Paginated<AbandonedCartRow> | undefined>(undefined)
 const sendingId = ref<number | null>(null)
-const selectedCartId = ref<number | null>(null)
 
 const analyticsFilters = ref<AbandonedCartAnalyticsFilters>({
   date_from: undefined,
