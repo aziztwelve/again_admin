@@ -3,6 +3,7 @@
     <!-- Заголовок -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <DynamicTitle title="Брошенные корзины"/>
+      <div class="flex flex-wrap gap-2"><Button variant="outline" @click="productsOpen = true">Список товаров</Button><Button variant="outline" @click="settingsOpen = true">Настроить</Button></div>
     </div>
 
     <!-- Фильтр периода -->
@@ -34,7 +35,7 @@
     </div>
 
     <!-- Графики -->
-    <div class="grid gap-4 lg:grid-cols-2 grid-cols-1">
+    <div id="cart-charts" class="grid gap-4 lg:grid-cols-2 grid-cols-1" :class="chartsExpanded ? '' : 'max-h-64 overflow-hidden'">
       <div class="lg:col-span-2">
         <AbandonedCartDynamicsChart
             :key="`${analytics?.chart?.from ?? ''}-${analytics?.chart?.to ?? ''}-${analytics?.chart?.granularity ?? ''}`"
@@ -44,6 +45,7 @@
       <AbandonedCartConversionChart :conversion="analytics?.conversion ?? emptyConversion"/>
       <AbandonedCartEmailConversionChart :conversion="analytics?.email_conversion ?? emptyEmailConversion"/>
     </div>
+    <div class="flex justify-center"><Button variant="ghost" aria-controls="cart-charts" :aria-expanded="chartsExpanded" @click="chartsExpanded = !chartsExpanded">{{ chartsExpanded ? 'Свернуть графики' : 'Показать больше' }}</Button></div>
 
     <!-- Таблица корзин -->
     <div>
@@ -62,8 +64,12 @@
           @filter="onTableFilter"
           @page-change="onPageChange"
           @remind="onRemind"
+          @open="openCart($event, 'details')"
       />
     </div>
+    <AbandonedCartDetails :cart-id="selectedCartId" :initial-screen="cartScreen" @close="selectedCartId = null" @updated="reload" />
+    <CartRecoverySettings :open="settingsOpen" @close="settingsOpen = false" />
+    <CartProductList :open="productsOpen" :filters="listFilters" @close="productsOpen = false" />
   </div>
 </template>
 
@@ -76,6 +82,10 @@ import AbandonedCartDynamicsChart from '@/components/analytics/abandoned-carts/A
 import AbandonedCartConversionChart from '@/components/analytics/abandoned-carts/AbandonedCartConversionChart.vue'
 import AbandonedCartEmailConversionChart from '@/components/analytics/abandoned-carts/AbandonedCartEmailConversionChart.vue'
 import AbandonedCartTable from '@/components/analytics/abandoned-carts/AbandonedCartTable.vue'
+import AbandonedCartDetails from '@/components/analytics/abandoned-carts/AbandonedCartDetails.vue'
+import CartRecoverySettings from './CartRecoverySettings.vue'
+import CartProductList from './CartProductList.vue'
+import {Button} from '@/components/ui/button'
 import {useAbandonedCartFunctions} from '@/composables/useAbandonedCartFunctions'
 import type {
   AbandonedCartAnalytics,
@@ -89,13 +99,18 @@ import type {
   Paginated,
 } from '@/types/abandoned-cart'
 
-const {getAnalytics, getCarts, sendReminder, loadingCarts} = useAbandonedCartFunctions()
+const {getAnalytics, getCarts, loadingCarts} = useAbandonedCartFunctions()
 
 const perPage = 10
 
 const analytics = ref<AbandonedCartAnalytics | undefined>(undefined)
 const carts = ref<Paginated<AbandonedCartRow> | undefined>(undefined)
 const sendingId = ref<number | null>(null)
+const selectedCartId = ref<number | null>(null)
+const chartsExpanded = ref(false)
+const cartScreen = ref<'details' | 'message'>('details')
+const settingsOpen = ref(false), productsOpen = ref(false)
+const openCart = (id: number, screen: 'details' | 'message') => {cartScreen.value = screen; selectedCartId.value = id}
 
 const analyticsFilters = ref<AbandonedCartAnalyticsFilters>({
   date_from: undefined,
@@ -164,16 +179,7 @@ const onPageChange = async (page: number) => {
 
 // Ручная отправка напоминания по строке таблицы (шаг F).
 const onRemind = async (cartId: number) => {
-  sendingId.value = cartId
-  try {
-    const ok = await sendReminder(cartId)
-    if (ok) {
-      // Обновляем список, чтобы отразить новую коммуникацию (канал/дата/тип).
-      await loadCarts()
-    }
-  } finally {
-    sendingId.value = null
-  }
+  openCart(cartId, 'message')
 }
 
 onMounted(reload)

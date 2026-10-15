@@ -7,6 +7,10 @@ import type {
     AbandonedCartAnalyticsFilters,
     AbandonedCartListFilters,
     AbandonedCartRow,
+    AbandonedCartDetails,
+    CartRecoverySettings,
+    CartMessagePreview,
+    CartProductSummary,
     Paginated,
 } from '@/types/abandoned-cart'
 
@@ -62,9 +66,14 @@ export function useAbandonedCartFunctions() {
     const sendReminder = async (
         cartId: number,
         channel?: string,
+        message?: string,
+        subject?: string,
+        format?: string,
+        step?: number,
+        personalMessage?: boolean,
     ): Promise<boolean> => {
         return await axios
-            .post(`carts/${cartId}/remind`, channel ? {channel} : {})
+            .post(`carts/${cartId}/remind`, cleanParams({channel, message, subject, format, step, personal_message: personalMessage}))
             .then(res => {
                 useSuccessHandler().showSuccess(res)
                 return true
@@ -75,11 +84,37 @@ export function useAbandonedCartFunctions() {
             })
     }
 
+    const read = async <T>(url: string, params?: Record<string, any>): Promise<T | undefined> => {
+        try { return (await axios.get(url, {params: cleanParams(params || {})})).data.data }
+        catch (e) { useErrorHandler().showError(e); return undefined }
+    }
+
     return {
         loadingAnalytics,
         loadingCarts,
         getAnalytics,
         getCarts,
         sendReminder,
+        getSettings: () => read<CartRecoverySettings>('carts/settings'),
+        getCartProducts: (filters: Record<string, any>) => read<Paginated<CartProductSummary>>('carts/products', filters),
+        saveSettings: async (settings: CartRecoverySettings): Promise<boolean> => {
+            try {
+                const response = await axios.put('carts/settings', {enabled: settings.enabled, channels: settings.channels, templates: settings.templates})
+                useSuccessHandler().showSuccess(response)
+                return true
+            } catch (e) { useErrorHandler().showError(e); return false }
+        },
+        previewMessage: async (data: Record<string, any>): Promise<CartMessagePreview | undefined> => {
+            try { return (await axios.post('carts/preview', data)).data.data }
+            catch (e) { useErrorHandler().showError(e); return undefined }
+        },
+        getCartDetails: async (cartId: number): Promise<AbandonedCartDetails | undefined> => {
+            try {
+                return (await axios.get(`carts/${cartId}`)).data.data
+            } catch (e) {
+                useErrorHandler().showError(e)
+                return undefined
+            }
+        },
     }
 }

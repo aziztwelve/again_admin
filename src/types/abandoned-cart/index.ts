@@ -2,7 +2,7 @@
 // Бэкенд: GET /carts (список), GET /carts/analytics (метрики).
 // См. lara_admin/docs/tasks/abandoned-cart.md
 
-export type CartStatus = 'abandoned' | 'ordered' | null
+export type CartStatus = 'active' | 'abandoned' | 'ordered' | null
 
 // ---------- Аналитика ----------
 
@@ -69,10 +69,68 @@ export interface AbandonedCartAnalytics {
 // ---------- Список корзин ----------
 
 export interface AbandonedCartCustomer {
+    id?: number | null
     name: string | null
     phone: string | null
     email: string | null
+    country?: string | null
+    city?: string | null
+    region?: string | null
 }
+
+export interface AbandonedCartItem {
+    id: number
+    product_id: number
+    product_variant_id: number | null
+    color_id: number | null
+    name: string
+    variant_name: string | null
+    sku: string | null
+    color: string | null
+    image_url: string | null
+    quantity: number
+    price: number
+    price_original: number
+    total: number
+    total_discount: number
+    available: boolean
+    stock_quantity: number
+}
+
+export interface AbandonedCartDetails {
+    id: number
+    status: CartStatus
+    created_at: string | null
+    updated_at: string | null
+    last_activity_at: string | null
+    abandoned_at: string | null
+    ordered_at: string | null
+    linked_order: {id: number; number: string} | null
+    total: number
+    total_original: number
+    total_discount: number
+    customer: AbandonedCartCustomer
+    items: AbandonedCartItem[]
+    communications: (AbandonedCartCommunication & {id: number; step: number | null; created_at: string | null; subject: string | null; body: string | null; html: string | null})[]
+    orders: {id: number; number: string; created_at: string; status: string; status_label: string; total: number; from_this_cart: boolean}[]
+    orders_count: number
+    can_create_order: boolean
+    available_channels: string[]
+}
+
+export interface CartMessageContent {subject: string; body: string; format: 'text' | 'html'}
+export interface CartMessageTemplate extends CartMessageContent {audience: 'new' | 'returning'; step: number; channel: string}
+export interface CartRecoverySettings {
+    enabled: boolean
+    channels: Record<string, boolean>
+    templates: CartMessageTemplate[]
+    schedule_hours: number[]
+    start_after_minutes: number
+    environment_enabled: boolean
+    variables: string[]
+}
+export interface CartMessagePreview {subject: string; body: string; html: string | null; editable_template?: CartMessageContent}
+export interface CartProductSummary {product_id: number; product_variant_id: number | null; color_id: number | null; color: string | null; name: string; variant_name: string | null; sku: string | null; image_url: string | null; quantity: number; total: number}
 
 export interface AbandonedCartCommunication {
     channel: string       // email | telegram | whatsapp | vk | none

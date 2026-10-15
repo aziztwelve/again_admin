@@ -28,6 +28,7 @@
           @change="emitFilters"
       >
         <option value="">Все статусы</option>
+        <option value="active">Активная</option>
         <option value="abandoned">Брошенная</option>
         <option value="ordered">Заказанная</option>
       </select>
@@ -46,6 +47,7 @@
             <TableHead>Статус</TableHead>
             <TableHead class="text-right">Позиций</TableHead>
             <TableHead class="text-right">Сумма</TableHead>
+            <TableHead>Канал</TableHead>
             <TableHead>Коммуникация</TableHead>
             <TableHead>Тип</TableHead>
             <TableHead>Конверсия письма</TableHead>
@@ -55,13 +57,13 @@
 
         <TableBody>
           <TableRow v-if="loading">
-            <TableCell colspan="10" class="text-center text-sm text-gray-400 py-6">
+            <TableCell colspan="11" class="text-center text-sm text-gray-400 py-6">
               Загрузка…
             </TableCell>
           </TableRow>
 
           <TableRow v-else-if="!rows.length">
-            <TableCell colspan="10" class="text-center text-sm text-gray-400 py-6">
+            <TableCell colspan="11" class="text-center text-sm text-gray-400 py-6">
               Корзин за выбранный период нет
             </TableCell>
           </TableRow>
@@ -69,7 +71,7 @@
           <TableRow v-for="row in rows" :key="row.id">
             <TableCell class="font-medium">
               <div class="flex flex-col">
-                <span>#{{ row.id }}</span>
+                <button type="button" class="w-fit text-blue-700 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" :aria-label="`Открыть корзину ${row.id}`" @click="$emit('open', row.id)">#{{ row.id }}</button>
                 <span v-if="row.versions_count > 1" class="text-xs font-normal text-gray-400">
                   Корзин у клиента: {{ row.versions_count }}
                 </span>
@@ -101,6 +103,7 @@
             </TableCell>
 
             <TableCell class="text-right font-semibold whitespace-nowrap">{{ formatMoney(row.total) }}</TableCell>
+            <TableCell class="text-sm text-gray-600">{{ row.last_communication ? channelLabel(row.last_communication.channel) : '—' }}</TableCell>
 
             <TableCell class="text-sm text-gray-600">
               {{ row.last_communication?.sent_at ? formatDate(row.last_communication.sent_at) : '—' }}
@@ -111,12 +114,14 @@
             </TableCell>
             <TableCell class="text-sm text-gray-600">{{ row.email_conversion ?? '—' }}</TableCell>
 
-            <TableCell class="text-right">
+            <TableCell class="text-right whitespace-nowrap">
+              <Button type="button" variant="outline" size="sm" class="mr-2" @click="$emit('open', row.id)">Открыть</Button>
               <button
                   type="button"
                   class="inline-flex h-7 w-7 items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                  :title="row.status === 'ordered' ? 'Заказ оформлен' : 'Отправить напоминание'"
-                  :disabled="row.status === 'ordered' || sendingId === row.id"
+                  title="Написать клиенту"
+                  aria-label="Написать клиенту"
+                  :disabled="sendingId === row.id"
                   @click="$emit('remind', row.id)"
               >
                 <Send class="h-4 w-4"/>
@@ -161,6 +166,7 @@ const emit = defineEmits<{
   (e: 'filter', payload: {search: string; status: CartStatus | ''}): void
   (e: 'page-change', page: number): void
   (e: 'remind', cartId: number): void
+  (e: 'open', cartId: number): void
 }>()
 
 const search = ref('')
@@ -210,7 +216,7 @@ const statusLabel = (s: CartStatus) =>
 
 const statusBadgeClass = (s: CartStatus) =>
     s === 'abandoned'
-        ? 'bg-red-100 text-red-700'
+        ? 'bg-blue-100 text-blue-700'
         : s === 'ordered'
             ? 'bg-green-100 text-green-700'
             : 'bg-gray-100 text-gray-600'
@@ -243,6 +249,8 @@ const channelLabel = (channel?: string): string => {
       return 'WhatsApp'
     case 'vk':
       return 'VK'
+    case 'max':
+      return 'MAX'
     default:
       return channel ?? ''
   }
