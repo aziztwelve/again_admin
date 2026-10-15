@@ -19,9 +19,7 @@
             <p class="mt-2 text-xs text-gray-500">Создана {{ formatDate(cart.created_at) }}</p>
             <RouterLink v-if="cart.linked_order" :to="{name: 'orders-view', params: {id: cart.linked_order.id}}" class="mt-2 block text-sm text-blue-700 hover:underline">↳ Заказ №{{ cart.linked_order.number || cart.linked_order.id }}</RouterLink>
           </div>
-          <Button v-if="cart.can_create_order" as-child>
-            <RouterLink :to="{name: 'orders-create', query: {cart_id: cart.id, client_id: cart.customer.id}}">Оформить заказ</RouterLink>
-          </Button>
+          <Button v-if="cart.can_create_order" :disabled="openingStorefront" title="Открыть восстановленную корзину на витрине в новой вкладке" @click="openStorefront">{{ openingStorefront ? 'Открываем…' : 'Оформить заказ' }}</Button>
         </div>
 
         <div class="grid gap-5 p-5 sm:p-6">
@@ -132,9 +130,24 @@ import type {AbandonedCartDetails, CartStatus, CartMessagePreview as Preview} fr
 
 const props = defineProps<{cartId: number | null; initialScreen?: 'details' | 'message'}>()
 const emit = defineEmits<{(e: 'close'): void; (e: 'updated'): void}>()
-const {getCartDetails} = useAbandonedCartFunctions()
+const {getCartDetails, getRecoveryLink} = useAbandonedCartFunctions()
 const cart = ref<AbandonedCartDetails>()
 const loading = ref(false)
+const openingStorefront = ref(false)
+const openStorefront = async () => {
+  if (!cart.value || openingStorefront.value) return
+  openingStorefront.value = true
+  // Окно открывается в обработчике клика, чтобы браузер не заблокировал его.
+  const target = window.open('', '_blank')
+  if (target) target.opener = null
+  try {
+    const url = await getRecoveryLink(cart.value.id)
+    if (url) {
+      if (target && !target.closed) target.location.replace(url)
+      else if (!target) window.location.assign(url)
+    } else target?.close()
+  } finally { openingStorefront.value = false }
+}
 const composer = ref(false)
 const previewed = ref<Preview | null>(null)
 const copyStatus = ref('')

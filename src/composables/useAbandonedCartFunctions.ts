@@ -108,6 +108,10 @@ export function useAbandonedCartFunctions() {
             try { return (await axios.post('carts/preview', data)).data.data }
             catch (e) { useErrorHandler().showError(e); return undefined }
         },
+        getRecoveryLink: async (cartId: number): Promise<string | undefined> => {
+            try { return (await axios.post(`carts/${cartId}/recovery-link`)).data.data.url }
+            catch (e) { useErrorHandler().showError(e); return undefined }
+        },
         getCartDetails: async (cartId: number): Promise<AbandonedCartDetails | undefined> => {
             try {
                 return (await axios.get(`carts/${cartId}`)).data.data
