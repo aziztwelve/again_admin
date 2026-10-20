@@ -130,10 +130,7 @@
           Согласие на рекламную рассылку
         </label>
       </div>
-      <div class="flex items-center space-x-2">
-        <Checkbox id="subscribed_to_whatsapp" v-model="form.subscribed_to_whatsapp" />
-        <label for="subscribed_to_whatsapp" class="text-sm leading-none">Подписка на рекламную рассылку WhatsApp</label>
-      </div>
+
     </fieldset>
 
     <Button type="submit" class="mt-4 w-full" variant="secondary">

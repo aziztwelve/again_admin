@@ -10,7 +10,7 @@
       </DialogHeader>
       <div class="grid gap-4 sm:grid-cols-3">
         <label class="space-y-1 text-sm">Режим
-          <select v-model="channel" class="w-full rounded border p-2"><option value="all">Полный список</option><option value="email">Email-рассылка</option><option value="whatsapp">WhatsApp-рассылка</option></select>
+          <select v-model="channel" class="w-full rounded border p-2"><option value="all">Полный список</option><option value="email">Email-рассылка</option></select>
         </label>
         <label class="space-y-1 text-sm">Кого включить
           <select v-model="origin" class="w-full rounded border p-2"><option value="all">Всех участников</option><option value="manual">Только добавленных вручную</option><option value="auto">Только по условиям</option></select>
@@ -20,10 +20,9 @@
         </label>
       </div>
       <div v-if="channel !== 'all'" class="flex flex-wrap gap-4 text-sm">
-        <label class="flex items-center gap-2"><input v-model="consentOnly" type="checkbox" />Только подписанные на {{ channel === 'email' ? 'Email' : 'WhatsApp' }}</label>
+        <label class="flex items-center gap-2"><input v-model="consentOnly" type="checkbox" />Только подписанные на Email</label>
         <label class="flex items-center gap-2"><input v-model="deduplicate" type="checkbox" />Без повторяющихся контактов</label>
       </div>
-      <p v-if="channel === 'whatsapp'" class="text-sm text-muted-foreground">Подписка WhatsApp отмечается отдельно в карточке клиента. Уведомления о заказах не считаются подпиской на рассылку. Наличие телефона не проверяет регистрацию в WhatsApp.</p>
       <fieldset>
         <legend class="mb-2 text-sm font-medium">Поля файла</legend>
         <div class="grid gap-2 sm:grid-cols-3">
@@ -65,9 +64,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 const props = defineProps<{segmentId: number; name: string; compact?: boolean}>();
 const open=ref(false),channel=ref('all'),origin=ref('all'),delimiter=ref(';');
 const consentOnly=ref(true),deduplicate=ref(true),loading=ref(false),downloading=ref(false),error=ref('');
-const fieldLabels: Record<string,string>={id:'ID',full_name:'ФИО',email:'Email',phone:'Телефон',birthday:'Дата рождения',address:'Адрес',registered_at:'Дата регистрации',orders_count:'Количество покупок',total_amount:'Сумма покупок',average_check:'Средний чек',segment_name:'Сегмент',membership_source:'Добавление',added_to_segment_at:'Дата добавления',subscribed_to_newsletter:'Подписка Email',subscribed_to_whatsapp:'Подписка WhatsApp',personal_data_consent:'Согласие ПДн',tags:'Теги'};
+const fieldLabels: Record<string,string>={id:'ID',full_name:'ФИО',email:'Email',phone:'Телефон',birthday:'Дата рождения',address:'Адрес',registered_at:'Дата регистрации',orders_count:'Количество покупок',total_amount:'Сумма покупок',average_check:'Средний чек',segment_name:'Сегмент',membership_source:'Добавление',added_to_segment_at:'Дата добавления',subscribed_to_newsletter:'Подписка Email',personal_data_consent:'Согласие ПДн',tags:'Теги'};
 const columns=ref<string[]>(Object.keys(fieldLabels));
-const requiredContact=computed(()=>channel.value==='email'?'email':channel.value==='whatsapp'?'phone':null);
+const requiredContact=computed(()=>channel.value==='email'?'email':null);
 interface Preview {preview: string[][]; headers: Record<string,string>; total_count:number; segment_count:number; skipped:Record<string,number>; last_recalculated_at:string|null}
 const preview=ref<Preview|null>(null);
 let requestId=0;

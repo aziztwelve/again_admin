@@ -15,7 +15,6 @@ export class Client {
     name: string | undefined;
     verified_at: string | null;
     subscribed_to_newsletter: boolean;
-    subscribed_to_whatsapp: boolean;
     personal_data_consent: boolean;
     privacy_policy_accepted: boolean;
     oferta_accepted: boolean;
@@ -37,7 +36,6 @@ export class Client {
         this.name = data.name ?? undefined;
         this.verified_at = this.validateNullableString(data.verified_at, 'verified_at');
         this.subscribed_to_newsletter = Boolean(data.subscribed_to_newsletter);
-        this.subscribed_to_whatsapp = Boolean(data.subscribed_to_whatsapp);
         this.personal_data_consent = Boolean(data.personal_data_consent);
         this.privacy_policy_accepted = Boolean(data.privacy_policy_accepted);
         this.oferta_accepted = Boolean(data.oferta_accepted);
@@ -85,7 +83,6 @@ export class Client {
                 name:  json.profile?.first_name || json.profile?.last_name ? `${json.profile?.first_name ?? ''} ${json.profile?.last_name ?? ''}` : json.name ?? undefined,
                 verified_at: json.verified_at ?? null,
                 subscribed_to_newsletter: json.subscribed_to_newsletter,
-                subscribed_to_whatsapp: json.subscribed_to_whatsapp,
                 personal_data_consent: json.personal_data_consent,
                 privacy_policy_accepted: json.privacy_policy_accepted,
                 oferta_accepted: json.oferta_accepted,
@@ -109,7 +106,6 @@ export class Client {
             deleted_at: this.deleted_at,
             updated_at: this.updated_at,
             subscribed_to_newsletter: this.subscribed_to_newsletter,
-            subscribed_to_whatsapp: this.subscribed_to_whatsapp,
             personal_data_consent: this.personal_data_consent,
             privacy_policy_accepted: this.privacy_policy_accepted,
             oferta_accepted: this.oferta_accepted,
@@ -137,7 +133,6 @@ export class Client {
             name: this.name,
             verified_at: this.verified_at,
             subscribed_to_newsletter: this.subscribed_to_newsletter,
-            subscribed_to_whatsapp: this.subscribed_to_whatsapp,
             personal_data_consent: this.personal_data_consent,
             privacy_policy_accepted: this.privacy_policy_accepted,
             oferta_accepted: this.oferta_accepted,

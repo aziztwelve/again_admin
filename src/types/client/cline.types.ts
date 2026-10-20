@@ -36,7 +36,6 @@ export interface Client {
     tags?: Tag[];
     segments?: Segment[];
     subscribed_to_newsletter?: boolean;
-    subscribed_to_whatsapp?: boolean;
     personal_data_consent?: boolean;
     privacy_policy_accepted?: boolean;
     oferta_accepted?: boolean;
