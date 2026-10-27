@@ -110,8 +110,8 @@ const searchParams = ref({
   email: '',
   order_number: '',
   status: [] as string[],
-  payment_status: '',
-  delivery_method_id: '',
+  payment_status: [] as string[],
+  delivery_method_id: [] as (number | string)[],
   assigned_user_id: '',
   min_amount: '',
   max_amount: '',
@@ -130,6 +130,13 @@ const pagination = ref<PaginationMeta>({
   total: 0,
 })
 
+// Оплата и доставка: мультивыбор даёт массив, верхняя панель — одиночное значение.
+// В запрос уходит всегда массив; пустой массив axios не отправляет.
+const toArray = <T,>(value: T | T[] | null | undefined): T[] => {
+  if (value === null || value === undefined || value === '') return []
+  return Array.isArray(value) ? value : [value]
+}
+
 const hasActiveFilters = computed(() => {
   const s = searchParams.value
   return !!s.search
@@ -139,8 +146,8 @@ const hasActiveFilters = computed(() => {
       || !!s.datePicker.start
       || !!s.datePicker.end
       || s.status.length > 0
-      || !!s.payment_status
-      || !!s.delivery_method_id
+      || toArray(s.payment_status).length > 0
+      || toArray(s.delivery_method_id).length > 0
       || !!s.assigned_user_id
       || s.min_amount !== '' && s.min_amount !== null
       || s.max_amount !== '' && s.max_amount !== null
@@ -177,8 +184,8 @@ async function fetchData() {
     promo_code_id: promoFilter.value.id ?? null,
     date_from: searchParams.value.datePicker.start,
     date_to: searchParams.value.datePicker.end,
-    payment_status: searchParams.value.payment_status,
-    delivery_method_id: searchParams.value.delivery_method_id || null,
+    payment_status: toArray(searchParams.value.payment_status),
+    delivery_method_id: toArray(searchParams.value.delivery_method_id),
     assigned_user_id: searchParams.value.assigned_user_id || null,
     min_amount: searchParams.value.min_amount === '' ? null : searchParams.value.min_amount,
     max_amount: searchParams.value.max_amount === '' ? null : searchParams.value.max_amount,
@@ -240,8 +247,8 @@ function resetFilters() {
     email: '',
     order_number: '',
     status: [] as string[],
-    payment_status: '',
-    delivery_method_id: '',
+    payment_status: [] as string[],
+    delivery_method_id: [] as (number | string)[],
     assigned_user_id: '',
     min_amount: '',
     max_amount: '',

@@ -273,9 +273,9 @@ const columns = computed(() => [
   {
     accessorKey: "payment_status",
     header: headerWithFilter('Оплата', {
-      type: 'select',
+      type: 'multi_select',
       field: 'payment_status',
-      placeholder: 'Выберите статус оплаты',
+      placeholder: 'Выберите статусы оплаты',
       options: getStatuses('payment'),
       optionValue: 'value',
       optionLabel: 'label',
@@ -296,9 +296,9 @@ const columns = computed(() => [
   {
     accessorKey: "delivery_method.name",
     header: headerWithFilter('Доставка', {
-      type: 'select',
+      type: 'multi_select',
       field: 'delivery_method_id',
-      placeholder: 'Способ доставки',
+      placeholder: 'Способы доставки',
       options: props.deliveryMethodOptions,
       optionValue: 'value',
       optionLabel: 'label',

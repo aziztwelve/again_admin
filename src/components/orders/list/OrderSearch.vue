@@ -49,7 +49,7 @@ const topColumns = computed(() => [
     optionLabel: 'label',
   },
   {
-    type: "select",
+    type: "multi_select",
     placeholder: "Статус платежа",
     field: "payment_status",
     options: getStatuses('payment'),
@@ -57,8 +57,8 @@ const topColumns = computed(() => [
     optionLabel: 'label',
   },
   {
-    type: "select",
-    placeholder: "Способ доставки",
+    type: "multi_select",
+    placeholder: "Способы доставки",
     field: "delivery_method_id",
     options: props.deliveryMethodOptions,
     optionValue: 'value',
