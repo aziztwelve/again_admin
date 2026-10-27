@@ -297,7 +297,7 @@ const columns = computed(() => [
     accessorKey: "delivery_method.name",
     header: headerWithFilter('Доставка', {
       type: 'multi_select',
-      field: 'delivery_method_id',
+      field: 'delivery_service',
       placeholder: 'Способы доставки',
       options: props.deliveryMethodOptions,
       optionValue: 'value',

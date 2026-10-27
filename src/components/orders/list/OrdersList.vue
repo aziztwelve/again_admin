@@ -111,7 +111,7 @@ const searchParams = ref({
   order_number: '',
   status: [] as string[],
   payment_status: [] as string[],
-  delivery_method_id: [] as (number | string)[],
+  delivery_service: [] as string[],
   assigned_user_id: '',
   min_amount: '',
   max_amount: '',
@@ -147,7 +147,7 @@ const hasActiveFilters = computed(() => {
       || !!s.datePicker.end
       || s.status.length > 0
       || toArray(s.payment_status).length > 0
-      || toArray(s.delivery_method_id).length > 0
+      || toArray(s.delivery_service).length > 0
       || !!s.assigned_user_id
       || s.min_amount !== '' && s.min_amount !== null
       || s.max_amount !== '' && s.max_amount !== null
@@ -185,7 +185,7 @@ async function fetchData() {
     date_from: searchParams.value.datePicker.start,
     date_to: searchParams.value.datePicker.end,
     payment_status: toArray(searchParams.value.payment_status),
-    delivery_method_id: toArray(searchParams.value.delivery_method_id),
+    delivery_service: toArray(searchParams.value.delivery_service),
     assigned_user_id: searchParams.value.assigned_user_id || null,
     min_amount: searchParams.value.min_amount === '' ? null : searchParams.value.min_amount,
     max_amount: searchParams.value.max_amount === '' ? null : searchParams.value.max_amount,
@@ -217,11 +217,12 @@ async function fetchManagers() {
 
 async function fetchDeliveryMethods() {
   try {
-    const {data} = await axios.get('/delivery/methods/admin')
-    const list = Array.isArray(data) ? data : (data?.data ?? data?.delivery_methods ?? data?.methods ?? [])
-    deliveryMethodOptions.value = (list || []).map((m: any) => ({
-      value: m.id,
-      label: m.name || m.title || `#${m.id}`,
+    // Только актуальные службы (config/delivery_services.php), не все способы доставки.
+    const {data} = await axios.get('/delivery/services/filter')
+    const list = Array.isArray(data) ? data : (data?.data ?? [])
+    deliveryMethodOptions.value = (list || []).map((s: any) => ({
+      value: s.value,
+      label: s.label,
     }))
   } catch (e) {
     console.error('Failed to load delivery methods', e)
@@ -248,7 +249,7 @@ function resetFilters() {
     order_number: '',
     status: [] as string[],
     payment_status: [] as string[],
-    delivery_method_id: [] as (number | string)[],
+    delivery_service: [] as string[],
     assigned_user_id: '',
     min_amount: '',
     max_amount: '',

@@ -23,7 +23,7 @@ export function useOrderFunctions() {
         date_from?: string,
         date_to?: string,
         payment_status?: string | string[],
-        delivery_method_id?: number | string | (number | string)[] | null,
+        delivery_service?: string | string[] | null,
         assigned_user_id?: number | string | null,
         min_amount?: number | string | null,
         max_amount?: number | string | null,

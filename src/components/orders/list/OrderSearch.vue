@@ -59,7 +59,7 @@ const topColumns = computed(() => [
   {
     type: "multi_select",
     placeholder: "Способы доставки",
-    field: "delivery_method_id",
+    field: "delivery_service",
     options: props.deliveryMethodOptions,
     optionValue: 'value',
     optionLabel: 'label',
