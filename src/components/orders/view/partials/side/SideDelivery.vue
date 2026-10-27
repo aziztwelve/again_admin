@@ -146,6 +146,27 @@
           <OrderRecipientDetails v-model:recipient="draftRecipient" />
 
           <OrderDeliveryDetails v-model:delivery-address="draftAddress" />
+
+          <div v-if="pvzProvider" class="-mx-4 px-4 py-6 ring-1 ring-gray-900/5 sm:mx-0 sm:rounded-lg sm:px-6">
+            <h3 class="text-sm/6 font-medium text-gray-900">Пункт выдачи</h3>
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+              <Button variant="outline" type="button" @click="pvzModalOpen = true">
+                <MapPin class="mr-2 h-4 w-4" />
+                Выбрать на карте
+              </Button>
+              <span v-if="draftPvz" class="text-sm text-gray-700">
+                <b>{{ draftPvz.name }}</b> — {{ draftPvz.address }}
+              </span>
+            </div>
+            <PvzMapModal
+              :open="pvzModalOpen"
+              :provider="pvzProvider"
+              :city-name="draftAddress.city"
+              cdek-point-type="PVZ"
+              @close="pvzModalOpen = false"
+              @select="onDraftPvzPicked"
+            />
+          </div>
         </div>
 
         <DialogFooter class="gap-2 sm:gap-2">
@@ -172,9 +193,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import axios from "axios";
-import { Pencil } from "lucide-vue-next";
+import { MapPin, Pencil } from "lucide-vue-next";
+import PvzMapModal from "@/components/orders/create/PvzMapModal.vue";
 
 import Button from "@/components/ui/button/Button.vue";
 import { Label } from "@/components/ui/label";
@@ -400,6 +422,25 @@ const draftAddress = ref(createEmptyAddress());
 const draftRecipient = ref(createEmptyRecipient());
 const draftDeliveryMethodId = ref(null);
 
+// Пункт выдачи, выбранный на карте в этом диалоге (сохраняется вместе с заказом).
+const pvzModalOpen = ref(false);
+const draftPvz = ref(null);
+// Карта пунктов доступна только для СДЭК-ПВЗ и Яндекс.Доставки (код способа из списка).
+const pvzProvider = computed(() => {
+  const code = deliveryMethodOptions.value.find((m) => m.id === draftDeliveryMethodId.value)?.code;
+  if (code === "cdek_pickup") return "cdek";
+  if (code === "yandex_pickup") return "yandex";
+  return null;
+});
+const onDraftPvzPicked = (point) => {
+  draftPvz.value = point;
+  // Адрес пункта становится адресом доставки заказа.
+  draftAddress.value.address = point.address;
+};
+watch(draftDeliveryMethodId, () => {
+  draftPvz.value = null;
+});
+
 const formatDateTimeLocal = (value) => {
   if (!value) return "";
   const d = new Date(value);
@@ -464,6 +505,15 @@ const save = () => {
     delivery_address: { ...draftAddress.value },
     delivery_date: draftAddress.value.delivery_date || null,
     delivery_method_id: draftDeliveryMethodId.value || null,
+    ...(draftPvz.value
+      ? {
+          pvz_provider: draftPvz.value.provider,
+          pvz_code: draftPvz.value.code,
+          pvz_address: draftPvz.value.address,
+          pvz_coordinates: draftPvz.value.coordinates,
+          pvz_type: draftPvz.value.pointType,
+        }
+      : {}),
     onSuccess: () => {
       dialogOpen.value = false;
     },
