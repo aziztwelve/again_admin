@@ -285,6 +285,26 @@
                 Выбрать на карте
               </Button>
             </div>
+            <div
+              v-if="selectedPvz"
+              class="flex items-center justify-between gap-2 rounded-md border border-input px-3 py-2 text-sm"
+            >
+              <span>
+                <b>{{ selectedPvz.name }}</b>
+                <span class="block text-xs text-muted-foreground">{{ selectedPvz.address }}</span>
+              </span>
+              <button type="button" class="text-xs text-blue-600 hover:text-blue-800" @click="clearSelectedPvz">
+                Сбросить
+              </button>
+            </div>
+            <PvzMapModal
+              :open="pvzModalOpen"
+              :provider="pvzProvider"
+              :city-name="formData.delivery_address.city"
+              cdek-point-type="PVZ"
+              @close="pvzModalOpen = false"
+              @select="onPvzPicked"
+            />
           </div>
         </div>
 
@@ -355,6 +375,7 @@ import DynamicForm from "@/components/dynamics/DynamicForm.vue";
 import OrderQuickClientCreate from "@/components/orders/create/OrderQuickClientCreate.vue";
 import OrderRecipientDetails from "@/components/orders/create/OrderRecipientDetails.vue";
 import OrderDeliveryDetails from "@/components/orders/create/OrderDeliveryDetails.vue";
+import PvzMapModal from "@/components/orders/create/PvzMapModal.vue";
 import Button from "@/components/ui/button/Button.vue";
 import { Label } from "@/components/ui/label";
 import Select from "@/components/dynamics/Dropdown/Select.vue";
@@ -483,12 +504,12 @@ const promotion = usePromotionForOrder(
   computed(() => formData.client_id),
 );
 
-const MAP_PICK_DELIVERY_CODES = [
-  "cdek_pickup",
-  "yandex_pickup",
-  "russian_post_office",
-  "russian_post_on_demand",
-];
+// Карты пунктов выдачи пока есть только у СДЭК и Яндекс.Доставки.
+const MAP_PICK_DELIVERY_CODES = ["cdek_pickup", "yandex_pickup"];
+
+const pvzModalOpen = ref(false);
+// Выбранный на карте пункт: уходит в заказ как pvz_code / pvz_address / pvz_coordinates.
+const selectedPvz = ref(null);
 
 const deliveryMethodOptions = ref([]);
 
@@ -531,12 +552,58 @@ const canPickOnMap = computed(() =>
   MAP_PICK_DELIVERY_CODES.includes(selectedDeliveryMethod.value?.code),
 );
 
+const pvzProvider = computed(() =>
+  selectedDeliveryMethod.value?.code?.startsWith("cdek") ? "cdek" : "yandex",
+);
+
 const onPickOnMap = () => {
-  // TODO: открыть модалку с картой и выбором ПВЗ.
-  toast({
-    title: "Выбор на карте",
-    description: "Выбор пункта выдачи на карте будет добавлен позже.",
-  });
+  if (!formData.delivery_address.city) {
+    toast({
+      title: "Укажите город",
+      description: "Сначала заполните город доставки, чтобы показать пункты на карте.",
+      variant: "destructive",
+    });
+    return;
+  }
+  pvzModalOpen.value = true;
+};
+
+const onPvzPicked = (point) => {
+  selectedPvz.value = point;
+  // Адрес пункта становится адресом доставки заказа.
+  formData.delivery_address.address = point.address;
+};
+
+const clearSelectedPvz = () => {
+  selectedPvz.value = null;
+};
+
+// Данные пункта для запроса создания заказа. Яндекс принимает pvz_code,
+// СДЭК — пункт внутри delivery_data (см. OrderCreationService::buildDeliveryData).
+const pvzPayload = () => {
+  const point = selectedPvz.value;
+  if (!point) return {};
+  const common = {
+    pvz_code: point.code,
+    pvz_address: point.address,
+    pvz_coordinates: point.coordinates,
+  };
+  if (point.provider === "cdek") {
+    return {
+      ...common,
+      delivery_data: {
+        provider: "cdek",
+        delivery_type: point.pointType === "POSTAMAT" ? "postamat" : "pickup",
+        pvz: {
+          code: point.code,
+          type: point.pointType,
+          address: point.address,
+          coordinates: point.coordinates,
+        },
+      },
+    };
+  }
+  return {...common, delivery_data: {delivery_type: "pickup"}};
 };
 
 // Синхронизируем имя метода с выбранным id, чтобы payload в handleCreate
@@ -546,6 +613,8 @@ watch(
   (newId) => {
     const method = deliveryMethodOptions.value.find((m) => m.id === newId);
     formData.delivery_method_name = method?.name || "";
+    // Пункт, выбранный для прежнего способа доставки, к новому не подходит.
+    clearSelectedPvz();
   },
 );
 
@@ -1215,6 +1284,7 @@ const handleCreate = async () => {
       delivery_method: {
         name: formData.delivery_method_name,
       },
+      ...pvzPayload(),
       ...(appliedCouponCode.value
         ? { promo_code: appliedCouponCode.value }
         : {}),
