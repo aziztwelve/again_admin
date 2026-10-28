@@ -55,30 +55,35 @@
 
     <!-- Editable вид -->
     <div v-else class="mt-4 space-y-4">
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <Label for="delivery_method">Способ доставки</Label>
-          <Select
-            id="delivery_method"
-            v-model="draftDeliveryMethodId"
-            :options="deliveryMethodOptions"
-            option-label="name"
-            option-value="id"
-            placeholder="Выберите способ доставки"
-            searchable
-            search-placeholder="Поиск по способам доставки..."
-          />
+      <div>
+        <Label for="delivery_method">Способ доставки</Label>
+        <div class="flex items-start gap-2">
+          <div class="flex-1">
+            <Select
+              id="delivery_method"
+              v-model="draftDeliveryMethodId"
+              :options="deliveryMethodOptions"
+              option-label="name"
+              option-value="id"
+              placeholder="Выберите способ доставки"
+              searchable
+              search-placeholder="Поиск по способам доставки..."
+            />
+          </div>
+          <Button
+            v-if="pvzProvider"
+            type="button"
+            variant="outline"
+            class="shrink-0"
+            @click="pvzModalOpen = true"
+          >
+            <MapPin class="mr-2 h-4 w-4" />
+            Выбрать на карте
+          </Button>
         </div>
-      </div>
-
-      <div v-if="pvzProvider" class="flex flex-wrap items-center gap-3">
-        <Button variant="outline" type="button" @click="pvzModalOpen = true">
-          <MapPin class="mr-2 h-4 w-4" />
-          Выбрать на карте
-        </Button>
-        <span v-if="draftPvz" class="text-sm text-gray-700">
+        <p v-if="draftPvz" class="mt-2 text-sm text-gray-700">
           <b>{{ draftPvz.name }}</b> — {{ draftPvz.address }}
-        </span>
+        </p>
         <PvzMapModal
           :open="pvzModalOpen"
           :provider="pvzProvider"
