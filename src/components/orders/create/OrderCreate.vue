@@ -285,6 +285,12 @@
                 Выбрать на карте
               </Button>
             </div>
+            <p
+              v-if="canPickOnMap && !formData.delivery_address.city"
+              class="mt-2 text-sm text-amber-700"
+            >
+              Сначала укажите город доставки и выберите его из подсказки — тогда откроется карта пунктов.
+            </p>
             <div
               v-if="selectedPvz"
               class="flex items-center justify-between gap-2 rounded-md border border-input px-3 py-2 text-sm"
