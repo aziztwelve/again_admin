@@ -75,6 +75,14 @@ export function useOrderInlineEdit() {
    * Используется как "база" - PUT принимает полный объект.
    */
   const buildPayload = (order: any, patch: Record<string, any> = {}): any => {
+    const currentStatus = typeof order?.status === "object"
+      ? (order.status?.value ?? order.status?.code)
+      : order?.status;
+    // Отменённый заказ сервер разрешает только вернуть в «Новый», без
+    // побочного обновления клиента, доставки и других полей.
+    if (currentStatus === "cancelled" && patch.status === "new" && Object.keys(patch).length === 1) {
+      return { status: "new" };
+    }
     const orderAddress = order?.delivery_address || {};
     const client = order?.client || {};
     const profile = client?.profile || {};

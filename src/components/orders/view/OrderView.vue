@@ -419,7 +419,9 @@ const applyPatch = async (patch, savingRef) => {
 
 // Статусы и менеджер: auto-save при выборе
 const onStatusUpdate = async (patch) => {
-  await applyPatch(patch);
+  if (!await applyPatch(patch)) {
+    await fetchOrder(route.params.id);
+  }
 };
 
 // Позиции: сохранение через явную кнопку Сохранить
