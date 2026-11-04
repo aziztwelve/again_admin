@@ -69,7 +69,9 @@ export const formDataToCreateRequest = (formData: OtoBannerFormData): FormData =
         data.append('promo_code_id', formData.promo_code_id ? String(formData.promo_code_id) : '');
     }
 
-    if (formData.image) data.append('image', formData.image)
+    // Отправляем только выбранный файл. При редактировании в поле может лежать
+    // ссылка на текущую картинку (строка): сервер отклоняет её как «не файл».
+    if (formData.image instanceof File) data.append('image', formData.image)
 
     return data
 }
