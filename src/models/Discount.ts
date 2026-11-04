@@ -18,6 +18,7 @@ export class Discount {
     is_unlimited?: boolean;
 
     productIds: number[] | undefined;
+    productVariantIds: number[] | undefined;
     categoryIds: number[] | undefined;
 
     products: Product[] | null | undefined;
@@ -38,6 +39,7 @@ export class Discount {
 
         this.categoryIds = undefined
         this.productIds = undefined
+        this.productVariantIds = undefined
         this.createdAt = undefined;
         this.updatedAt = undefined;
 
@@ -82,7 +84,13 @@ export class Discount {
         discount.createdAt = json.created_at;
         discount.updatedAt = json.updated_at;
         discount.categoryIds = undefined;
-        discount.productIds = json.products ? json.products?.map((item: any) => item.id) : undefined;
+        const variantList: any[] = json.product_variants ?? [];
+        // Скидка может быть привязана только к варианту (без самого товара) —
+        // товар такого варианта тоже показываем выбранным, чтобы форму можно было сохранить.
+        const productIdSet = new Set<number>((json.products ?? []).map((item: any) => item.id));
+        variantList.forEach((v: any) => v.product_id && productIdSet.add(v.product_id));
+        discount.productIds = json.products || variantList.length ? [...productIdSet] : undefined;
+        discount.productVariantIds = variantList.length ? variantList.map((v: any) => v.id) : undefined;
 
         discount.categoryIds = json.categories?.map((item: any) => item.id);
         discount.products = json.products ? json.products.map((p: any) => Product.fromJSON(p)) : null;
@@ -103,6 +111,7 @@ export class Discount {
             value: this.value ?? null,
             categories: this.categoryIds ?? null,
             products: this.productIds ?? null,
+            product_variants: this.productVariantIds ?? [],
             is_unlimited: this.is_unlimited ?? null,
         };
     }
@@ -127,6 +136,7 @@ export class Discount {
         cloned.updatedAt = this.updatedAt;
 
         cloned.productIds = this.productIds ? [...this.productIds] : undefined;
+        cloned.productVariantIds = this.productVariantIds ? [...this.productVariantIds] : undefined;
         cloned.categoryIds = this.categoryIds ? [...this.categoryIds] : undefined;
 
         cloned.products = this.products ? this.products.map(p => p.clone()) : null;

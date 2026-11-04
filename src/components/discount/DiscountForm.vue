@@ -51,8 +51,18 @@ const formFields = ref<any[]>([])
 const categories = ref<Category[]>([])
 const products = ref<Product[]>([])
 
+const variantOptions = computed(() => {
+  const selected = new Set<number>(props.formData?.productIds ?? [])
+  return products.value
+      .filter((p: any) => selected.has(p.id) && p.variants?.length)
+      .flatMap((p: any) => p.variants.map((v: any) => ({
+        id: v.id,
+        label: `${p.name} — ${v.name || v.sku || v.id}`,
+      })))
+})
+
 const {getCategories} = useCategoryFunctions()
-const {getProducts} = useProductFunctions()
+const {getProductsSimple} = useProductFunctions()
 
 
 onMounted(async () => {
@@ -88,6 +98,19 @@ watch(
       buildFormFields();
     }
 );
+watch(
+    () => props.formData?.productIds,
+    () => {
+      // Убираем варианты товаров, которые сняли с выбора.
+      const allowed = new Set(variantOptions.value.map((o: any) => o.id))
+      if (props.formData?.productVariantIds) {
+        const kept = props.formData.productVariantIds.filter((id: number) => allowed.has(id))
+        props.formData.productVariantIds = kept.length ? kept : undefined
+      }
+      buildFormFields()
+    },
+    {deep: true}
+)
 watch(
     () => props.formData.is_unlimited,
     () => buildFormFields()
@@ -201,7 +224,19 @@ const buildFormFields = () => {
               options: products.value,
               optionLabel: 'name',
               optionValue: 'id'
-            }
+            },
+            ...(variantOptions.value.length
+                ? [{
+                  name: 'productVariantIds',
+                  component: 'multiSelect',
+                  label: 'Варианты (если не выбрать — все)',
+                  required: false,
+                  placeholder: 'Все варианты выбранных товаров',
+                  options: variantOptions.value,
+                  optionLabel: 'label',
+                  optionValue: 'id'
+                }]
+                : [])
           ]
           : []),
 
@@ -242,8 +277,8 @@ async function loadOptions() {
       break
     case DiscountTargetType.SPECIFIC:
       if (!products.value.length) {
-        products.value = await getProducts({per_page: 200, paginate: false})
-            .then(res => res.map((item: any) => Product.fromJSON(item)))
+        const res: any = await getProductsSimple({per_page: 500, withVariants: true, show_all: true} as any)
+        products.value = (res?.data ?? []).map((item: any) => Product.fromJSON(item))
       }
       break
     default:
