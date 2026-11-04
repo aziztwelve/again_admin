@@ -502,7 +502,7 @@ const getFallbackItemProductData = (item) => ({
   name: item.product_name || item.product?.name || `Товар #${item.product_id}`,
   sku: item.product_sku || item.product?.sku || item.variant?.name || "—",
   stock_quantity: Number(
-    item.stock_quantity ?? item.product?.stock_quantity ?? 0,
+    item.stock_quantity ?? item.variant?.stock_quantity ?? item.product?.stock_quantity ?? 0,
   ),
 });
 
@@ -884,7 +884,7 @@ const normalizeOrderItems = (items) => {
         product_name:
           item?.product?.name || item?.name || `Товар #${productId}`,
         product_sku: item?.product?.sku || item?.variant?.name || "—",
-        stock_quantity: Number(item?.product?.stock_quantity ?? 0),
+        stock_quantity: Number(item?.variant?.stock_quantity ?? item?.product?.stock_quantity ?? 0),
         product: item?.product,
         variant: item?.variant,
         color_id: item?.color_id ?? item?.color?.id ?? null,

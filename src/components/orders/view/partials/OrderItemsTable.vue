@@ -127,7 +127,7 @@
               {{ item.reserved_quantity ?? "—" }}
             </td>
             <td class="px-3 py-2 text-right text-sm text-gray-700">
-              {{ item.product?.stock_quantity ?? "—" }}
+              {{ item.variant ? (item.variant.stock_quantity ?? "—") : (item.product?.stock_quantity ?? "—") }}
             </td>
             <td class="px-3 py-2 text-right text-sm font-medium text-gray-900">
               <span v-if="item.is_gift" class="text-emerald-700">Бесплатно</span>
