@@ -180,11 +180,15 @@ const normalizeYandex = (raw: any): MapPoint | null => {
 };
 
 const loadCdekPoints = async (): Promise<{ center: [number, number] | null }> => {
+  // В адресе заказа город может лежать полной строкой геокодера
+  // («Домодедово, городской округ Домодедово, Московская область, Россия»):
+  // в СДЭК ищем по названию до первой запятой.
+  const cdekCityName = props.cityName.split(",")[0].trim();
   const {data: citiesData} = await axios.get("/public/delivery/cdek/cities", {
-    params: {query: props.cityName, country_code: "RU"},
+    params: {query: cdekCityName, country_code: "RU"},
   });
   const cities = citiesData?.cities ?? citiesData?.data?.cities ?? [];
-  const city = cities.find((item: any) => String(item?.name ?? "").toLowerCase() === props.cityName.toLowerCase()) ?? cities[0];
+  const city = cities.find((item: any) => String(item?.name ?? "").toLowerCase() === cdekCityName.toLowerCase()) ?? cities[0];
   if (!city?.code) throw new Error(`Город «${props.cityName}» не найден в СДЭК`);
 
   const type = props.cdekPointType ?? "PVZ";

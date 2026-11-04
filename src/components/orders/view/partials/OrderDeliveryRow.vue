@@ -87,7 +87,7 @@
         <PvzMapModal
           :open="pvzModalOpen"
           :provider="pvzProvider"
-          :city-name="draftAddress.city"
+          :city-name="draftAddress.city || props.order?.delivery_address?.city || ''"
           cdek-point-type="PVZ"
           @close="pvzModalOpen = false"
           @select="onDraftPvzPicked"

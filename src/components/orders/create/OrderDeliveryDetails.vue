@@ -579,7 +579,10 @@ onBeforeUnmount(() => {
 watch(
   () => delivery.value.country,
   async (newValue, oldValue) => {
-    if (newValue !== oldValue) {
+    // Сбрасываем регион и город, только если пользователь сменил уже
+    // выбранную страну. Первичная подстановка значений (редактирование
+    // существующего заказа) не должна стирать адрес.
+    if (newValue !== oldValue && oldValue) {
       delivery.value.region = "";
       delivery.value.city = "";
       selectedRegionId.value = null;
@@ -593,7 +596,9 @@ watch(
 watch(
   () => delivery.value.region,
   (newValue, oldValue) => {
-    if (newValue !== oldValue) {
+    // Город сбрасываем только при смене уже заполненного региона: подстановка
+    // региона в существующем заказе (был пустым) город не стирает.
+    if (newValue !== oldValue && oldValue) {
       delivery.value.city = "";
       selectedCityId.value = null;
       citySuggestions.value = [];
