@@ -58,7 +58,10 @@ const loadPromoCodes = async () => {
   try {
     const res = await getPromoCodes({
       is_active: true,
-      per_page: 100,  // или сколько нужно
+      valid: true,          // только действующие: без просроченных
+      sort_by: 'id',
+      sort_order: 'desc',   // сначала новые, иначе свежие коды не попадают в первые 100
+      per_page: 100,
     })
     if (res) {
       promoCodes.value = res.data || []

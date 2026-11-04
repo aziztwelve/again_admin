@@ -122,6 +122,9 @@ export function usePromoCodeFunctions() {
         page?: number;
         code?: string;
         is_active?: boolean;
+        valid?: boolean;
+        sort_by?: 'id' | 'created_at';
+        sort_order?: 'asc' | 'desc';
     }): Promise<{
         data: PromoCode[];
         meta: {
