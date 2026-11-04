@@ -83,15 +83,25 @@ const formatPrice = (value) => {
 // item.price — финальная цена (после всех скидок и промо).
 // item.discount — суммарная скидка за единицу (items_discount + promo_discount).
 // Оригинальная сумма = (price + discount) * qty.
+// Если у позиций скидка не записана (discount = 0), а у заказа скидки есть,
+// недостающую часть добавляем к сумме товаров: price в таком случае уже
+// финальная, и без этого строка «Товары» совпадала бы с итогом, а скидка
+// выглядела бы неучтённой.
 const itemsSubtotal = computed(() => {
   const items = props.order?.items || [];
-  return items.reduce((acc, item) => {
-    if (item.is_gift) return acc;
-    const price   = Number(item.price    ?? item.unit_price ?? 0);
-    const disc    = Number(item.discount ?? 0);
-    const qty     = Number(item.quantity || 0);
-    return acc + (price + disc) * qty;
-  }, 0);
+  let net = 0;
+  let itemDiscounts = 0;
+  for (const item of items) {
+    if (item.is_gift) continue;
+    const price = Number(item.price ?? item.unit_price ?? 0);
+    const disc  = Number(item.discount ?? 0);
+    const qty   = Number(item.quantity || 0);
+    net += price * qty;
+    itemDiscounts += disc * qty;
+  }
+  const orderDiscounts = itemsDiscount.value + promoDiscount.value;
+  const missing = Math.max(0, orderDiscounts - itemDiscounts);
+  return net + itemDiscounts + missing;
 });
 
 // Скидка на товары (ЛЕТО25 и подобные — items_discount без промокода)
