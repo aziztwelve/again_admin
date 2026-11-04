@@ -18,6 +18,17 @@
     </div>
 
     <div class="flex justify-end gap-2">
+      <select
+          v-model="sortMode"
+          class="h-10 rounded-md border border-input bg-background px-3 text-sm"
+          title="Порядок заказов в списке"
+          @change="handleSortChange"
+      >
+        <option value="date">Сначала новые (по дате)</option>
+        <option value="number_desc">По номеру: от большего</option>
+        <option value="number_asc">По номеру: от меньшего</option>
+      </select>
+
       <div
           v-if="promoFilter.id"
           class="flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 h-10 text-sm text-blue-700"
@@ -119,6 +130,36 @@ const searchParams = ref({
 
 const orders = ref<Order[]>([])
 
+// Порядок списка: по дате создания (по умолчанию, как раньше) или по номеру.
+// Выбор запоминается в браузере; если localStorage недоступен — просто по дате.
+type SortMode = 'date' | 'number_desc' | 'number_asc'
+const SORT_STORAGE_KEY = 'orders-list-sort'
+const readSortMode = (): SortMode => {
+  try {
+    const v = localStorage.getItem(SORT_STORAGE_KEY)
+    return v === 'number_desc' || v === 'number_asc' ? v : 'date'
+  } catch {
+    return 'date'
+  }
+}
+const sortMode = ref<SortMode>(readSortMode())
+
+const sortParams = computed(() => {
+  if (sortMode.value === 'number_desc') return {sort_by: 'order_number', sort_order: 'desc'}
+  if (sortMode.value === 'number_asc') return {sort_by: 'order_number', sort_order: 'asc'}
+  return {sort_by: 'created_at', sort_order: 'desc'}
+})
+
+function handleSortChange() {
+  try {
+    localStorage.setItem(SORT_STORAGE_KEY, sortMode.value)
+  } catch {
+    // хранилище недоступно — не критично
+  }
+  pagination.value.page = 1
+  fetchData()
+}
+
 // Списки опций для select-фильтров (как в верхней панели, так и в заголовках).
 // Грузим один раз тут, передаём вниз — чтобы не дублировать запросы.
 const managerOptions = ref<{ value: number | string; label: string }[]>([])
@@ -189,6 +230,7 @@ async function fetchData() {
     assigned_user_id: searchParams.value.assigned_user_id || null,
     min_amount: searchParams.value.min_amount === '' ? null : searchParams.value.min_amount,
     max_amount: searchParams.value.max_amount === '' ? null : searchParams.value.max_amount,
+    ...sortParams.value,
   })
 
   orders.value = result?.orders ?? []

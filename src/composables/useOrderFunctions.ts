@@ -27,6 +27,8 @@ export function useOrderFunctions() {
         assigned_user_id?: number | string | null,
         min_amount?: number | string | null,
         max_amount?: number | string | null,
+        sort_by?: 'created_at' | 'order_number' | 'id' | 'total_amount',
+        sort_order?: 'asc' | 'desc',
     }): Promise<{
         orders: Order[],
         meta: {
