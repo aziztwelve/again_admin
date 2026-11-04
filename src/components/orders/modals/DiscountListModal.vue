@@ -129,7 +129,8 @@ const filteredDiscounts = computed(() => {
   const customerType = props.clientId ? 'authorized' : 'guest';
   const byCustomer = discounts.value.filter((d) => {
     const target = d.customer_type || 'all';
-    return target === 'all' || target === customerType;
+    // «Скрыт» — скидка только для менеджера: на витрине не видна, в заказ добавляется вручную.
+    return target === 'all' || target === 'hidden' || target === customerType;
   });
 
   if (!query) return byCustomer;
