@@ -53,26 +53,35 @@ onMounted(async () => {
 })
 
 
-const loadPromoCodes = async () => {
+// Выбранный промокод запоминаем отдельно: при поиске он может выпасть из
+// найденных, но подпись в поле и значение должны остаться.
+const selectedPromo = ref<any | null>(null)
+
+const loadPromoCodes = async (search = '') => {
   loadingPromos.value = true
   try {
     const res = await getPromoCodes({
       is_active: true,
       valid: true,          // только действующие: без просроченных
       sort_by: 'id',
-      sort_order: 'desc',   // сначала новые, иначе свежие коды не попадают в первые 100
+      sort_order: 'desc',   // сначала новые
       per_page: 100,
+      ...(search ? {code: search} : {}),
     })
     if (res) {
       promoCodes.value = res.data || []
 
-      // Старый или удалённый промокод может остаться в данных баннера. Он не
-      // должен отправляться обратно при смене изображения или другого поля.
-      if (
-          props.formData.promo_code_id != null &&
-          !promoCodes.value.some((promo) => Number(promo.id) === Number(props.formData.promo_code_id))
-      ) {
-        props.formData.promo_code_id = null
+      const currentId = props.formData.promo_code_id
+      if (currentId != null) {
+        const found = promoCodes.value.find((promo) => Number(promo.id) === Number(currentId))
+        if (found) {
+          selectedPromo.value = found
+        } else if (!search) {
+          // Старый или удалённый промокод может остаться в данных баннера. Он не
+          // должен отправляться обратно при смене изображения или другого поля.
+          props.formData.promo_code_id = null
+          selectedPromo.value = null
+        }
       }
     }
   } catch (e) {
@@ -80,6 +89,23 @@ const loadPromoCodes = async () => {
   } finally {
     loadingPromos.value = false
   }
+}
+
+const searchPromoCodes = async (query: string) => {
+  await loadPromoCodes(query)
+  buildFormFields()
+}
+
+const promoOptions = () => {
+  const list = [...promoCodes.value]
+  // выбранный код всегда в списке, даже если поиск его не вернул
+  if (selectedPromo.value && !list.some((p) => Number(p.id) === Number(selectedPromo.value.id))) {
+    list.unshift(selectedPromo.value)
+  }
+  return list.map(p => ({
+    value: p.id,
+    label: `${p.code} - ${p.discountType === 'percentage' ? p.discountAmount + '%' : p.discountAmount + '₽'}`
+  }))
 }
 
 const buildFormFields = () => {
@@ -209,19 +235,20 @@ const buildFormFields = () => {
         component: 'select',
         label: 'Привязанный промокод',
         required: false,
-        options: promoCodes.value.map(p => ({
-          value: p.id,
-          label: `${p.code} - ${p.discountType === 'percentage' ? p.discountAmount + '%' : p.discountAmount + '₽'}`
-        })),
+        options: promoOptions(),
+        searchable: true,
+        remoteSearch: true,
+        searchPlaceholder: 'Поиск по коду',
+        onSearch: searchPromoCodes,
         optionLabel: 'label',
         optionValue: 'value',
         placeholder: 'Выберите промокод (опционально)',
         description: loadingPromos.value
             ? 'Загрузка промокодов...'
             : promoCodes.value.length === 0
-                ? 'Активных промокодов нет'
+                ? 'Ничего не найдено'
                 : 'Клиент получит выбранный промокод после заявки',
-        disabled: loadingPromos.value || promoCodes.value.length === 0,
+        disabled: false,
       },
 
     ],

@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import {
   Select,
   SelectContent,
@@ -112,17 +112,27 @@ const props = defineProps<{
   required?: boolean
   title?: string
   searchable?: boolean
+  remoteSearch?: boolean
   searchPlaceholder?: string
   clearable?: boolean
 }>()
 
 const clearable = computed(() => props.clearable !== false)
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'search'])
 
 const showError = ref(false)
 const hiddenInput = ref<HTMLInputElement>()
 const searchQuery = ref('')
+
+// Поиск на сервере: отдаём введённый текст наружу с задержкой, список
+// опций родитель обновляет сам.
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch(searchQuery, (q) => {
+  if (!props.remoteSearch) return
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => emit('search', (q || '').trim()), 300)
+})
 
 const handleUpdate = (value: any) => {
   // Убираем ошибку при выборе значения
@@ -139,7 +149,7 @@ const clearSelection = (e: Event) => {
 }
 
 const filteredOptions = computed(() => {
-  if (!props.searchable) return props.options
+  if (!props.searchable || props.remoteSearch) return props.options
   const q = (searchQuery.value || '').toLowerCase()
   if (!q) return props.options
   return (props.options || []).filter((opt: any) => {

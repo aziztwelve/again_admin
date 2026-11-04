@@ -86,6 +86,10 @@
             :placeholder="field.placeholder"
             :required="field.required"
             :disabled="field.disabled"
+            :searchable="field.searchable"
+            :remote-search="field.remoteSearch"
+            :search-placeholder="field.searchPlaceholder"
+            @search="field.onSearch && field.onSearch($event)"
         />
 
         <MultiSelect
