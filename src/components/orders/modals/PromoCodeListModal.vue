@@ -128,11 +128,20 @@ const promoCodes = ref([]);
 const isLoading = ref(false);
 const searchQuery = ref('');
 
-const fetchPromoCodes = async () => {
+const fetchPromoCodes = async (search = '') => {
   isLoading.value = true;
   try {
+    // Действующие промокоды, новые первыми; поиск по коду идёт по всей базе
+    // (раньше грузились только первые 200 из тысяч, и свежий код не находился).
     const {data} = await axios.get('/promo-codes', {
-      params: {is_active: 1, per_page: 200},
+      params: {
+        is_active: 1,
+        valid: 1,
+        sort_by: 'id',
+        sort_order: 'desc',
+        per_page: 200,
+        ...(search ? {code: search} : {}),
+      },
     });
     // Бэк отдаёт { success, data: [...], meta }. Поддерживаем и legacy-ключ promoCodes.
     const list = Array.isArray(data?.data)
@@ -164,11 +173,13 @@ const fetchPromoCodes = async () => {
 const filteredCodes = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
   const customerType = props.clientId ? 'authorized' : 'guest';
+  // Менеджер видит и скрытые промокоды (hidden): они недоступны покупателям
+  // сайта, но применяются в заказе вручную.
   const list = props.clientId
-      ? promoCodes.value.filter((c) => !c.customer_type || c.customer_type === 'all' || c.customer_type === customerType)
+      ? promoCodes.value.filter((c) => !c.customer_type || c.customer_type === 'all' || c.customer_type === 'hidden' || c.customer_type === customerType)
       : promoCodes.value.filter((c) => {
         const target = c.customer_type || 'all';
-        return c.applies_to_all_clients && (target === 'all' || target === customerType);
+        return c.applies_to_all_clients && (target === 'all' || target === 'hidden' || target === customerType);
       });
 
   if (!query) return list;
@@ -238,6 +249,13 @@ const open = () => {
 };
 
 defineExpose({open});
+
+// Поиск по коду на сервере (с задержкой), чтобы находились любые промокоды.
+let searchTimer;
+watch(searchQuery, (q) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => fetchPromoCodes((q || '').trim()), 300);
+});
 
 onMounted(() => {
   fetchPromoCodes();
