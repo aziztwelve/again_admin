@@ -108,7 +108,7 @@ const promoFilter = ref<{ id: number | null; code: string }>({
 // Общий объект состояния всех фильтров: используется и верхней панелью
 // OrderSearch, и фильтрами-кнопками в заголовках столбцов OrderListTable.
 // Любое изменение в любом виджете → handleSearch() → fetchData().
-const searchParams = ref({
+const createDefaultFilters = () => ({
   datePicker: {
     start: '',
     end: ''
@@ -123,10 +123,46 @@ const searchParams = ref({
   status: [] as string[],
   payment_status: [] as string[],
   delivery_service: [] as string[],
-  assigned_user_id: '',
-  min_amount: '',
-  max_amount: '',
+  assigned_user_id: '' as string | number,
+  min_amount: '' as string | number,
+  max_amount: '' as string | number,
 })
+
+// Фильтры и страница запоминаются на время работы во вкладке: после входа в
+// заказ и возврата «назад» список остаётся в том же состоянии. Если список
+// открыт ссылкой с параметрами (статус, промокод) — сохранённое не применяем.
+const FILTERS_STORAGE_KEY = 'orders-list-filters'
+const readSavedState = (): { filters: ReturnType<typeof createDefaultFilters>; page: number; per_page: number } | null => {
+  if (route.query.status || route.query.promo_code_id) return null
+  try {
+    const raw = sessionStorage.getItem(FILTERS_STORAGE_KEY)
+    if (!raw) return null
+    const saved = JSON.parse(raw)
+    const base = createDefaultFilters()
+    const filters: any = {...base}
+    for (const key of Object.keys(base) as Array<keyof typeof base>) {
+      const value = saved?.filters?.[key]
+      if (value === undefined || value === null) continue
+      if (key === 'datePicker') {
+        filters.datePicker = {start: String(value.start ?? ''), end: String(value.end ?? '')}
+      } else if (Array.isArray(base[key])) {
+        if (Array.isArray(value)) filters[key] = value
+      } else {
+        filters[key] = value
+      }
+    }
+    return {
+      filters,
+      page: Number(saved?.page) > 0 ? Number(saved.page) : 1,
+      per_page: Number(saved?.per_page) > 0 ? Number(saved.per_page) : 15,
+    }
+  } catch {
+    return null
+  }
+}
+const savedState = readSavedState()
+
+const searchParams = ref(savedState?.filters ?? createDefaultFilters())
 
 const orders = ref<Order[]>([])
 
@@ -166,10 +202,27 @@ const managerOptions = ref<{ value: number | string; label: string }[]>([])
 const deliveryMethodOptions = ref<{ value: number | string; label: string }[]>([])
 
 const pagination = ref<PaginationMeta>({
-  page: 1,
-  per_page: 15,
+  page: savedState?.page ?? 1,
+  per_page: savedState?.per_page ?? 15,
   total: 0,
 })
+
+// Сохраняем состояние при любом изменении фильтров и страницы.
+watch(
+    () => [searchParams.value, pagination.value.page, pagination.value.per_page],
+    () => {
+      try {
+        sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify({
+          filters: searchParams.value,
+          page: pagination.value.page,
+          per_page: pagination.value.per_page,
+        }))
+      } catch {
+        // хранилище недоступно — фильтры просто не запомнятся
+      }
+    },
+    {deep: true},
+)
 
 // Оплата и доставка: мультивыбор даёт массив, верхняя панель — одиночное значение.
 // В запрос уходит всегда массив; пустой массив axios не отправляет.
@@ -280,22 +333,7 @@ const handleSearch = () => {
 
 
 function resetFilters() {
-  searchParams.value = {
-    datePicker: {
-      start: '',
-      end: ''
-    },
-    search: '',
-    recipient_search: '',
-    email: '',
-    order_number: '',
-    status: [] as string[],
-    payment_status: [] as string[],
-    delivery_service: [] as string[],
-    assigned_user_id: '',
-    min_amount: '',
-    max_amount: '',
-  }
+  searchParams.value = createDefaultFilters()
 
   pagination.value.page = 1
   clearPromoFilter()
