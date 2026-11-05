@@ -28,8 +28,8 @@
           </div>
 
           <div v-if="hasError">
-                        <span class="text-red-600 font-semibold capitalize">
-                            Произошла ошибка
+                        <span class="text-red-600 font-semibold">
+                            {{ errorMessage }}
                         </span>
           </div>
           <div>
@@ -81,6 +81,7 @@ const signIn = (form) => store.dispatch('auth/signIn', form)
 
 const authenticated = computed(() => store.getters['auth/authenticated'])
 const hasError = computed(() => store.getters['auth/hasError'])
+const errorMessage = computed(() => store.getters['auth/errorMessage'])
 const isLoading = computed(() => store.getters['auth/isLoading'])
 
 watch(authenticated, (newValue) => {

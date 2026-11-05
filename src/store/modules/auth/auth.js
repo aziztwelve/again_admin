@@ -16,6 +16,7 @@ export default {
         authenticated: state => !!state.access_token && !!state.user,
         user: state => state.user,
         hasError: state => !!state.error,
+        errorMessage: state => state.error,
         permissions: state => state.user?.permissions || [],
         hasPermission: state => (permissionId) => {
             return state.user?.permissions?.includes(permissionId) || false;
@@ -31,7 +32,25 @@ export default {
                 const access_token = response.data.token;
                 dispatch( 'attempt', access_token );
             } catch ( error ) {
-                commit( 'set_error', error.response?.data?.message || 'Sign in failed' );
+                const status = error.response?.status;
+                const firstValidation = error.response?.data?.errors
+                    ? Object.values(error.response.data.errors).flat()[0]
+                    : null;
+                let message;
+                if (!error.response) {
+                    message = 'Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.';
+                } else if (status === 401) {
+                    message = 'Неверный email или пароль.';
+                } else if (status === 422) {
+                    message = firstValidation || 'Проверьте правильность введённых данных.';
+                } else if (status === 429) {
+                    message = 'Слишком много попыток входа. Подождите минуту и попробуйте снова.';
+                } else if (status >= 500) {
+                    message = 'Ошибка сервера. Попробуйте позже.';
+                } else {
+                    message = 'Не удалось войти. Попробуйте ещё раз.';
+                }
+                commit( 'set_error', message );
             } finally {
                 commit( 'set_loadStatus', false );
             }
@@ -52,7 +71,7 @@ export default {
             } catch (error) {
                 commit ( 'set_access_token', null );
                 commit ( 'set_user', null );
-                commit( 'set_error', 'Failed to fetch user info' );
+                commit( 'set_error', 'Не удалось получить данные пользователя. Войдите ещё раз.' );
             }
         },
 
