@@ -269,7 +269,7 @@ const sideCardMap = computed(() => ({
   source: {id: "source", label: "Источник", component: SideSource, props: {source: source.value}, listeners: {}},
   "viewed-products": {id: "viewed-products", label: "Просмотренные товары", component: SideViewedProducts, props: {products: viewedProducts.value}, listeners: {}},
   payments: {id: "payments", label: "Платежи", component: SidePaymentWidgets, props: {payments: payments.value}, listeners: {}},
-  moysklad: {id: "moysklad", label: "МойСклад", component: SideMoySklad, props: {order: order.value}, listeners: {}},
+  moysklad: {id: "moysklad", label: "МойСклад", component: SideMoySklad, props: {order: order.value}, listeners: {refresh: () => fetchOrder(order.value.id)}},
 }));
 
 const orderedSideCards = computed(() => sideCardOrder.value.map((id) => sideCardMap.value[id]).filter(Boolean));
