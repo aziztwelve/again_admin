@@ -194,16 +194,28 @@ const cdekCountryCode = (): string => {
 };
 
 const loadCdekPoints = async (): Promise<{ center: [number, number] | null }> => {
-  // В адресе заказа город может лежать полной строкой геокодера
-  // («Домодедово, городской округ Домодедово, Московская область, Россия»):
-  // в СДЭК ищем по названию до первой запятой.
-  const cdekCityName = props.cityName.split(",")[0].trim();
+  // В адресе заказа город может лежать строкой вида «г Караганда, Карагандинская
+  // обл.» или «Домодедово, городской округ Домодедово, Московская область, Россия».
+  // В СДЭК ищем по названию без приставки («г», «пос» и т.п.) и до первой запятой,
+  // а регион из строки используем, чтобы выбрать нужный город среди одноимённых.
+  const parts = props.cityName.split(",").map((part) => part.trim());
+  const cdekCityName = parts[0].replace(/^(г|г\.|гор\.|город|пгт|пос|п|п\.|пос\.|с|с\.|д|д\.|дер\.|ст|аул|мкр)\s+/i, "").trim() || parts[0];
+  const regionHint = (parts[1] ?? "")
+      .replace(/\s*(обл\.?|область|край|респ\.?|республика|район|р-н)\s*/gi, " ")
+      .trim()
+      .toLowerCase()
+      .slice(0, 8);
   const countryCode = cdekCountryCode();
   const {data: citiesData} = await axios.get("/public/delivery/cdek/cities", {
     params: {query: cdekCityName, country_code: countryCode},
   });
   const cities = citiesData?.cities ?? citiesData?.data?.cities ?? [];
-  const city = cities.find((item: any) => String(item?.name ?? "").toLowerCase() === cdekCityName.toLowerCase()) ?? cities[0];
+  const lowerName = cdekCityName.toLowerCase();
+  const byRegion = regionHint
+      ? cities.find((item: any) => String(item?.full_name ?? "").toLowerCase().includes(regionHint))
+      : undefined;
+  const byName = cities.find((item: any) => String(item?.name ?? item?.city ?? "").toLowerCase() === lowerName);
+  const city = byRegion ?? byName ?? cities[0];
   if (!city?.code) throw new Error(`Город «${props.cityName}» не найден в СДЭК`);
 
   const type = props.cdekPointType ?? "PVZ";
