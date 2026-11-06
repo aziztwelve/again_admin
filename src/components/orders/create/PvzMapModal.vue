@@ -9,6 +9,17 @@
 
       <div class="mt-2 flex flex-col gap-3 md:flex-row">
         <div class="flex flex-col gap-2 md:w-80">
+          <div class="flex gap-2">
+            <input
+                v-model.trim="cityInput"
+                type="text"
+                placeholder="Населённый пункт"
+                title="Если нужного пункта нет в списке, укажите соседний населённый пункт (например, «Коммунарка» вместо «Москва»)"
+                class="h-9 min-w-0 flex-1 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                @keyup.enter="applyCity"
+            />
+            <Button type="button" variant="outline" class="h-9 shrink-0" :disabled="loading" @click="applyCity">Показать</Button>
+          </div>
           <input
               v-model.trim="search"
               type="search"
@@ -17,7 +28,10 @@
           />
           <div class="max-h-[55vh] overflow-y-auto rounded-md border border-input">
             <p v-if="loading" class="p-3 text-sm text-muted-foreground">Загружаем пункты…</p>
-            <p v-else-if="!filteredPoints.length && !error" class="p-3 text-sm text-muted-foreground">Пункты не найдены</p>
+            <p v-else-if="!filteredPoints.length && !error" class="p-3 text-sm text-muted-foreground">
+              Пункты не найдены. Нужного пункта нет в списке? Укажите выше другой населённый пункт
+              (например, «Коммунарка» вместо «Москва») и нажмите «Показать».
+            </p>
             <button
                 v-for="point in filteredPoints"
                 :key="point.key"
@@ -97,6 +111,11 @@ const points = ref<MapPoint[]>([]);
 const loading = ref(false);
 const error = ref("");
 const search = ref("");
+// Населённый пункт, по которому ищем пункты выдачи. По умолчанию город из заказа,
+// но менеджер может сменить его в окне (пункт может числиться в соседнем
+// населённом пункте СДЭК: Коммунарка, Зеленоград и т.п.).
+const cityInput = ref("");
+const activeCity = ref("");
 const selectedKey = ref<string | null>(null);
 
 let ymaps: any = null;
@@ -198,7 +217,7 @@ const loadCdekPoints = async (): Promise<{ center: [number, number] | null }> =>
   // обл.» или «Домодедово, городской округ Домодедово, Московская область, Россия».
   // В СДЭК ищем по названию без приставки («г», «пос» и т.п.) и до первой запятой,
   // а регион из строки используем, чтобы выбрать нужный город среди одноимённых.
-  const parts = props.cityName.split(",").map((part) => part.trim());
+  const parts = activeCity.value.split(",").map((part) => part.trim());
   const cdekCityName = parts[0].replace(/^(г|г\.|гор\.|город|пгт|пос|п|п\.|пос\.|с|с\.|д|д\.|дер\.|ст|аул|мкр)\s+/i, "").trim() || parts[0];
   const regionHint = (parts[1] ?? "")
       .replace(/\s*(обл\.?|область|край|респ\.?|республика|район|р-н)\s*/gi, " ")
@@ -216,7 +235,7 @@ const loadCdekPoints = async (): Promise<{ center: [number, number] | null }> =>
       : undefined;
   const byName = cities.find((item: any) => String(item?.name ?? item?.city ?? "").toLowerCase() === lowerName);
   const city = byRegion ?? byName ?? cities[0];
-  if (!city?.code) throw new Error(`Город «${props.cityName}» не найден в СДЭК`);
+  if (!city?.code) throw new Error(`Город «${activeCity.value}» не найден в СДЭК`);
 
   const type = props.cdekPointType ?? "PVZ";
   const {data} = await axios.get("/public/delivery/cdek/pvz", {params: {city_code: city.code, type, country_code: city.country_code || countryCode}});
@@ -227,9 +246,9 @@ const loadCdekPoints = async (): Promise<{ center: [number, number] | null }> =>
 
 const loadYandexPoints = async (): Promise<{ center: [number, number] | null }> => {
   ymaps = await loadYandexMaps();
-  const geo = await ymaps.geocode(props.cityName, {results: 1});
+  const geo = await ymaps.geocode(activeCity.value, {results: 1});
   const first = geo.geoObjects.get(0);
-  if (!first) throw new Error(`Город «${props.cityName}» не найден на карте`);
+  if (!first) throw new Error(`Город «${activeCity.value}» не найден на карте`);
   const [lat, lon] = first.geometry.getCoordinates();
 
   const latDelta = YANDEX_RADIUS_KM / 111;
@@ -289,7 +308,7 @@ const load = async () => {
   error.value = "";
   loading.value = true;
   try {
-    if (!props.cityName) throw new Error("Укажите город доставки в форме");
+    if (!activeCity.value) throw new Error("Укажите город доставки в форме");
     const result = props.provider === "cdek" ? await loadCdekPoints() : await loadYandexPoints();
     await nextTick();
     if (!ymaps) ymaps = await loadYandexMaps();
@@ -306,8 +325,17 @@ watch(
     () => props.open,
     async (isOpen) => {
       if (!isOpen) return;
+      cityInput.value = props.cityName;
+      activeCity.value = props.cityName;
       await nextTick();
       await load();
     },
 );
+
+const applyCity = async () => {
+  const value = cityInput.value.trim();
+  if (!value || loading.value) return;
+  activeCity.value = value;
+  await load();
+};
 </script>
