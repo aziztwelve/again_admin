@@ -307,6 +307,7 @@
               :open="pvzModalOpen"
               :provider="pvzProvider"
               :city-name="formData.delivery_address.city"
+              :country-name="formData.delivery_address.country"
               cdek-point-type="PVZ"
               @close="pvzModalOpen = false"
               @select="onPvzPicked"

@@ -162,6 +162,7 @@
               :open="pvzModalOpen"
               :provider="pvzProvider"
               :city-name="draftAddress.city || props.order?.delivery_address?.city || ''"
+              :country-name="draftAddress.country || props.order?.delivery_address?.country || ''"
               cdek-point-type="PVZ"
               @close="pvzModalOpen = false"
               @select="onDraftPvzPicked"
