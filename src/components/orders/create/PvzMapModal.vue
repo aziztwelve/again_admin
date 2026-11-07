@@ -219,17 +219,26 @@ const loadCdekPoints = async (): Promise<{ center: [number, number] | null }> =>
   // а регион из строки используем, чтобы выбрать нужный город среди одноимённых.
   const parts = activeCity.value.split(",").map((part) => part.trim());
   const cdekCityName = parts[0].replace(/^(г|г\.|гор\.|город|пгт|пос|п|п\.|пос\.|с|с\.|д|д\.|дер\.|ст|аул|мкр)\s+/i, "").trim() || parts[0];
+  // В справочнике города бывают с пояснением: «Алматы (Алма-Ата)». СДЭК по такой
+  // строке ничего не находит — ищем по названию без скобок, а при неудаче по
+  // названию из скобок.
+  const baseCityName = cdekCityName.replace(/\s*\([^)]*\)/g, "").trim() || cdekCityName;
+  const altCityName = (cdekCityName.match(/\(([^)]+)\)/)?.[1] ?? "").trim();
   const regionHint = (parts[1] ?? "")
       .replace(/\s*(обл\.?|область|край|респ\.?|республика|район|р-н)\s*/gi, " ")
       .trim()
       .toLowerCase()
       .slice(0, 8);
   const countryCode = cdekCountryCode();
-  const {data: citiesData} = await axios.get("/public/delivery/cdek/cities", {
-    params: {query: cdekCityName, country_code: countryCode},
-  });
-  const cities = citiesData?.cities ?? citiesData?.data?.cities ?? [];
-  const lowerName = cdekCityName.toLowerCase();
+  const searchCities = async (query: string) => {
+    const {data: citiesData} = await axios.get("/public/delivery/cdek/cities", {
+      params: {query, country_code: countryCode},
+    });
+    return citiesData?.cities ?? citiesData?.data?.cities ?? [];
+  };
+  let cities = await searchCities(baseCityName);
+  if (!cities.length && altCityName) cities = await searchCities(altCityName);
+  const lowerName = baseCityName.toLowerCase();
   const byRegion = regionHint
       ? cities.find((item: any) => String(item?.full_name ?? "").toLowerCase().includes(regionHint))
       : undefined;
