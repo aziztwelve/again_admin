@@ -95,6 +95,21 @@
         />
       </div>
 
+      <div>
+        <Label for="delivery_cost">Стоимость доставки, ₽</Label>
+        <input
+          id="delivery_cost"
+          v-model="draftDeliveryCost"
+          type="number"
+          min="0"
+          step="0.01"
+          inputmode="decimal"
+          placeholder="0 — без доставки"
+          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+        />
+        <p class="mt-1 text-xs text-gray-500">Если действует правило бесплатной доставки, итог будет 0.</p>
+      </div>
+
       <OrderDeliveryDetails v-model:delivery-address="draftAddress" />
     </div>
   </section>
@@ -182,6 +197,8 @@ const formatDateTimeLocal = (value) => {
 
 const draftAddress = ref(createEmptyAddress());
 const draftDeliveryMethodId = ref(null);
+const draftDeliveryCost = ref("");
+const initialDeliveryCost = ref("");
 
 // Пункт выдачи, выбранный на карте в этом редакторе (уходит в заказ вместе с сохранением).
 const pvzModalOpen = ref(false);
@@ -220,6 +237,8 @@ const startEdit = () => {
     ),
   };
   draftDeliveryMethodId.value = deliveryMethodId.value;
+  draftDeliveryCost.value = String(Number(props.order?.delivery_cost ?? 0));
+  initialDeliveryCost.value = draftDeliveryCost.value;
   editing.value = true;
 };
 
@@ -232,6 +251,10 @@ const save = () => {
     delivery_address: { ...draftAddress.value },
     delivery_date: draftAddress.value.delivery_date || null,
     delivery_method_id: draftDeliveryMethodId.value || null,
+    // Стоимость шлём только если её поменяли: иначе перезапишем базу правила бесплатной доставки.
+    ...(draftDeliveryCost.value !== initialDeliveryCost.value && draftDeliveryCost.value !== ""
+      ? { delivery_cost: Number(draftDeliveryCost.value) }
+      : {}),
     ...(draftPvz.value
       ? {
           pvz_provider: draftPvz.value.provider,
