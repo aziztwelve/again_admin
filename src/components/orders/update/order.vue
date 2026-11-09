@@ -169,7 +169,7 @@
               Применён купон:
               <span class="font-semibold">{{ appliedCouponCode }}</span>
               <span v-if="couponSavings > 0">
-                · скидка {{ formatPrice(couponSavings) }}
+                · скидка по промокоду {{ formatPrice(couponSavings) }}
               </span>
               <span
                 v-if="couponNotApplicableCount > 0"
@@ -671,7 +671,11 @@ const applyCouponResponse = (responseData) => {
       const finalPrice = Number(found.final_price ?? item.price);
       const original =
         itemOriginalPrices.value.get(itemKey(item)) ?? Number(item.price);
-      totalSavings += (original - finalPrice) * Number(item.quantity || 0);
+      // Только скидка самого промокода (без товарных скидок «Выгода» и т.п.).
+      const promoPerUnit = Number(found.promo_code_info?.promo_discount);
+      totalSavings +=
+        (Number.isFinite(promoPerUnit) ? promoPerUnit : original - finalPrice) *
+        Number(item.quantity || 0);
       item.price = finalPrice;
     }
   });

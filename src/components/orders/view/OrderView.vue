@@ -29,7 +29,7 @@
             Применён купон:
             <span class="font-semibold">{{ appliedCouponCode }}</span>
             <span v-if="couponSavings > 0">
-              · скидка {{ formatPrice(couponSavings) }}
+              · скидка по промокоду {{ formatPrice(couponSavings) }}
             </span>
             <span
               v-if="couponNotApplicableCount > 0"
