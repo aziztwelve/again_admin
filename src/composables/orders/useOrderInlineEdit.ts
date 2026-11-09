@@ -31,9 +31,14 @@ export function useOrderInlineEdit() {
         if (!productId && !legacySku && !legacyName) return null;
 
         const quantity = Number(item?.quantity ?? 1) || 1;
+        // Порядок как в таблице позиций (OrderItemsTable.getUnitPrice): сначала цена,
+        // по которой позиция проведена в заказе (item.price), и только потом каталожная
+        // цена варианта. Раньше каталожная шла раньше: при добавлении позиции все
+        // остальные пересохранялись по цене из каталога и скидки «слетали».
         const candidates = [
           item?.unit_price,
           item?.price_per_unit,
+          item?.price,
           item?.variant?.price,
         ];
         let unitPrice = 0;
