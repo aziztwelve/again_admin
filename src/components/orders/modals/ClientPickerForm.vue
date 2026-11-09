@@ -106,6 +106,20 @@
 
         <div>
           <label
+            :for="`${idPrefix}_middle_name`"
+            class="block text-sm/6 font-medium text-gray-900"
+            >Отчество</label
+          >
+          <Input
+            :id="`${idPrefix}_middle_name`"
+            v-model.trim="quickClient.middle_name"
+            type="text"
+            placeholder="Введите отчество (необязательно)"
+          />
+        </div>
+
+        <div>
+          <label
             :for="`${idPrefix}_phone`"
             class="block text-sm/6 font-medium text-gray-900"
             >Телефон</label
@@ -235,6 +249,7 @@ const normalizeClient = (client) => {
     id: client?.id ?? null,
     first_name: firstName,
     last_name: lastName,
+    middle_name: client?.middle_name ?? client?.profile?.middle_name ?? "",
     name: client?.name ?? "",
     full_name: fullName,
     phone: client?.phone ?? client?.profile?.phone ?? client?.user?.phone ?? "",

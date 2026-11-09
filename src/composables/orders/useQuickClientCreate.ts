@@ -17,6 +17,7 @@ type ClientLike = {
 type QuickClientForm = {
     first_name: string;
     last_name: string;
+    middle_name: string;
     phone: string;
     email: string;
     consent_to_personal_data: boolean;
@@ -36,6 +37,7 @@ type UseQuickClientCreateOptions = {
 const getInitialQuickClient = (): QuickClientForm => ({
     first_name: '',
     last_name: '',
+    middle_name: '',
     phone: '',
     email: '',
     consent_to_personal_data: false,
@@ -134,6 +136,7 @@ export function useQuickClientCreate(options: UseQuickClientCreateOptions = {}) 
         const payload = {
             first_name: quickClient.first_name.trim(),
             last_name: quickClient.last_name.trim(),
+            middle_name: quickClient.middle_name.trim() || null,
             phone: quickClient.phone.trim(),
             email: quickClient.email.trim(),
             consent_to_personal_data: quickClient.consent_to_personal_data,
@@ -173,6 +176,12 @@ export function useQuickClientCreate(options: UseQuickClientCreateOptions = {}) 
                     matchedClient?.last_name ??
                     matchedClient?.profile?.last_name ??
                     payload.last_name,
+                middle_name:
+                    createdClient?.middle_name ??
+                    createdClient?.profile?.middle_name ??
+                    matchedClient?.profile?.middle_name ??
+                    payload.middle_name ??
+                    '',
                 phone:
                     createdClient?.phone ??
                     createdClient?.profile?.phone ??
