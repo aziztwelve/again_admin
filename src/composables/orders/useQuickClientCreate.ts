@@ -6,10 +6,12 @@ type ClientLike = {
     email?: string | null;
     first_name?: string | null;
     last_name?: string | null;
+    middle_name?: string | null;
     phone?: string | null;
     profile?: {
         first_name?: string | null;
         last_name?: string | null;
+        middle_name?: string | null;
         phone?: string | null;
     } | null;
 };
