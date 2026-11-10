@@ -120,7 +120,7 @@
                 class="block w-full px-3 py-2 text-left text-sm text-gray-900 transition hover:bg-gray-50"
                 @mousedown.prevent="selectCity(city)"
               >
-                {{ city.name }}
+                {{ city.label || city.name }}
               </button>
             </div>
 
@@ -453,6 +453,42 @@ const fetchRegionSuggestions = async (query = "") => {
   }
 };
 
+// Локальный справочник городов старый и неполный (нет, например, Мурино, Кудрово),
+// поэтому к его результатам добавляем населённые пункты СДЭК — как на витрине.
+// «Мурино, Всеволожский район, Ленинградская область, Россия» → без страны в конце.
+const fetchCdekCitySuggestions = async (query) => {
+  const countryCode = String(delivery.value?.country ?? "").trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(countryCode)) return [];
+
+  try {
+    const { data } = await axios.get("/public/delivery/cdek/cities", {
+      params: { query, country_code: countryCode },
+    });
+    const cities = data?.cities ?? data?.data?.cities ?? [];
+
+    return cities
+      .map((item) => {
+        const parts = String(item?.full_name ?? "")
+          .split(",")
+          .map((part) => part.trim())
+          .filter(Boolean);
+        // Последний сегмент — страна: в адресе она хранится отдельным полем.
+        const label = (parts.length > 1 ? parts.slice(0, -1) : parts).join(", ");
+        return {
+          id: `cdek-${item?.code}`,
+          name: parts[0] ?? "",
+          label,
+          source: "cdek",
+          region_id: null,
+          country_id: null,
+        };
+      })
+      .filter((item) => item.id && item.name && item.label);
+  } catch {
+    return [];
+  }
+};
+
 const fetchCitySuggestions = async (query = "") => {
   const normalizedQuery = query.trim();
   if (!normalizedQuery) {
@@ -463,25 +499,41 @@ const fetchCitySuggestions = async (query = "") => {
   isCityLoading.value = true;
 
   try {
-    const { data } = await axios.get("/cities/search", {
-      params: {
-        query: normalizedQuery,
-        ...(selectedCountryId.value
-          ? { country_id: selectedCountryId.value }
-          : {}),
-        ...(selectedRegionId.value
-          ? { region_id: selectedRegionId.value }
-          : {}),
-        limit: 10,
-      },
-    });
+    const [localResult, cdekItems] = await Promise.all([
+      axios
+        .get("/cities/search", {
+          params: {
+            query: normalizedQuery,
+            ...(selectedCountryId.value
+              ? { country_id: selectedCountryId.value }
+              : {}),
+            ...(selectedRegionId.value
+              ? { region_id: selectedRegionId.value }
+              : {}),
+            limit: 10,
+          },
+        })
+        .then((response) => normalizeCitySuggestions(response.data))
+        .catch(() => []),
+      // С выбранным регионом справочник СДЭК не подмешиваем: регион там другого вида.
+      selectedRegionId.value ? [] : fetchCdekCitySuggestions(normalizedQuery),
+    ]);
 
-    citySuggestions.value = normalizeCitySuggestions(data);
+    // Совпадения СДЭК по тому же названию, что уже есть локально, не дублируем.
+    const localNames = new Set(
+      localResult.map((city) => normalizeComparableValue(city.name)),
+    );
+    const extra = cdekItems
+      .filter((city) => !localNames.has(normalizeComparableValue(city.name)))
+      .slice(0, 8);
+
+    citySuggestions.value = [...localResult, ...extra];
 
     const matchedCity = citySuggestions.value.find(
       (city) =>
+        !city.source &&
         normalizeComparableValue(city.name) ===
-        normalizeComparableValue(delivery.value?.city),
+          normalizeComparableValue(delivery.value?.city),
     );
     selectedCityId.value = matchedCity?.id ?? null;
   } catch {
@@ -499,6 +551,15 @@ const selectRegion = (region) => {
 };
 
 const selectCity = (city) => {
+  if (city.source === "cdek") {
+    // Город из справочника СДЭК: пишем с районом и областью — они нужны, чтобы
+    // отличить одноимённые города и найти пункт выдачи.
+    delivery.value.city = city.label;
+    selectedCityId.value = null;
+    citySuggestions.value = [];
+    isCityFocused.value = false;
+    return;
+  }
   delivery.value.city = city.name;
   selectedCityId.value = city.id;
   citySuggestions.value = [];
