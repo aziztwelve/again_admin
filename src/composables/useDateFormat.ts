@@ -57,7 +57,24 @@ export function useDateFormat() {
         return formatted;
     }
 
+    /**
+     * Числовой формат даты и времени: «03.11.2026 11:36».
+     * Для столбцов таблиц, где важно видеть точное время (например, «Создан»).
+     */
+    const formatDateTimeNumeric = (date: string | Date | null | undefined): string => {
+        if (!date) return '—';
+
+        const dateObj = date instanceof Date ? date : new Date(date);
+        if (isNaN(dateObj.getTime())) return '—';
+
+        const pad = (n: number) => String(n).padStart(2, '0');
+
+        return `${pad(dateObj.getDate())}.${pad(dateObj.getMonth() + 1)}.${dateObj.getFullYear()} `
+            + `${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+    }
+
     return {
-        formatDateToRussian
+        formatDateToRussian,
+        formatDateTimeNumeric
     }
 }

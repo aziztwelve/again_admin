@@ -84,7 +84,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emits = defineEmits(["deleted", "updated", "filter"]);
 
 const router = useRouter();
-const {formatDateToRussian} = useDateFormat()
+const {formatDateToRussian, formatDateTimeNumeric} = useDateFormat()
 
 const handlerEdit = (row: Order) => {
   router.push(`/order/${row.id}`)
@@ -199,7 +199,7 @@ const columns = computed(() => [
       // вложенный popover-триггер скрывал кнопку «Применить».
       inline: true,
     }),
-    cell: ({row}: any) => formatDateToRussian(row.original.created_at),
+    cell: ({row}: any) => formatDateTimeNumeric(row.original.created_at),
   },
   {
     accessorKey: "delivery_date",
