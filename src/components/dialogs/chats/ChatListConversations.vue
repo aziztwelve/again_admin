@@ -11,7 +11,8 @@
       />
     </CardHeader>
 
-    <Loader v-if="sending"/>
+    <!-- Спиннер вместо списка только при первой загрузке: иначе подгрузка и открытие чата сбрасывают прокрутку наверх -->
+    <Loader v-if="sending && props.conversations.length === 0"/>
     <div v-else>
       <div
           class="overflow-y-auto h-[75vh] pt-1"
