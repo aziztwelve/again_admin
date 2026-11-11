@@ -153,19 +153,23 @@ const handleBack = () => {
   showChat.value = false;
 };
 
-const fetchData = async () => {
+// keepLoaded: обновление по событию (новое сообщение) не должно отбрасывать уже подгруженные
+// страницы и сбрасывать прокрутку списка, поэтому запрашиваем столько чатов, сколько загружено.
+const fetchData = async (keepLoaded = false) => {
   const requestId = ++fetchRequestId;
-  pagination.value.page = 1;
+  const perPage = pagination.value.per_page;
+  const loadedPages = keepLoaded ? Math.max(1, Math.ceil(Math.min(conversations.value.length, 200) / perPage)) : 1;
 
   const res = await getConversations({
-    page: pagination.value.page,
-    per_page: pagination.value.per_page,
+    page: 1,
+    per_page: perPage * loadedPages,
     source: currentSourceName.value.source === 'all' ? '' : currentSourceName.value.source,
     search: searchParams.value.search ?? null
   });
 
   // Старый ответ (например, для «2») не должен заменить новый для «278».
   if (requestId !== fetchRequestId) return;
+  pagination.value.page = loadedPages;
   pagination.value.total = res.meta.total ?? 0;
   conversations.value = res.data;
   await openConversationFromRoute();
@@ -217,7 +221,7 @@ const openConversationFromRoute = async () => {
 }
 
 const handleUpdateConv = () => {
-  fetchData()
+  fetchData(true)
 }
 
 const handleReadStateChanged = async (conversation: Conversation) => {
@@ -311,7 +315,7 @@ onBeforeUnmount(() => {
 });
 
 function handleConversationUpdated() {
-  void fetchData();
+  void fetchData(true);
 }
 
 watch(
