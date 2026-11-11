@@ -271,6 +271,14 @@ const buildFormFields = () => {
       placeholder: 'Выберите аудиторию',
     },
 
+    {
+      name: 'description',
+      component: 'textarea',
+      label: 'Описание',
+      placeholder: 'Описание промокода (до 500 символов)',
+      rows: 3,
+    },
+
     [
 
       {
