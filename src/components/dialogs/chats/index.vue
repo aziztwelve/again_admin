@@ -276,14 +276,21 @@ const handleScrolledToEnd = async () => {
   isLoadingMore.value = true;
   pagination.value.page++;
 
-  const res = await getConversations({
-    page: pagination.value.page,
-    per_page: pagination.value.per_page,
-    source: currentSourceName.value.source === 'all' ? '' : currentSourceName.value.source,
-  });
+  try {
+    const res = await getConversations({
+      page: pagination.value.page,
+      per_page: pagination.value.per_page,
+      source: currentSourceName.value.source === 'all' ? '' : currentSourceName.value.source,
+    });
 
-  conversations.value.push(...(res.data ?? []));
-  isLoadingMore.value = false;
+    conversations.value.push(...(res.data ?? []));
+  } catch (e) {
+    // Не удалось подгрузить: возвращаем страницу, чтобы следующая прокрутка повторила запрос
+    pagination.value.page--;
+  } finally {
+    // Без finally ошибка сети оставляла крутилку навсегда, и подгрузка больше не работала
+    isLoadingMore.value = false;
+  }
 };
 
 const handleSearch = () => {
