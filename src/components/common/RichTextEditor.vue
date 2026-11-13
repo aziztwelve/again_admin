@@ -100,6 +100,8 @@ const applyListToSelection = (editor: any, listTag: 'ul' | 'ol') => {
   })
 }
 
+// Внешний вид содержимого (шрифты, отступы абзацев/списков, размеры заголовков)
+// должен совпадать со стилями описания на витрине: again_front/components/Product/Description.vue.
 // Фирменные шрифты сайта для содержимого редактора (iframe, поэтому @font-face
 // задаём здесь же). Файлы лежат в public/fonts и отдаются как /admin/fonts/.
 const BRAND_FONTS_CSS = [
@@ -141,7 +143,7 @@ const editorOptions = computed(() => ({
   fontsize_formats: '8px 10px 12px 14px 16px 18px 24px 30px 36px 48px',
   // The editor runs in an iframe. Its content styles must not be imported into
   // the dashboard bundle, otherwise TinyMCE overrides the dashboard body.
-  content_style: BRAND_FONTS_CSS + ' body { font-family: "TT Norms Pro", "Open Sans", Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.4; margin: 1rem; } strong, b { font-weight: 800; } table { border-collapse: collapse; } th, td { padding: .4rem; border: 1px solid #ccc; } figure { margin: 1rem auto; } img, video, iframe { max-width: 100%; } h1, h2, h3, h4, h5, h6 { font-family: "Tenor Sans", sans-serif; font-weight: 400; }',
+  content_style: BRAND_FONTS_CSS + ' body { font-family: "TT Norms Pro", "Open Sans", Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.4; margin: 1rem; } strong, b { font-weight: 800; } table { border-collapse: collapse; } th, td { padding: .4rem; border: 1px solid #ccc; } figure { margin: 1rem auto; } img, video, iframe { max-width: 100%; } p, ul, ol { margin: 0 0 14px; } ul { list-style: disc; padding-left: 20px; } ol { padding-left: 20px; } li { margin: 0 0 5px; } li:last-child { margin-bottom: 0; } h1, h2, h3, h4, h5, h6 { margin: 22px 0 8px; font-family: "Tenor Sans", sans-serif; font-weight: 400; line-height: 1.3; } h1, h2 { font-size: 24px; } h3 { font-size: 20px; } h4, h5, h6 { font-size: 18px; }',
   setup: (editor: any) => {
     editor.ui.registry.addButton('editorundo', {
       icon: 'undo',
