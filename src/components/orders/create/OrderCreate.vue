@@ -663,7 +663,6 @@ const loadCartDraft = async () => {
     loadingCartDraft.value = false;
   }
 };
-const status = computed(() => store.getters["orderActions/status"]);
 const isLoading = computed(() => store.getters["orderActions/isLoading"]);
 
 const formFields = computed(() => [
@@ -1331,6 +1330,10 @@ const handleCreate = async () => {
         });
       }
     }
+
+    // После создания остаёмся в карточке нового заказа, а не уходим в общий
+    // список. Переход — после скидки, чтобы карточка сразу показала итог.
+    router.push(createdOrderId ? `/order/${createdOrderId}` : "/orders/list");
   } catch (error) {
     const data = error?.response?.data;
     const errors = data?.errors;
@@ -1393,12 +1396,6 @@ const handleCreate = async () => {
     }
   }
 };
-
-watch(status, (newValue) => {
-  if (newValue) {
-    router.push("/orders/list");
-  }
-});
 
 watch(
   clients,
