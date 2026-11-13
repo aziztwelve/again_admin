@@ -500,7 +500,15 @@ async function sendMessage() {
       (m) => m.id === tempId,
     );
     if (messageIndex !== -1) {
-      props.conversation.messages[messageIndex].status = "failed";
+      if ((e as any)?.response?.status === 409) {
+        // Канал недоступен (например, WhatsApp отключён): сервер ничего не сохранил.
+        // Убираем временное сообщение и возвращаем текст и файлы в поле ввода.
+        props.conversation.messages.splice(messageIndex, 1);
+        newMessage.value = text;
+        pendingFiles.value = files;
+      } else {
+        props.conversation.messages[messageIndex].status = "failed";
+      }
     }
     addMessage = true;
   } finally {
