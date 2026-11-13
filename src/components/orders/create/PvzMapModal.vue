@@ -129,12 +129,18 @@ const title = computed(() =>
         : "Пункты самовывоза Яндекс.Доставки",
 );
 
+// В большом городе пунктов тысячи (Москва, Люберцы): отрисовка всех подвешивает окно.
+// Список и метки строим по ближайшим к городу, а поиск идёт по всем загруженным.
+const MAX_LIST_POINTS = 300;
+const MAX_MAP_POINTS = 600;
+
 const filteredPoints = computed(() => {
   const query = search.value.toLowerCase();
-  if (!query) return points.value;
-  return points.value.filter((point) =>
-      `${point.name} ${point.address}`.toLowerCase().includes(query),
-  );
+  const list = query
+      ? points.value.filter((point) => `${point.name} ${point.address}`.toLowerCase().includes(query))
+      : points.value;
+  // СДЭК отдаёт пункты только выбранного города — их не режем; Яндекс — по радиусу, уже отсортирован по расстоянию.
+  return props.provider === "cdek" ? list : list.slice(0, MAX_LIST_POINTS);
 });
 
 const selectedPoint = computed(() => points.value.find((point) => point.key === selectedKey.value) ?? null);
@@ -300,11 +306,14 @@ const renderMap = (center: [number, number] | null) => {
     map.setCenter(center, 11, {duration: 0});
   }
   clusterer.removeAll();
-  points.value.forEach((point) => {
+  const shown = props.provider === "cdek" ? points.value : points.value.slice(0, MAX_MAP_POINTS);
+  const marks = shown.map((point) => {
     const mark = new ymaps.Placemark([point.lat, point.lon], {hintContent: point.name, balloonContent: point.address}, {preset: "islands#blueDotIcon"});
     mark.events.add("click", () => selectPoint(point));
-    clusterer.add(mark);
+    return mark;
   });
+  // Одним вызовом: добавление по одной метке пересчитывает кластеры каждый раз.
+  clusterer.add(marks);
 };
 
 const selectPoint = (point: MapPoint) => {
