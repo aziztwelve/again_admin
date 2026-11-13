@@ -63,6 +63,43 @@
           </div>
         </div>
 
+        <!-- Привязка по коду (вместо QR) -->
+        <div class="mb-6 p-4 border rounded-lg">
+          <h3 class="font-semibold text-sm mb-1">Или привязать по коду (без QR)</h3>
+          <p class="text-xs text-gray-600 mb-3">
+            Введи номер телефона, на котором WhatsApp, получи код и введи его в WhatsApp на телефоне:
+            Связанные устройства → Привязать устройство → «Связать по номеру телефона».
+            Обычно WhatsApp ещё присылает уведомление — можно открыть его.
+          </p>
+
+          <div v-if="!pairingOpen" class="flex flex-col sm:flex-row gap-2">
+            <input
+                v-model="pairingPhone"
+                type="tel"
+                inputmode="numeric"
+                placeholder="Номер с кодом страны, например 79991234567"
+                class="flex-1 border rounded-md px-3 py-2 text-sm"
+                @keyup.enter="handleGetPairingCode"
+            />
+            <Button @click="handleGetPairingCode" :disabled="pairingLoading || isReady" variant="outline">
+              <span v-if="!pairingLoading">Получить код</span>
+              <span v-else>Запрашиваю...</span>
+            </Button>
+          </div>
+
+          <div v-else class="flex flex-col items-center py-2">
+            <p class="text-sm text-gray-600 mb-2">Введи этот код в WhatsApp на телефоне:</p>
+            <div v-if="pairingCode" class="text-3xl font-mono font-bold tracking-widest text-green-700 select-all">
+              {{ formattedPairingCode }}
+            </div>
+            <div v-else class="text-sm text-gray-500">Ждём код от WhatsApp…</div>
+            <p class="text-xs text-gray-500 mt-3 text-center">
+              Код меняется примерно раз в 3 минуты, это окно обновляет его само и закроется после подключения.
+            </p>
+            <button class="text-xs text-gray-500 underline mt-2" @click="closePairing">Отмена</button>
+          </div>
+        </div>
+
         <!-- Status Message -->
         <div v-if="statusMessage" class="mb-4 p-3 rounded-lg text-sm" :class="statusMessageClass">
           {{ statusMessage }}
@@ -139,7 +176,7 @@ const loadingQR = ref(false)
 const loadingStatus = ref(false)
 const statusMessage = ref('')
 
-const {qrCode, isReady, getQRCode, checkStatus, logout} = useWhatsAppFunctions()
+const {qrCode, isReady, pairingCode, getQRCode, requestPairingCode, cancelPairingCode, checkStatus, logout} = useWhatsAppFunctions()
 const errorHandler = useErrorHandler()
 const successHandler = useSuccessHandler()
 
@@ -173,6 +210,7 @@ const pollQR = async () => {
     if (result.ready) {
       stopQRPolling()
       showQRModal.value = false
+      pairingOpen.value = false
       statusMessage.value = '✅ WhatsApp подключен успешно!'
       successHandler.showSuccess({message: 'WhatsApp подключен'})
     }
@@ -193,8 +231,46 @@ const closeQR = () => {
   showQRModal.value = false
 }
 
-watch(showQRModal, (open) => {
-  if (open) {
+// Привязка по коду: номер → код из 8 символов → ввод в WhatsApp на телефоне.
+const pairingPhone = ref('')
+const pairingLoading = ref(false)
+const pairingOpen = ref(false)
+
+const formattedPairingCode = computed(() => {
+  const code = pairingCode.value ?? ''
+  return code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code
+})
+
+const handleGetPairingCode = async () => {
+  const digits = pairingPhone.value.replace(/\D+/g, '')
+  if (!/^\d{10,15}$/.test(digits)) {
+    errorHandler.showError(new Error('Введи номер в международном формате, только цифры, например 79991234567'))
+    return
+  }
+
+  pairingLoading.value = true
+  statusMessage.value = ''
+  try {
+    await requestPairingCode(digits)
+    showQRModal.value = false
+    pairingOpen.value = true
+    statusMessage.value = 'Введи код в WhatsApp на телефоне'
+  } catch (error: any) {
+    // Сервис отвечает понятным текстом в поле error
+    errorHandler.showError(new Error(error?.response?.data?.error || 'Не удалось получить код'))
+  } finally {
+    pairingLoading.value = false
+  }
+}
+
+const closePairing = async () => {
+  pairingOpen.value = false
+  await cancelPairingCode()
+}
+
+// Опрос нужен, пока открыто окно с QR или с кодом
+watch([showQRModal, pairingOpen], ([qrOpen, codeOpen]) => {
+  if (qrOpen || codeOpen) {
     startQRPolling()
   } else {
     stopQRPolling()
