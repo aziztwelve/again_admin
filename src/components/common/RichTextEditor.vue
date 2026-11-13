@@ -100,6 +100,25 @@ const applyListToSelection = (editor: any, listTag: 'ul' | 'ol') => {
   })
 }
 
+// Фирменные шрифты сайта для содержимого редактора (iframe, поэтому @font-face
+// задаём здесь же). Файлы лежат в public/fonts и отдаются как /admin/fonts/.
+const BRAND_FONTS_CSS = [
+  ['TT Norms Pro', 400, 'TT_Norms_Pro_Regular'],
+  ['TT Norms Pro', 500, 'TT_Norms_Pro_Medium'],
+  ['Tenor Sans', 400, 'TenorSans-Cyrillic'],
+  ['Tenor Sans', 400, 'TenorSans-LatinExt'],
+  ['Tenor Sans', 400, 'TenorSans-Latin'],
+].map(([family, weight, file]) => {
+  const range = file === 'TenorSans-Cyrillic'
+    ? ' unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;'
+    : file === 'TenorSans-LatinExt'
+      ? ' unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+2113, U+2C60-2C7F, U+A720-A7FF;'
+      : file === 'TenorSans-Latin'
+        ? ' unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;'
+        : ''
+  return `@font-face { font-family: "${family}"; font-weight: ${weight}; font-style: normal; src: url("/admin/fonts/${file}.woff2") format("woff2");${range} }`
+}).join(' ')
+
 const editorOptions = computed(() => ({
   height: props.height,
   language: 'ru',
@@ -118,11 +137,11 @@ const editorOptions = computed(() => ({
     'alignleft aligncenter alignright alignjustify | selectedbullist selectednumlist | outdent indent',
     'table | link image media | code',
   ].join(' | '),
-  font_family_formats: 'Manrope=Manrope,sans-serif; Arial=arial,helvetica,sans-serif; Georgia=georgia,palatino,serif; Verdana=verdana,geneva,sans-serif; Times New Roman=times new roman,times,serif; Courier New=courier new,courier,monospace',
+  font_family_formats: 'TT Norms Pro (основной текст)=TT Norms Pro,Open Sans,sans-serif; Tenor Sans (заголовки)=Tenor Sans,sans-serif; Arial=arial,helvetica,sans-serif; Georgia=georgia,palatino,serif; Verdana=verdana,geneva,sans-serif; Times New Roman=times new roman,times,serif; Courier New=courier new,courier,monospace',
   fontsize_formats: '8px 10px 12px 14px 16px 18px 24px 30px 36px 48px',
   // The editor runs in an iframe. Its content styles must not be imported into
   // the dashboard bundle, otherwise TinyMCE overrides the dashboard body.
-  content_style: 'body { font-family: Manrope, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.4; margin: 1rem; } strong, b { font-weight: 800; } table { border-collapse: collapse; } th, td { padding: .4rem; border: 1px solid #ccc; } figure { margin: 1rem auto; } img, video, iframe { max-width: 100%; }',
+  content_style: BRAND_FONTS_CSS + ' body { font-family: "TT Norms Pro", "Open Sans", Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.4; margin: 1rem; } strong, b { font-weight: 800; } table { border-collapse: collapse; } th, td { padding: .4rem; border: 1px solid #ccc; } figure { margin: 1rem auto; } img, video, iframe { max-width: 100%; } h1, h2, h3, h4, h5, h6 { font-family: "Tenor Sans", sans-serif; font-weight: 400; }',
   setup: (editor: any) => {
     editor.ui.registry.addButton('editorundo', {
       icon: 'undo',
