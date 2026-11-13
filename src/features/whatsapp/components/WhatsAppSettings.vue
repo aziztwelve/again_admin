@@ -34,7 +34,7 @@
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold">Отсканируй QR code</h3>
             <button
-                @click="showQRModal = false"
+                @click="closeQR"
                 class="text-gray-500 hover:text-gray-700"
             >
               ✕
@@ -47,6 +47,10 @@
               Открой WhatsApp на телефоне → Привязанные устройства →
               Привязать устройство и отсканируй этот код
             </p>
+            <p class="text-xs text-gray-500 mt-2 text-center">
+              Код обновляется автоматически каждые ~20 секунд — сканируй тот, что сейчас на экране.
+              Окно закроется само, когда телефон подключится.
+            </p>
           </div>
 
           <div v-else-if="loadingQR" class="flex flex-col items-center py-8">
@@ -54,8 +58,8 @@
             <p class="text-sm text-gray-600 mt-4">Генерирую QR code...</p>
           </div>
 
-          <div v-else class="text-center py-4 text-red-600">
-            Ошибка при получении QR code
+          <div v-else class="text-center py-4 text-gray-600">
+            Ждём новый QR code от WhatsApp… (он появится автоматически)
           </div>
         </div>
 
@@ -122,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, onBeforeUnmount, watch} from 'vue'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
 import {useWhatsAppFunctions} from '../composables/useWhatsAppFunctions'
@@ -145,6 +149,59 @@ const statusMessageClass = computed(() => {
   }
   return 'bg-yellow-100 text-yellow-800 border border-yellow-300'
 })
+
+// WhatsApp меняет QR каждые ~20 секунд: если показать картинку один раз,
+// к моменту сканирования она уже недействительна, и телефон пишет
+// «Не удалось связать устройство». Поэтому, пока окно с QR открыто, код
+// и статус опрашиваются, а окно закрывается само после подключения.
+const QR_POLL_MS = 2500
+let qrPollTimer: ReturnType<typeof setInterval> | null = null
+let qrPollBusy = false
+
+const stopQRPolling = () => {
+  if (qrPollTimer) {
+    clearInterval(qrPollTimer)
+    qrPollTimer = null
+  }
+}
+
+const pollQR = async () => {
+  if (qrPollBusy) return
+  qrPollBusy = true
+  try {
+    const result = await getQRCode()
+    if (result.ready) {
+      stopQRPolling()
+      showQRModal.value = false
+      statusMessage.value = '✅ WhatsApp подключен успешно!'
+      successHandler.showSuccess({message: 'WhatsApp подключен'})
+    }
+  } catch (error) {
+    // Разовый сбой сети не должен закрывать окно — следующий опрос повторит запрос.
+    console.error('WhatsApp QR poll failed:', error)
+  } finally {
+    qrPollBusy = false
+  }
+}
+
+const startQRPolling = () => {
+  stopQRPolling()
+  qrPollTimer = setInterval(pollQR, QR_POLL_MS)
+}
+
+const closeQR = () => {
+  showQRModal.value = false
+}
+
+watch(showQRModal, (open) => {
+  if (open) {
+    startQRPolling()
+  } else {
+    stopQRPolling()
+  }
+})
+
+onBeforeUnmount(stopQRPolling)
 
 /**
  * Получить QR code
