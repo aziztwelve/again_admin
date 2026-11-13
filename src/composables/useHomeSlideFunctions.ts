@@ -21,6 +21,21 @@ export function useHomeSlideFunctions() {
     }
 
 
+    /**
+     * Переставить слайд на указанное место (остальные сдвигаются, как в «Товарах онлайн»).
+     * `sending` не трогаем: он включает окно загрузки, а тут сохранение мгновенное.
+     */
+    const updateSlideOrder = async (id: number | string, order: number) => {
+        try {
+            const res = await axios.post(`slides/${id}/order`, {order})
+            useSuccessHandler().showSuccess(res)
+            return res.data as { success?: boolean }
+        } catch (e) {
+            useErrorHandler().showError(e)
+            throw e
+        }
+    }
+
     const getSlideById = async (id: number | string): Promise<HomeSlider | null> => {
         sending.value = true
         return await axios.get(`slides/${id}`)
@@ -98,6 +113,7 @@ export function useHomeSlideFunctions() {
         getSlideById,
         createSlide,
         updateSlide,
+        updateSlideOrder,
         deleteSlide,
         uploadProgress
     }

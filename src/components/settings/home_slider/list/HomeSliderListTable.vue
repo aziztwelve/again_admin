@@ -24,6 +24,7 @@ import SlideEdit from "@/components/settings/home_slider/SlideEdit.vue";
 import {useHomeSlideFunctions} from "@/composables/useHomeSlideFunctions";
 import {Check, X} from "lucide-vue-next";
 import ModalWithProgressBar from "@/components/dynamics/ModalWithProgressBar.vue";
+import EditableOrderCell from "@/components/dynamics/EditableOrderCell.vue";
 
 const props = defineProps({
   items: {
@@ -35,7 +36,7 @@ const props = defineProps({
 
 const emits = defineEmits(["deleted", "updated"]);
 
-const {deleteSlide, updateSlide, sending, uploadProgress} = useHomeSlideFunctions();
+const {deleteSlide, updateSlide, updateSlideOrder, sending, uploadProgress} = useHomeSlideFunctions();
 
 const edit = ref({
   title: "Редактирование слайда",
@@ -54,6 +55,16 @@ const columns = [
   {
     accessorKey: "order",
     header: "Порядок отображения",
+    // Клик по числу — ввод нового места; остальные слайды сдвигаются, как в «Товарах онлайн».
+    cell: ({row}: any) => {
+      const slide = row.original;
+      return h(EditableOrderCell, {
+        initialOrder: Number(slide.order ?? 0),
+        min: 0,
+        save: (value: number) => updateSlideOrder(slide.id, value),
+        onUpdated: () => emits("updated"),
+      });
+    },
   },
   {
     accessorKey: "title",
