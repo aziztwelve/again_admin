@@ -104,7 +104,8 @@ interface MapPoint extends PickedPoint {
 }
 
 const YANDEX_MAPS_URL = "https://api-maps.yandex.ru/2.1/";
-const YANDEX_RADIUS_KM = 120;
+// Сначала ищем рядом с городом; если там пунктов нет (маленький населённый пункт) — расширяем.
+const YANDEX_RADIUS_STEPS_KM = [30, 120];
 
 const mapEl = ref<HTMLElement | null>(null);
 const points = ref<MapPoint[]>([]);
@@ -260,17 +261,32 @@ const loadYandexPoints = async (): Promise<{ center: [number, number] | null }> 
   if (!first) throw new Error(`Город «${activeCity.value}» не найден на карте`);
   const [lat, lon] = first.geometry.getCoordinates();
 
-  const latDelta = YANDEX_RADIUS_KM / 111;
-  const lonDelta = YANDEX_RADIUS_KM / Math.max(111 * Math.cos((lat * Math.PI) / 180), 1);
-  const {data} = await axios.get("/public/delivery/yandex/pvz", {
-    params: {
-      latitude_from: lat - latDelta,
-      latitude_to: lat + latDelta,
-      longitude_from: lon - lonDelta,
-      longitude_to: lon + lonDelta,
-    },
-  });
-  points.value = (data?.points ?? []).map(normalizeYandex).filter(Boolean) as MapPoint[];
+  // Расстояние от центра города, км (для сортировки и отсечения дальних пунктов).
+  const distanceKm = (point: MapPoint) => {
+    const dLat = (point.lat - lat) * 111;
+    const dLon = (point.lon - lon) * 111 * Math.cos((lat * Math.PI) / 180);
+    return Math.hypot(dLat, dLon);
+  };
+
+  let found: MapPoint[] = [];
+  for (const radiusKm of YANDEX_RADIUS_STEPS_KM) {
+    const latDelta = radiusKm / 111;
+    const lonDelta = radiusKm / Math.max(111 * Math.cos((lat * Math.PI) / 180), 1);
+    const {data} = await axios.get("/public/delivery/yandex/pvz", {
+      params: {
+        latitude_from: lat - latDelta,
+        latitude_to: lat + latDelta,
+        longitude_from: lon - lonDelta,
+        longitude_to: lon + lonDelta,
+      },
+    });
+    // Запрашиваем квадрат, а нужен круг: углы квадрата дальше радиуса отбрасываем.
+    found = ((data?.points ?? []).map(normalizeYandex).filter(Boolean) as MapPoint[])
+        .filter((point) => distanceKm(point) <= radiusKm);
+    if (found.length) break;
+  }
+  // Ближайшие к выбранному городу — первыми (Яндекс отдаёт пункты в произвольном порядке).
+  points.value = found.sort((a, b) => distanceKm(a) - distanceKm(b));
   return {center: [lat, lon]};
 };
 
