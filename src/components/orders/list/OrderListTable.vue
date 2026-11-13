@@ -202,13 +202,6 @@ const columns = computed(() => [
     cell: ({row}: any) => formatDateTimeNumeric(row.original.created_at),
   },
   {
-    accessorKey: "delivery_date",
-    header: "Доставить",
-    cell: ({row}: any) => row.original?.delivery_date
-      ? formatDateToRussian(row.original.delivery_date)
-      : '—',
-  },
-  {
     accessorKey: "total_amount",
     header: headerWithFilter('Сумма', {
       type: 'number_range',
