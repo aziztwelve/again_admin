@@ -35,14 +35,14 @@
                   :src="getLogo(item.source ?? '')"
               />
               <AvatarFallback class="text-xs text-red-500">
-                {{ getInitials(item.client?.profile?.full_name || item?.source) }}
+                {{ getInitials(item.client?.profile?.full_name || item.contact_name || item?.source) }}
               </AvatarFallback>
             </Avatar>
             <div class="flex-1 min-w-0">
               <div class="flex justify-between items-center">
 
                 <h3 class="text-xs font-medium truncate text-gray-800">
-                  {{ item.client?.profile?.full_name || item.client?.email || 'Неизвестный' }}
+                  {{ item.client?.profile?.full_name || item.client?.email || item.contact_name || (item.contact_phone ? `+${item.contact_phone}` : 'Неизвестный') }}
                 </h3>
 
                 <span class="text-[10px] text-gray-500">

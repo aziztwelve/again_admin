@@ -6,6 +6,8 @@ export class Conversation {
     id: number | undefined
     client_id?: number | undefined
     external_id?: string | undefined
+    contact_name?: string | null
+    contact_phone?: string | null
     source: 'telegram' | 'whatsapp' | 'web_chat' | 'vk' | 'email' | undefined
     status: 'new' | 'open' | 'closed' | 'sending' | undefined
     unread_messages_count?: number | undefined
@@ -30,6 +32,8 @@ export class Conversation {
         this.id = undefined
         this.client_id = undefined
         this.external_id = undefined
+        this.contact_name = null
+        this.contact_phone = null
         this.source = undefined
         this.status = undefined
         this.unread_messages_count = undefined
@@ -54,6 +58,8 @@ export class Conversation {
         convo.id = json.id
         convo.client_id = json.client_id
         convo.external_id = json.external_id
+        convo.contact_name = json.contact_name ?? null
+        convo.contact_phone = json.contact_phone ?? null
         convo.source = json.source
         convo.status = json.status
         convo.unread_messages_count = json.unread_messages_count

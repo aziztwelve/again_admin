@@ -16,10 +16,10 @@
           </Avatar>
           <div>
             <CardTitle class="text-sm font-medium">{{
-              conversation.client?.profile?.full_name || "Неизвестный"
+              conversation.client?.profile?.full_name || conversation.contact_name || "Неизвестный"
             }}</CardTitle>
             <CardDescription class="flex items-center gap-1 text-xs">
-              <span>{{ conversation.client?.profile?.phone || (!conversation.client ? `№ чата ${conversation.id}` : '') }}</span>
+              <span>{{ conversation.client?.profile?.phone || (conversation.contact_phone ? `+${conversation.contact_phone}` : '') || (!conversation.client ? `№ чата ${conversation.id}` : '') }}</span>
               <Badge
                 variant="outline"
                 class="h-4 px-1 text-[0.6rem] capitalize"
