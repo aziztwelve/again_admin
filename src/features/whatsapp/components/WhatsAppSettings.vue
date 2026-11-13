@@ -150,13 +150,84 @@
     <Card class="bg-green-50 border-green-200 mt-4">
       <CardHeader>
         <CardTitle class="text-sm">Как подключить WhatsApp?</CardTitle>
+        <CardDescription class="text-xs">
+          Есть два способа, результат одинаковый. Если QR не получается, используй привязку по номеру телефона.
+        </CardDescription>
       </CardHeader>
-      <CardContent class="text-sm text-muted-foreground space-y-2">
-        <p>1. Нажми на кнопку "Получить QR code"</p>
-        <p>2. На телефоне открой WhatsApp (на том номере, который подключаем)</p>
-        <p>3. Android: ⋮ Меню → Связанные устройства → Привязать устройство. iPhone: Настройки → Связанные устройства → Привязать устройство</p>
-        <p>4. Наведи камеру на QR code на экране. Он обновляется сам каждые ~20 секунд — сканируй тот, что виден сейчас</p>
-        <p>5. Если телефон пишет «Не удалось связать устройство», просто отсканируй новый код (прошлый успел устареть). После подключения окно с QR закроется, а статус изменится на "Подключено"</p>
+      <CardContent class="text-sm text-muted-foreground">
+        <Tabs v-model="infoTab">
+          <TabsList>
+            <TabsTrigger value="phone">По номеру телефона</TabsTrigger>
+            <TabsTrigger value="qr">По QR-коду</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="phone" class="space-y-3 pt-3">
+            <ol class="list-decimal pl-5 space-y-2">
+              <li>
+                В блоке «Или привязать по коду (без QR)» введи номер телефона, на котором установлен WhatsApp:
+                <b>с кодом страны, только цифры</b>, без «+», пробелов и скобок.
+                Например, для номера +7 (999) 123-45-67 пиши <b>79991234567</b>.
+                Номер должен совпадать с номером WhatsApp на телефоне.
+              </li>
+              <li>Нажми «Получить код». Появится код из 8 символов, например <b>ABCD-EFGH</b>.</li>
+              <li>
+                На телефоне открой WhatsApp. Android: ⋮ Меню → Связанные устройства → Привязать устройство.
+                iPhone: Настройки → Связанные устройства → Привязать устройство.
+                (Иногда WhatsApp сам присылает уведомление «Попытка привязать устройство», его тоже можно открыть.)
+              </li>
+              <li>
+                На экране с камерой внизу нажми <b>«Связать по номеру телефона»</b> и введи код с экрана админки.
+              </li>
+              <li>
+                Подожди до 2 минут и ничего не нажимай: окно с кодом закроется само, а статус сменится на «Подключено».
+              </li>
+            </ol>
+            <p class="text-xs">
+              Код действует недолго и обновляется примерно раз в 3 минуты: вводи тот, что виден на экране сейчас.
+              Телефон должен быть в сети (Wi-Fi или мобильный интернет).
+            </p>
+          </TabsContent>
+
+          <TabsContent value="qr" class="space-y-3 pt-3">
+            <ol class="list-decimal pl-5 space-y-2">
+              <li>Нажми кнопку «Получить QR code».</li>
+              <li>На телефоне открой WhatsApp (на том номере, который подключаем).</li>
+              <li>
+                Android: ⋮ Меню → Связанные устройства → Привязать устройство.
+                iPhone: Настройки → Связанные устройства → Привязать устройство.
+              </li>
+              <li>
+                Наведи камеру на QR-код на экране админки. Он обновляется сам каждые ~20 секунд (не минут):
+                сканируй тот, что виден сейчас.
+              </li>
+              <li>
+                Подожди до 2 минут: после подключения окно с QR закроется само, а статус сменится на «Подключено».
+              </li>
+            </ol>
+          </TabsContent>
+        </Tabs>
+
+        <div class="mt-4 pt-3 border-t border-green-200 space-y-2">
+          <p class="font-medium text-gray-700">Если не получается</p>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>
+              <b>«Не удалось связать устройство»</b> — код или QR устарел. Возьми новый и повтори.
+              Привязка может занимать до пары минут, это нормально.
+            </li>
+            <li>
+              <b>«Невозможно связать новые устройства. Повторите попытку позже»</b> — WhatsApp временно ограничил
+              привязку для этого номера (бывает после нескольких попыток подряд). Подожди не меньше суток
+              и не пробуй в это время: каждая попытка может продлить ограничение.
+            </li>
+            <li>
+              Не нажимай «Отключить» без необходимости: каждая новая привязка увеличивает риск такого ограничения.
+              После подключения сессия сохраняется, даже если сервис перезапустят.
+            </li>
+            <li>
+              Пока WhatsApp не подключён, отправить сообщение из «Диалогов» нельзя: админка покажет ошибку.
+            </li>
+          </ul>
+        </div>
       </CardContent>
     </Card>
   </div>
@@ -166,11 +237,13 @@
 import {ref, computed, onMounted, onBeforeUnmount, watch} from 'vue'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 import {useWhatsAppFunctions} from '../composables/useWhatsAppFunctions'
 import {useErrorHandler} from '@/composables/useErrorHandler'
 import {useSuccessHandler} from '@/composables/useSuccessHandler'
 import {assetPath} from "@/utils/assetPath";
 
+const infoTab = ref('phone')
 const showQRModal = ref(false)
 const loadingQR = ref(false)
 const loadingStatus = ref(false)
