@@ -73,7 +73,7 @@ const buildFormFields = () => {
       accept: 'image/*',
       cropperAspectRatio: 640 / 800,
       cropperShow: false,
-      description: 'Рекомендуемый размер: 640x800px. Если не загружено, будет использовано desktop изображение'
+      description: 'Рекомендуемый размер: 600x800px. Если не загружено, будет использовано desktop изображение'
     }
   ]
 }
