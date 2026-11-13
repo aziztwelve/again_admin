@@ -208,12 +208,12 @@
         <p
           v-if="cdekOrder?.last_error"
           class="cdek-order__error"
-        >{{ cdekOrder.last_error }}</p>
+        ><strong v-if="isRejected">Заявка не создана, посылка в СДЭК не отправлена. </strong>{{ cdekOrder.last_error }}</p>
 
-        <template v-if="!cdekOrder?.cdek_uuid">
+        <template v-if="!cdekOrder?.cdek_uuid || isRejected">
           <div class="cdek-order__actions">
             <button class="cdek-btn-main" type="button" :disabled="loading || creationQueued" @click="createOrSync">
-              {{ creationQueued ? "Заявка отправлена в СДЭК" : "Отправить данные в СДЭК" }}
+              {{ creationQueued ? "Заявка отправлена в СДЭК" : isRejected ? "Исправил — отправить заново" : "Отправить данные в СДЭК" }}
             </button>
           </div>
         </template>
@@ -363,9 +363,19 @@ const creationStateClass = computed(() => String(cdekOrder.value?.creation_state
 const creationQueued = computed(() =>
   ["QUEUED", "ACCEPTED"].includes(String(cdekOrder.value?.creation_state || "")),
 );
+// «Создана» ставится только когда СДЭК принял заявку; INVALID — СДЭК отклонил
+// её (или данные не прошли проверку до отправки), посылки в СДЭК нет.
+const CREATION_STATE_LABELS = {
+  NEW: "заявка ещё не создана",
+  QUEUED: "В очереди на создание",
+  ACCEPTED: "Принята СДЭК, проверяется",
+  SUCCESSFUL: "Создана",
+  INVALID: "Ошибка создания",
+};
+const isRejected = computed(() => cdekOrder.value?.creation_state === "INVALID");
 const creationStateLabel = computed(() => {
   const state = cdekOrder.value?.creation_state;
-  return state === "QUEUED" ? "В очереди на создание" : state || "заявка ещё не создана";
+  return CREATION_STATE_LABELS[state] ?? state ?? "заявка ещё не создана";
 });
 
 const recipientName = computed(() => {
@@ -782,6 +792,7 @@ watch(
 }
 
 .cdek-badge--created,
+.cdek-badge--successful,
 .cdek-badge--valid {
   background: #e6f6ea;
   color: #0b6b25;
