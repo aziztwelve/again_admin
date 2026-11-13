@@ -108,6 +108,19 @@ const columns = [
     },
   },
   {
+    id: "shown_on",
+    header: "Где показывается",
+    cell: ({row}: any) => {
+      const desktop = Boolean(row.original.image_urls?.original);
+      const mobile = Boolean(row.original.mobile_image_urls?.original || row.original.mobile_image_urls?.sm);
+      const label = desktop && mobile ? "Компьютеры и телефоны"
+          : desktop ? "Только компьютеры"
+          : mobile ? "Только телефоны"
+          : "Везде (без картинок)";
+      return h("span", {class: "text-sm whitespace-nowrap"}, label);
+    },
+  },
+  {
     accessorKey: "is_active",
     header: "Активировано",
     cell: (row: any) => {

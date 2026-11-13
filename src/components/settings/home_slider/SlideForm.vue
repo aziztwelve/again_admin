@@ -55,12 +55,12 @@ const buildFormFields = () => {
       name: 'image',
       component: 'text',
       type: 'file',
-      label: 'Изображение для Desktop',
+      label: 'Изображение для Desktop (компьютеры)',
       placeholder: 'Изображение для Desktop',
       accept: 'image/*',
       cropperAspectRatio: 1920 / 920,
       cropperShow: false,
-      description: 'Рекомендуемый размер: 1920x920px'
+      description: 'Рекомендуемый размер: 1920x920px. Если не загружено, слайд не показывается на компьютерах'
     },
 
     // Mobile изображение
@@ -68,12 +68,12 @@ const buildFormFields = () => {
       name: 'image_mobile',
       component: 'text',
       type: 'file',
-      label: 'Изображение для Mobile (опционально)',
+      label: 'Изображение для Mobile (телефоны)',
       placeholder: 'Изображение для Mobile',
       accept: 'image/*',
       cropperAspectRatio: 640 / 800,
       cropperShow: false,
-      description: 'Рекомендуемый размер: 600x800px. Если не загружено, будет использовано desktop изображение'
+      description: 'Рекомендуемый размер: 600x800px. Если не загружено, слайд не показывается на телефонах. Загрузите обе картинки, чтобы слайд был виден везде'
     }
   ]
 }
