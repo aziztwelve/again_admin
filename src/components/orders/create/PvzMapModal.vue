@@ -284,6 +284,7 @@ const loadYandexPoints = async (): Promise<{ center: [number, number] | null }> 
         latitude_to: lat + latDelta,
         longitude_from: lon - lonDelta,
         longitude_to: lon + lonDelta,
+        compact: 1,
       },
     });
     // Запрашиваем квадрат, а нужен круг: углы квадрата дальше радиуса отбрасываем.
