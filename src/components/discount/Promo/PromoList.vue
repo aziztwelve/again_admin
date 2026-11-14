@@ -2,11 +2,24 @@
   <div class="">
 
     <div class="flex max-md:flex-col justify-between mb-2 max-md:space-y-2">
-      <PromoSearch
-          class="md:w-[400px]"
-          :filter="paramsSearch"
-          @search="handleSearch"
-      />
+      <div class="flex max-md:flex-col gap-2 md:items-center">
+        <PromoSearch
+            class="md:w-[400px]"
+            :filter="paramsSearch"
+            @search="handleSearch"
+        />
+
+        <select
+            v-model="sortMode"
+            class="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            title="Порядок промокодов в списке"
+            @change="handleSortChange"
+        >
+          <option value="default">Порядок по умолчанию</option>
+          <option value="name_asc">По названию: А → Я</option>
+          <option value="name_desc">По названию: Я → А</option>
+        </select>
+      </div>
 
       <PromoAddModal
           :key="renderCreated"
@@ -85,6 +98,36 @@ const paramsSearch = ref({
   search: '',
 })
 
+// Порядок списка: по умолчанию (как раньше) или по названию промокода.
+// Выбор запоминается в браузере; если localStorage недоступен — порядок по умолчанию.
+type SortMode = 'default' | 'name_asc' | 'name_desc'
+const SORT_STORAGE_KEY = 'promo-list-sort'
+const readSortMode = (): SortMode => {
+  try {
+    const v = localStorage.getItem(SORT_STORAGE_KEY)
+    return v === 'name_asc' || v === 'name_desc' ? v : 'default'
+  } catch {
+    return 'default'
+  }
+}
+const sortMode = ref<SortMode>(readSortMode())
+
+const sortParams = computed(() => {
+  if (sortMode.value === 'name_asc') return {sort_by: 'code' as const, sort_order: 'asc' as const}
+  if (sortMode.value === 'name_desc') return {sort_by: 'code' as const, sort_order: 'desc' as const}
+  return {}
+})
+
+async function handleSortChange() {
+  try {
+    localStorage.setItem(SORT_STORAGE_KEY, sortMode.value)
+  } catch {
+    // хранилище недоступно — не критично
+  }
+  currentPage.value = 1
+  await fetchData()
+}
+
 const {getPromoCodes, hidePromoCodes, showPromoCodes} = usePromoCodeFunctions()
 
 const selectedAreHidden = computed(() => {
@@ -104,6 +147,7 @@ async function fetchData() {
     per_page: itemsPerPage.value,
     page: currentPage.value,
     code: paramsSearch.value.search,
+    ...sortParams.value,
   })
       .then(res => {
         totalItems.value = res?.meta?.total ?? 1

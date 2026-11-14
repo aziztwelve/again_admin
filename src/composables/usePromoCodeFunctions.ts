@@ -123,7 +123,7 @@ export function usePromoCodeFunctions() {
         code?: string;
         is_active?: boolean;
         valid?: boolean;
-        sort_by?: 'id' | 'created_at';
+        sort_by?: 'id' | 'created_at' | 'code';
         sort_order?: 'asc' | 'desc';
     }): Promise<{
         data: PromoCode[];
