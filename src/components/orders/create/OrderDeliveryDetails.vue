@@ -643,7 +643,12 @@ watch(
     // Сбрасываем регион и город, только если пользователь сменил уже
     // выбранную страну. Первичная подстановка значений (редактирование
     // существующего заказа) не должна стирать адрес.
-    if (newValue !== oldValue && oldValue) {
+    // «Россия» → «RU» — та же страна, просто форма привела название к коду из справочника:
+    // это не смена страны, адрес стирать нельзя.
+    const sameCountry =
+      resolveOptionValue(oldValue, countries.value) ===
+      resolveOptionValue(newValue, countries.value);
+    if (newValue !== oldValue && oldValue && !sameCountry) {
       delivery.value.region = "";
       delivery.value.city = "";
       selectedRegionId.value = null;
