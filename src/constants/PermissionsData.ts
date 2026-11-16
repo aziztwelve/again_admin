@@ -13,6 +13,7 @@ export enum PermissionsData {
     // Заказы
     ORDERS_VIEW = 7,              // Просмотр заказов
     ORDERS_MANAGE = 8,            // Управление заказами
+    ORDERS_DELETE = 17,           // Удаление заказов (по умолчанию только супер-админ)
 
     // Продукты
     PRODUCTS_VIEW = 9,            // Просмотр продуктов

@@ -23,10 +23,10 @@
                 type: 'edit',
                 onClick: () => handlerEdit(row.original)
               },
-              {
+              ...(canDeleteOrders ? [{
                 type: 'delete',
                 onClick: () => handleDeleted(row.original)
-              },
+              }] : []),
              ]"
         />
 
@@ -53,6 +53,8 @@ import IconButtons from "@/components/dynamics/IconButtons.vue";
 import ColumnHeaderFilter from "@/components/dynamics/DataTable/ColumnHeaderFilter.vue";
 import Order from "@/models/order/Order";
 import {useOrderFunctions} from "@/composables/useOrderFunctions";
+import usePermission from "@/composables/usePermission";
+import {PermissionsData} from "@/constants/PermissionsData";
 import {useDateFormat} from "@/composables/useDateFormat";
 import {useStatusFunctions} from "@/composables/useStatusFunctions";
 import {PaginationMeta} from "@/types/Types";
@@ -338,6 +340,9 @@ const columns = computed(() => [
 
 
 const {deleteOrder} = useOrderFunctions()
+
+// Удаление заказов — отдельное право (по умолчанию только супер-админ); сервер проверяет его тоже.
+const canDeleteOrders = usePermission().hasPermission(PermissionsData.ORDERS_DELETE, false)
 
 const handleDeleted = async (order: Order) => {
 
