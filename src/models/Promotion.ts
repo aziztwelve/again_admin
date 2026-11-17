@@ -1,4 +1,5 @@
 import { Product } from "@/models/Product";
+import { PromoSegment, parsePromoSegments } from "@/models/PromoSegment";
 
 export class Promotion {
   id: number | undefined;
@@ -22,6 +23,9 @@ export class Promotion {
   triggerProductIds: number[];
   giftProductsData: { product_id: number; quantity: number }[];
 
+  /** Сегменты клиентов, к которым привязана акция (пусто — доступна всем). */
+  segments: PromoSegment[];
+
   constructor() {
     this.id = undefined;
     this.name = undefined;
@@ -42,6 +46,7 @@ export class Promotion {
     this.giftProducts = null;
     this.triggerProductIds = [];
     this.giftProductsData = [];
+    this.segments = [];
   }
 
   get usageLabel(): string {
@@ -79,6 +84,7 @@ export class Promotion {
     promotion.timesUsed = json.times_used ?? 0;
     promotion.createdAt = json.created_at;
     promotion.updatedAt = json.updated_at;
+    promotion.segments = parsePromoSegments(json.segments);
 
     // Trigger products
     promotion.triggerProductIds = json.trigger_products
@@ -147,6 +153,7 @@ export class Promotion {
     cloned.timesUsed = this.timesUsed;
     cloned.createdAt = this.createdAt;
     cloned.updatedAt = this.updatedAt;
+    cloned.segments = this.segments;
 
     cloned.triggerProductIds = this.triggerProductIds
       ? [...this.triggerProductIds]

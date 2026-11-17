@@ -29,6 +29,7 @@ import {useDateFormat} from "@/composables/useDateFormat";
 import PromoEdit from "@/components/discount/Promo/PromoEdit.vue";
 import {getCustomerTypeLabel, getDiscountTargetLabel} from "@/constants/DiscountType";
 import {useSelectableColumn} from "@/composables/useSelectableColumn";
+import SegmentBadges from "@/components/discount/SegmentBadges.vue";
 
 const props = defineProps({
   items: {
@@ -182,6 +183,11 @@ const columns = [
     accessorKey: "customerType",
     header: "Аудитория",
     cell: ({row}: any) => getCustomerTypeLabel(row.original.customerType)
+  },
+  {
+    id: "segments",
+    header: "Сегмент",
+    cell: ({row}: any) => h(SegmentBadges, {segments: row.original.segments ?? []}),
   },
 
   {

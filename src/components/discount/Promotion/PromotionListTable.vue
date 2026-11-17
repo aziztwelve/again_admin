@@ -26,6 +26,7 @@ import IconButtons from "@/components/dynamics/IconButtons.vue";
 import { Promotion } from "@/models/Promotion";
 import { useDateFormat } from "@/composables/useDateFormat";
 import PromotionEditModal from "@/components/discount/Promotion/PromotionEditModal.vue";
+import SegmentBadges from "@/components/discount/SegmentBadges.vue";
 import { usePromotionFunctions } from "@/composables/usePromotionFunctions";
 
 const props = defineProps({
@@ -72,6 +73,11 @@ const columns = [
   {
     accessorKey: "description",
     header: "Описание",
+  },
+  {
+    id: "segments",
+    header: "Сегмент",
+    cell: ({ row }: any) => h(SegmentBadges, { segments: row.original.segments ?? [] }),
   },
   {
     accessorKey: "min_purchase_amount",

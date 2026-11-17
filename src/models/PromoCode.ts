@@ -1,5 +1,6 @@
 import {Product} from "@/models/Product";
 import {CustomerType, DiscountTargetType} from "@/constants/DiscountType";
+import {PromoSegment, parsePromoSegments} from "@/models/PromoSegment";
 
 export class PromoCode {
     id: number | undefined;
@@ -25,6 +26,8 @@ export class PromoCode {
     updatedAt: string | undefined;
     promo_code_type: string | undefined;
     selected_products: Product[] | undefined;
+    /** Сегменты клиентов, к которым привязан промокод (пусто — без сегмента). */
+    segments: PromoSegment[];
 
     constructor() {
         this.id = undefined;
@@ -49,6 +52,7 @@ export class PromoCode {
         this.selected_products = undefined;
         this.discount_behavior = undefined;
         this.is_unlimited = undefined;
+        this.segments = [];
     }
 
     get discountTypeLabel(): string {
@@ -88,6 +92,7 @@ export class PromoCode {
         promo.promo_code_type = json.type;
         promo.selected_products = json.products ?? [];
         promo.is_unlimited = json.is_unlimited ?? undefined;
+        promo.segments = parsePromoSegments(json.segments);
         return promo;
     }
 
@@ -182,6 +187,7 @@ export class PromoCode {
         cloned.is_unlimited = this.is_unlimited;
         cloned.createdAt = this.createdAt;
         cloned.updatedAt = this.updatedAt;
+        cloned.segments = this.segments;
         return cloned;
     }
 }
