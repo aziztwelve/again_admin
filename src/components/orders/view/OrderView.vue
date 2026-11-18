@@ -144,13 +144,14 @@
           @save="onDeliverySave"
           @refresh="fetchOrder(order.id)"
         />
+        <!-- Комментарий клиента: сразу под блоком «Доставка» -->
+        <OrderComments :order="order" />
         <OrderTotals :order="order" :summary="summary" />
         <OrderCustomFields
           :fields="customFields"
           :saving="isSavingCustomFields"
           @save="onCustomFieldsSave"
         />
-        <OrderComments :order="order" />
         <OrderSellerComment
           :order="order"
           :saving="isSavingSellerComment"
