@@ -14,6 +14,7 @@
         :custom-actions="true"
         :show-print-button="true"
         :pagination="pagination"
+        :always-show-pagination="true"
         :loading="loading"
     >
       <template #actions="{row}">

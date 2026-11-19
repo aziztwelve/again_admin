@@ -182,6 +182,7 @@
       </div>
 
       <PaginationTable
+          :always-show="alwaysShowPagination"
           :show-per-page-option="!!pagination"
           :items-per-page-options="[
             5,10,15,20,50,100,150,200
@@ -260,6 +261,11 @@ const props = defineProps({
   showTotal: {
     type: Object as PropType<ShowTotalType>,
     default: null
+  },
+  // Кнопка «1» остаётся видна, даже когда страница одна.
+  alwaysShowPagination: {
+    type: Boolean,
+    default: false
   }
 
 });

@@ -1,7 +1,7 @@
 <template>
   <div class="mt-2 flex ">
     <Pagination
-        v-if="total > itemsPerPage"
+        v-if="alwaysShow ? total > 0 : total > itemsPerPage"
         v-slot="{ page }"
         :items-per-page="itemsPerPage"
         :total="total"
@@ -106,6 +106,12 @@ const props = defineProps({
   },
 
   showPerPageOption: {
+    type: Boolean,
+    default: false,
+  },
+
+  // Показывать кнопки страниц, даже когда страница всего одна (кнопка «1»). Пока список пуст — не показываем.
+  alwaysShow: {
     type: Boolean,
     default: false,
   }
