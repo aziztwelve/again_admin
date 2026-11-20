@@ -138,23 +138,11 @@ export function useOrderInlineEdit() {
       // (legacy-)позиций product_id = null, поэтому массив приходил пустой,
       // и бэкенд (OrderUpdateService::updateOrderItems) их сносил. Теперь
       // items передаются только если patch явно их содержит — см. ниже.
-      status:
-        typeof order?.status === "object"
-          ? (order?.status?.value ?? order?.status?.code ?? null)
-          : order?.status ?? null,
-      payment_status:
-        typeof order?.payment_status === "object"
-          ? (order?.payment_status?.value ??
-            order?.payment_status?.code ??
-            null)
-          : order?.payment_status ?? null,
-      payment_method:
-        typeof order?.payment_method === "object"
-          ? (order?.payment_method?.value ??
-            order?.payment_method?.code ??
-            order?.payment_method?.name ??
-            null)
-          : order?.payment_method ?? null,
+      // ВАЖНО: status, payment_status и payment_method в базовый payload НЕ кладём.
+      // Их меняют не только менеджеры, но и система в фоне (платёж CloudPayments, автоотмена,
+      // статусы доставки). Карточка держит значения на момент открытия, и любое сохранение
+      // (комментарий, позиции) возвращало заказ в «Не оплачен» (заказы 41686, 41688).
+      // Теперь эти поля уходят на сервер только когда их явно меняет менеджер (patch).
       created_at: order?.created_at || null,
       delivery_method_id: order?.delivery_method_id ?? null,
       delivery_method: {
