@@ -27,6 +27,8 @@
         <option value="date">Сначала новые (по дате)</option>
         <option value="number_desc">По номеру: от большего</option>
         <option value="number_asc">По номеру: от меньшего</option>
+        <option value="amount_desc">По сумме: от большей</option>
+        <option value="amount_asc">По сумме: от меньшей</option>
       </select>
 
       <div
@@ -166,14 +168,14 @@ const searchParams = ref(savedState?.filters ?? createDefaultFilters())
 
 const orders = ref<Order[]>([])
 
-// Порядок списка: по дате создания (по умолчанию, как раньше) или по номеру.
+// Порядок списка: по дате создания (по умолчанию, как раньше), по номеру или по сумме.
 // Выбор запоминается в браузере; если localStorage недоступен — просто по дате.
-type SortMode = 'date' | 'number_desc' | 'number_asc'
+type SortMode = 'date' | 'number_desc' | 'number_asc' | 'amount_desc' | 'amount_asc'
 const SORT_STORAGE_KEY = 'orders-list-sort'
 const readSortMode = (): SortMode => {
   try {
     const v = localStorage.getItem(SORT_STORAGE_KEY)
-    return v === 'number_desc' || v === 'number_asc' ? v : 'date'
+    return v === 'number_desc' || v === 'number_asc' || v === 'amount_desc' || v === 'amount_asc' ? v : 'date'
   } catch {
     return 'date'
   }
@@ -183,6 +185,8 @@ const sortMode = ref<SortMode>(readSortMode())
 const sortParams = computed(() => {
   if (sortMode.value === 'number_desc') return {sort_by: 'order_number', sort_order: 'desc'}
   if (sortMode.value === 'number_asc') return {sort_by: 'order_number', sort_order: 'asc'}
+  if (sortMode.value === 'amount_desc') return {sort_by: 'total_amount', sort_order: 'desc'}
+  if (sortMode.value === 'amount_asc') return {sort_by: 'total_amount', sort_order: 'asc'}
   return {sort_by: 'created_at', sort_order: 'desc'}
 })
 
