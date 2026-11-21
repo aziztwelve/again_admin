@@ -723,6 +723,10 @@ const onCopy = async () => {
     const { data } = await axios.post(`/orders/${order.value.id}/duplicate`);
     if (data?.success) {
       toast.success(`Заказ скопирован → №${data.order.order_number}`);
+      // Копия без выбранного пункта выдачи: менеджер должен выбрать пункт, иначе заявку не создать.
+      if (data.warning) {
+        toast.warning(data.warning, { duration: 15000 });
+      }
       router.push(`/order/${data.order.id}`);
     } else {
       toast.error("Ошибка при копировании заказа");
