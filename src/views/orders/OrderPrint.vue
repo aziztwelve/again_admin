@@ -110,6 +110,7 @@ const PAYMENT_METHOD_LABELS = {
   card_ru: "Оплата картами РФ, TPay, СБП",
   sberpay: "SberPay, рассрочка, иностранная карта",
   yandex_pay: "Яндекс Пэй и Сплит",
+  robokassa: "Оплата SberPay, иностранная карта, Рассрочка Подели",
   yandex_pay_split: "Яндекс Сплит",
   cash_on_delivery: "Наличными или картой при получении",
   pickup_payment: "Оплата в точке самовывоза",

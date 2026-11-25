@@ -8,6 +8,7 @@ export interface PaymentMethodOption {
 
 const getDefaultPaymentMethods = (): PaymentMethodOption[] => ([
     { value: 'card_ru', label: 'Оплата картами РФ, TPay, СБП' },
+    { value: 'robokassa', label: 'Оплата SberPay, иностранная карта, Рассрочка Подели' },
     { value: 'yandex_pay', label: 'Яндекс Пэй и Сплит' },
 ])
 
