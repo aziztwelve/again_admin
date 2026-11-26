@@ -15,7 +15,7 @@
 
       <template #content>
         <GiftProductList
-          :selectedList="selectedList"
+          :selected="selected"
           @addToSelectList="emits('addToSelectList', $event)"
           @close="dialogRef?.closeModal()"
         />
@@ -30,14 +30,15 @@ import Button from "@/components/ui/button/Button.vue";
 import { Plus } from "lucide-vue-next";
 import GiftProductList from "@/components/discount/Promotion/gift_product/GiftProductList.vue";
 import { PropType, ref } from "vue";
+import type { SelectedVariantsMap } from "@/components/discount/Promotion/product_picker/types";
 
 const emits = defineEmits(["addToSelectList"]);
 const dialogRef = ref<InstanceType<typeof DialogModal> | null>(null);
 
 const props = defineProps({
-  selectedList: {
-    type: Array as PropType<{ product_id: number; quantity: number }[]>,
-    default: () => [],
+  selected: {
+    type: Object as PropType<SelectedVariantsMap>,
+    default: () => ({}),
   },
 });
 </script>

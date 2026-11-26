@@ -458,6 +458,8 @@ const promotionCheckItems = computed(() =>
     .filter((it) => !it.is_gift)
     .map((it) => ({
       product_id: it.product_id,
+      // Акция может действовать только на отдельные размеры/объёмы.
+      product_variant_id: it.variant_id ?? it.product_variant_id ?? null,
       quantity: Number(it.quantity || 0),
       price: Number(it.price || 0),
     }))

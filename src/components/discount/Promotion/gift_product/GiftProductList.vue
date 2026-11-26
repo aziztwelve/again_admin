@@ -9,11 +9,12 @@
     </div>
 
     <Loader v-if="isLoading" />
-    <GiftProductListTable
+    <PromotionProductTable
       v-else
       :key="renderTable"
       :items="data"
-      :selected-list="selectedList"
+      :selected="selected"
+      :with-quantity="true"
       @add-to-select-list="emits('addToSelectList', $event)"
       @close="emits('close')"
     />
@@ -38,16 +39,17 @@
 import { ref, onMounted, PropType } from "vue";
 import PaginationTable from "@/components/PaginationTable.vue";
 import Loader from "@/components/common/Loader.vue";
-import GiftProductListTable from "@/components/discount/Promotion/gift_product/GiftProductListTable.vue";
+import PromotionProductTable from "@/components/discount/Promotion/product_picker/PromotionProductTable.vue";
+import type { SelectedVariantsMap } from "@/components/discount/Promotion/product_picker/types";
 import GiftProductSearch from "@/components/discount/Promotion/gift_product/GiftProductSearch.vue";
 import { useProductFunctions } from "@/composables/useProductFunctions";
 
 const emits = defineEmits(["addToSelectList", "close"]);
 
 const props = defineProps({
-  selectedList: {
-    type: Array as PropType<{ product_id: number; quantity: number }[]>,
-    default: () => [],
+  selected: {
+    type: Object as PropType<SelectedVariantsMap>,
+    default: () => ({}),
   },
 });
 
@@ -74,6 +76,7 @@ async function fetchData() {
     per_page: itemsPerPage.value,
     page: currentPage.value,
     search: paramsSearch.value.search,
+    withVariants: true,
   });
 
   if (result && result.data) {

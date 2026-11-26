@@ -19,7 +19,7 @@
       </p>
 
       <TriggerProductListModal
-        :selectedList="selectedTriggerProducts"
+        :selected="triggerSelection"
         @addToSelectList="handleAddTriggerProduct"
       />
 
@@ -37,6 +37,12 @@
             <span class="text-sm text-gray-500 ml-2"
               >(ID: {{ product.id }})</span
             >
+            <div v-if="triggerVariants[product.id]" class="text-sm text-gray-700">
+              Только: {{ labelsFor(triggerVariants[product.id]) }}
+            </div>
+            <div v-else-if="product.has_variants" class="text-sm text-gray-500">
+              Все варианты
+            </div>
           </div>
           <Button
             variant="ghost"
@@ -59,7 +65,7 @@
       </p>
 
       <GiftProductListModal
-        :selectedList="giftProducts"
+        :selected="giftSelection"
         @addToSelectList="handleAddGiftProduct"
       />
 
@@ -78,12 +84,18 @@
                 giftProductsData[index]?.name || "Товар"
               }}</span>
               <span
-                v-if="giftProductsData[index]?.has_variants"
+                v-if="giftProductsData[index]?.has_variants && gift.variant_ids?.length !== 1"
                 class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
                 title="У товара есть варианты (размер/цвет). Клиент сам выберет нужный размер на странице оформления заказа."
               >
                 📏 размер выбирает клиент
               </span>
+            </div>
+            <div v-if="gift.variant_ids?.length" class="text-sm text-gray-700">
+              {{ gift.variant_ids.length === 1 ? 'Только' : 'Клиент выбирает из' }}: {{ labelsFor(gift.variant_ids) }}
+            </div>
+            <div v-else-if="giftProductsData[index]?.has_variants" class="text-sm text-gray-500">
+              Все варианты
             </div>
             <span class="text-sm text-gray-500"
               >ID: {{ gift.product_id }}, Количество: {{ gift.quantity }}</span
@@ -103,7 +115,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import type { SelectedVariantsMap, PickedPromotionProduct } from "@/components/discount/Promotion/product_picker/types";
 import DynamicForm from "@/components/dynamics/DynamicForm.vue";
 import { Promotion } from "@/models/Promotion";
 import Loader from "@/components/common/Loader.vue";
@@ -132,8 +145,24 @@ const formFields = ref<any[]>([]);
 
 const selectedTriggerProducts = ref<number[]>([]);
 const selectedTriggerProductsData = ref<any[]>([]);
-const giftProducts = ref<{ product_id: number; quantity: number }[]>([]);
+const giftProducts = ref<{ product_id: number; quantity: number; variant_ids?: number[] | null }[]>([]);
 const giftProductsData = ref<any[]>([]);
+// Отмеченные варианты триггеров (нет записи — все варианты) и подписи вариантов по ID.
+const triggerVariants = ref<Record<number, number[]>>({});
+const variantLabels = ref<Record<number, string>>({});
+
+const triggerSelection = computed<SelectedVariantsMap>(() =>
+  Object.fromEntries(selectedTriggerProducts.value.map((id) => [id, triggerVariants.value[id] ?? null])),
+);
+const giftSelection = computed<SelectedVariantsMap>(() =>
+  Object.fromEntries(giftProducts.value.map((g) => [g.product_id, g.variant_ids?.length ? g.variant_ids : null])),
+);
+
+const labelsFor = (ids: number[]) => ids.map((id) => variantLabels.value[id] ?? `вариант #${id}`).join(", ");
+
+/** Повторное добавление товара: «целиком» снимает ограничение, варианты складываются. */
+const mergeVariants = (current: number[], added: number[] | null): number[] | null =>
+  added ? [...new Set([...current, ...added])] : null;
 
 const { getProductsList } = usePromotionFunctions();
 
@@ -141,6 +170,8 @@ onMounted(async () => {
   // Initialize from formData
   selectedTriggerProducts.value = props.formData.triggerProductIds || [];
   giftProducts.value = props.formData.giftProductsData || [];
+  triggerVariants.value = { ...props.formData.triggerVariants };
+  variantLabels.value = { ...props.formData.variantLabels };
 
   // Заполняем данные товаров для отображения при редактировании
   if (props.formData.triggerProducts && props.formData.triggerProducts.length > 0) {
@@ -148,6 +179,7 @@ onMounted(async () => {
       id: p.id,
       name: p.name,
       price: p.price,
+      has_variants: !!p.has_variants,
     }));
   }
 
@@ -209,15 +241,25 @@ const handleSubmit = () => {
   emit("validationErrors", []);
   
   props.formData.triggerProductIds = selectedTriggerProducts.value;
+  props.formData.triggerVariants = triggerVariants.value;
+  props.formData.variantLabels = variantLabels.value;
   props.formData.giftProductsData = giftProducts.value;
   emit("submitForm");
 };
 
-const handleAddTriggerProduct = (product: any) => {
+const handleAddTriggerProduct = ({ product, variantIds, labels }: PickedPromotionProduct) => {
+  Object.assign(variantLabels.value, labels);
+
   if (!selectedTriggerProducts.value.includes(product.id)) {
     selectedTriggerProducts.value.push(product.id);
     selectedTriggerProductsData.value.push(product);
+    if (variantIds) triggerVariants.value[product.id] = variantIds;
+    return;
   }
+
+  const merged = mergeVariants(triggerVariants.value[product.id] ?? [], variantIds);
+  if (merged) triggerVariants.value[product.id] = merged;
+  else delete triggerVariants.value[product.id];
 };
 
 const removeTriggerProduct = (productId: number) => {
@@ -227,19 +269,25 @@ const removeTriggerProduct = (productId: number) => {
   selectedTriggerProductsData.value = selectedTriggerProductsData.value.filter(
     (p) => p.id !== productId,
   );
+  delete triggerVariants.value[productId];
 };
 
-const handleAddGiftProduct = (data: { product: any; quantity: number }) => {
-  const exists = giftProducts.value.find(
-    (g) => g.product_id === data.product.id,
-  );
-  if (!exists) {
+const handleAddGiftProduct = ({ product, variantIds, labels, quantity }: PickedPromotionProduct) => {
+  Object.assign(variantLabels.value, labels);
+
+  const existing = giftProducts.value.find((g) => g.product_id === product.id);
+  if (!existing) {
     giftProducts.value.push({
-      product_id: data.product.id,
-      quantity: data.quantity,
+      product_id: product.id,
+      quantity: quantity || 1,
+      variant_ids: variantIds,
     });
-    giftProductsData.value.push(data.product);
+    giftProductsData.value.push(product);
+    return;
   }
+
+  existing.variant_ids = mergeVariants(existing.variant_ids ?? [], variantIds);
+  if (quantity) existing.quantity = quantity;
 };
 
 const removeGiftProduct = (index: number) => {

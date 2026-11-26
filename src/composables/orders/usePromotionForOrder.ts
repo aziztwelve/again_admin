@@ -66,6 +66,7 @@ export interface ApplicablePromotion {
 
 export interface CartItemForCheck {
   product_id: number;
+  product_variant_id?: number | null;
   quantity: number;
   price: number;
 }

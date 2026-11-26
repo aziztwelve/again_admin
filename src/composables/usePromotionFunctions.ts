@@ -16,7 +16,8 @@ interface PromotionFormData {
   priority?: number;
   max_uses?: number | null;
   trigger_product_ids?: number[];
-  gift_products?: { product_id: number; quantity: number }[];
+  trigger_variants?: Record<number, number[]>;
+  gift_products?: { product_id: number; quantity: number; variant_ids?: number[] | null }[];
 }
 
 export function usePromotionFunctions() {

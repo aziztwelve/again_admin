@@ -1,5 +1,6 @@
 import { Product } from "@/models/Product";
 import { PromoSegment, parsePromoSegments } from "@/models/PromoSegment";
+import { variantLabel } from "@/components/discount/Promotion/product_picker/types";
 
 export class Promotion {
   id: number | undefined;
@@ -21,7 +22,11 @@ export class Promotion {
   giftProducts: { product: Product; quantity: number }[] | null | undefined;
 
   triggerProductIds: number[];
-  giftProductsData: { product_id: number; quantity: number }[];
+  giftProductsData: { product_id: number; quantity: number; variant_ids?: number[] | null }[];
+  /** Выбранные варианты триггеров: product_id → ID вариантов (нет записи — все). */
+  triggerVariants: Record<number, number[]>;
+  /** Подписи выбранных вариантов по их ID («100 мл», «S · Чёрный»). */
+  variantLabels: Record<number, string>;
 
   /** Сегменты клиентов, к которым привязана акция (пусто — доступна всем). */
   segments: PromoSegment[];
@@ -46,6 +51,8 @@ export class Promotion {
     this.giftProducts = null;
     this.triggerProductIds = [];
     this.giftProductsData = [];
+    this.triggerVariants = {};
+    this.variantLabels = {};
     this.segments = [];
   }
 
@@ -103,8 +110,20 @@ export class Promotion {
       ? json.gift_products.map((item: any) => ({
           product_id: item.id || item.product_id,
           quantity: item.pivot?.quantity || item.quantity || 1,
+          variant_ids: item.pivot?.variant_ids ?? item.variant_ids ?? null,
         }))
       : [];
+
+    (json.trigger_products ?? []).forEach((item: any) => {
+      const ids = item.pivot?.variant_ids;
+      if (ids?.length) promotion.triggerVariants[item.id || item.product_id] = ids;
+    });
+    [...(json.trigger_products ?? []), ...(json.gift_products ?? [])].forEach((item: any) => {
+      (item.selected_variants ?? []).forEach((v: any) => {
+        promotion.variantLabels[v.id] = variantLabel(v);
+      });
+    });
+
     promotion.giftProducts = json.gift_products
       ? json.gift_products.map((item: any) => {
           // API returns products directly in the array, not nested under 'product'
@@ -132,6 +151,7 @@ export class Promotion {
       priority: this.priority ?? 10,
       max_uses: this.maxUses ?? null,
       trigger_product_ids: this.triggerProductIds ?? [],
+      trigger_variants: this.triggerVariants ?? {},
       gift_products: this.giftProductsData ?? [],
     };
   }
@@ -161,6 +181,9 @@ export class Promotion {
     cloned.giftProductsData = this.giftProductsData
       ? JSON.parse(JSON.stringify(this.giftProductsData))
       : [];
+
+    cloned.triggerVariants = JSON.parse(JSON.stringify(this.triggerVariants ?? {}));
+    cloned.variantLabels = { ...this.variantLabels };
 
     cloned.triggerProducts = this.triggerProducts
       ? this.triggerProducts.map((p) => p.clone())
