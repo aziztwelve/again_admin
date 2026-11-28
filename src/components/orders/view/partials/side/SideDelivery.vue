@@ -32,6 +32,25 @@
       </div>
     </dl>
 
+    <div v-if="pochta" class="mt-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm">
+      <div class="font-medium text-blue-900">Почта России</div>
+      <dl class="mt-2 space-y-2 text-blue-950">
+        <div v-if="pochta.tariff_name">
+          <dt class="text-xs uppercase text-blue-700">Вид отправления</dt>
+          <dd>{{ pochta.tariff_name }}<span v-if="pochta.period?.max">, до {{ pochta.period.max }} дн.</span></dd>
+        </div>
+        <div v-if="pochta.pvz?.address">
+          <dt class="text-xs uppercase text-blue-700">Отделение</dt>
+          <dd>{{ pochta.pvz.address }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase text-blue-700">Индекс</dt>
+          <dd v-if="pochtaIndex">{{ pochtaIndex }}</dd>
+          <dd v-else-if="!isPochtaInternational" class="text-red-700">Не указан. Впишите его: «Изменить» → «Почтовый индекс».</dd>
+          <dd v-else>—</dd>
+        </div>
+      </dl>
+    </div>
     <div v-if="isYandexDelivery" class="mt-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm">
       <div class="font-medium text-yellow-900">Яндекс.Доставка</div>
       <div class="mt-1 text-yellow-800">
@@ -241,6 +260,11 @@ const deliveryMethodOptions = ref([]);
 const addressObj = computed(() => props.order?.delivery_address || null);
 const isYandexDelivery = computed(() => String(props.order?.delivery_method?.code || props.order?.deliveryMethod?.code || '').startsWith('yandex_'));
 const yandexOrder = computed(() => props.order?.yandex_order || props.order?.yandexOrder || null);
+
+// Данные доставки Почты России из заказа (тариф, отделение, индекс).
+const pochta = computed(() => (props.order?.delivery_data?.provider === 'pochta' ? props.order.delivery_data : null));
+const pochtaIndex = computed(() => addressObj.value?.postal_code || pochta.value?.destination?.index || null);
+const isPochtaInternational = computed(() => String(pochta.value?.delivery_type || '').startsWith('international'));
 const yandexLoading = ref(false);
 
 const yandexStatusLabel = (status) => ({
