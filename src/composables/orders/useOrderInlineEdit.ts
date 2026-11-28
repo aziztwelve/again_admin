@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { useOrderFunctions } from "@/composables/useOrderFunctions";
+import { recipientNames } from "@/composables/orders/recipientNames";
 
 /**
  * Composable для inline-редактирования заказа на странице просмотра.
@@ -100,18 +101,7 @@ export function useOrderInlineEdit() {
         phone: profile.phone || client.phone || "",
       },
       recipient: {
-        first_name:
-          orderAddress.recipient_first_name ||
-          profile.first_name ||
-          client.first_name ||
-          "",
-        last_name:
-          orderAddress.recipient_last_name ||
-          profile.last_name ||
-          client.last_name ||
-          "",
-        middle_name:
-          orderAddress.recipient_middle_name || profile.middle_name || "",
+        ...recipientNames(orderAddress, client),
         phone:
           orderAddress.recipient_phone || profile.phone || client.phone || "",
       },

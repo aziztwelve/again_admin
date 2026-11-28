@@ -228,6 +228,7 @@
 </template>
 
 <script setup>
+import { recipientNames } from "@/composables/orders/recipientNames";
 import { ref, computed, onMounted, watch } from "vue";
 import axios from "axios";
 import { MapPin, Pencil } from "lucide-vue-next";
@@ -529,11 +530,7 @@ const openEdit = () => {
   const client = props.order?.client || {};
   const profile = client?.profile || {};
   draftRecipient.value = {
-    first_name:
-      a.recipient_first_name || profile.first_name || client.first_name || "",
-    last_name:
-      a.recipient_last_name || profile.last_name || client.last_name || "",
-    middle_name: a.recipient_middle_name || profile.middle_name || "",
+    ...recipientNames(a, client),
     phone: a.recipient_phone || profile.phone || client.phone || "",
   };
 
